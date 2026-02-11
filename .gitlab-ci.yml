@@ -1,0 +1,16 @@
+stages:
+  - sonarqube
+
+sonarqube:
+  stage: sonarqube
+  image: sonarsource/sonar-scanner-cli:latest
+  variables:
+    SONAR_USER_HOME: "$CI_PROJECT_DIR/.sonar"
+  script:
+    - sonar-scanner \
+        -Dsonar.organization=boundless \
+        -Dsonar.projectKey=boundless_boundless-fe \
+        -Dsonar.host.url=https://sonarcloud.io
+  only:
+    - main
+    - merge_requests
