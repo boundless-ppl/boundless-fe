@@ -4,7 +4,21 @@ import * as amplitude from '@amplitude/unified';
 
 function initAmplitude() {
   if (typeof window !== 'undefined') {
-    amplitude.initAll('a0b60c3d204b818f3db70cb40ae76136', {"analytics":{"autocapture":true},"sessionReplay":{"sampleRate":1}});
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    if (isDev) {
+      console.log('[Amplitude] Disabled in development mode');
+      return;
+    }
+    
+    amplitude.initAll(process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY!, {
+      analytics: {
+        autocapture: true,
+      },
+      sessionReplay: {
+        sampleRate: 1,
+      },
+    });
   }
 }
 
