@@ -42,3 +42,16 @@ export const featureSteps = [
     illustration: "/CASH_OUT_ILLUST.png"
   }
 ];
+
+export const PRICES = [
+  {
+    name: "Basic",
+    price: "$19/month",
+    features: [
+      "Access to basic scholarship matches",
+      "Standard preparation roadmap",
+      "Limited cultural fit insights",
+      "Email support"
+    ] 
+  },
+]
