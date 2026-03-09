@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
+import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/lib/auth-context";
-import AnimatedTooltip from "@/components/Bonbon";
 import { Amplitude } from "@/lib/amplitude";
 
-const fontSans = Plus_Jakarta_Sans({
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+
+const fontSans = Geist({
   subsets: ['latin'],
   variable: '--font-plus-jakarta-sans',
 });
@@ -26,16 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", inter.variable)}>
       <Amplitude />
       <body
         className={`${fontSans.variable} font-sans antialiased`}
       >
-        <AuthProvider>
-          <Navbar className="sticky top-0 z-50" />
-          {children}
-          <AnimatedTooltip />
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

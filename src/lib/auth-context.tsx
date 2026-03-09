@@ -1,101 +1,185 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { jwtDecode } from "jwt-decode"
-import Cookies from "js-cookie"
+import { createContext, useContext, useState, type ReactNode } from "react"
 
-interface DecodedToken {
-  exp: number;
-  user_id: string;
-  email: string;
+import { loginRequest, logoutRequest, registerRequest } from "@/lib/services/auth.service"
+
+export type UserData = {
+  userId: string
+  nama_lengkap: string
+  email: string
+  role: string
 }
 
-interface AuthContextType {
-  isLoggedIn: boolean
-  isLoading: boolean
-  user: DecodedToken | null
-  logout: () => void
-  login: (token: string) => void
+export type AuthTokens = {
+  accessToken: string
+  refreshToken: string
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+type LoginPayload = {
+  email: string
+  password: string
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<DecodedToken | null>(null)
-  const router = useRouter()
+type RegisterPayload = {
+  nama_lengkap: string
+  email: string
+  password: string
+}
 
-  useEffect(() => {
-    const checkAuthStatus = () => {
-      try {
-        const token = Cookies.get('authToken');
-        
-        if (!token) {
-          setIsLoggedIn(false);
-          setUser(null);
-          return;
-        }
+const ACCESS_TOKEN_COOKIE = "boundless_access_token"
+const REFRESH_TOKEN_COOKIE = "boundless_refresh_token"
+const USER_COOKIE = "boundless_user"
+const COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60
 
-        const decoded = jwtDecode<DecodedToken>(token);
-        
-        if (Date.now() >= decoded.exp * 1000) {
-          logout(); // Token is expired, so log out
-        } else {
-          setIsLoggedIn(true);
-          setUser(decoded);
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        logout(); // If any error occurs, treat as logged out
-      } finally {
-        if (isLoading) {
-          setIsLoading(false);
-        }
-      }
-    };
+function getCookieValue(name: string) {
+  if (typeof document === "undefined") {
+    return null
+  }
 
-    checkAuthStatus();
-    const interval = setInterval(checkAuthStatus, 60000);
-    return () => clearInterval(interval);
-  }, [isLoading]);
+  const cookies = document.cookie ? document.cookie.split("; ") : []
+  const hit = cookies.find((entry) => entry.startsWith(`${name}=`))
+  if (!hit) {
+    return null
+  }
 
-  const logout = () => {
-    Cookies.remove('authToken', { path: '/' });
-    setIsLoggedIn(false);
-    setUser(null);
-    router.push('/');
-  };
+  return decodeURIComponent(hit.substring(name.length + 1))
+}
 
-  const login = (token: string) => {
-    try {
-      const decoded = jwtDecode<DecodedToken>(token);
-      Cookies.set('authToken', token, { 
-        path: '/',
-        expires: new Date(decoded.exp * 1000) 
-      });
-      setIsLoggedIn(true);
-      setUser(decoded);
-    } catch (error) {
-      console.error("Failed to decode token on login:", error);
+function setCookie(name: string, value: string, maxAge = COOKIE_MAX_AGE_SECONDS) {
+  if (typeof document === "undefined") {
+    return
+  }
+
+  const secureSuffix = window.location.protocol === "https:" ? "; Secure" : ""
+  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureSuffix}`
+}
+
+function deleteCookie(name: string) {
+  if (typeof document === "undefined") {
+    return
+  }
+
+  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`
+}
+
+function saveAuthToCookies(tokens: AuthTokens, user: UserData) {
+  setCookie(ACCESS_TOKEN_COOKIE, tokens.accessToken)
+  setCookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken)
+  setCookie(USER_COOKIE, JSON.stringify(user))
+}
+
+function clearAuthCookies() {
+  deleteCookie(ACCESS_TOKEN_COOKIE)
+  deleteCookie(REFRESH_TOKEN_COOKIE)
+  deleteCookie(USER_COOKIE)
+}
+
+function readAuthFromCookies() {
+  const accessToken = getCookieValue(ACCESS_TOKEN_COOKIE)
+  const refreshToken = getCookieValue(REFRESH_TOKEN_COOKIE)
+  const serializedUser = getCookieValue(USER_COOKIE)
+
+  if (!accessToken || !refreshToken || !serializedUser) {
+    return null
+  }
+
+  try {
+    const user = JSON.parse(serializedUser) as UserData
+
+    return {
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+      user,
     }
-  };
+  } catch {
+    return null
+  }
+}
 
-  const value = { isLoggedIn, isLoading, user, logout, login };
+type AuthContextValue = {
+  user: UserData | null
+  tokens: AuthTokens | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  login: (payload: LoginPayload) => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
+  logout: () => Promise<void>
+  setUserData: (nextUser: UserData) => void
+}
 
-  return (
-    <AuthContext.Provider value={value}>
-      {/* Don't render children until the initial auth check is done */}
-      {!isLoading && children}
-    </AuthContext.Provider>
-  )
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [bootstrappedAuth] = useState(() => readAuthFromCookies())
+  const [user, setUser] = useState<UserData | null>(bootstrappedAuth?.user ?? null)
+  const [tokens, setTokens] = useState<AuthTokens | null>(bootstrappedAuth?.tokens ?? null)
+  const isLoading = false
+
+  const updateAuthState = (nextTokens: AuthTokens, partialUser: Partial<UserData>) => {
+    const hydratedUser: UserData = {
+      userId: partialUser.userId ?? user?.userId ?? "",
+      nama_lengkap: partialUser.nama_lengkap ?? user?.nama_lengkap ?? "",
+      email: partialUser.email ?? user?.email ?? "",
+      role: partialUser.role ?? user?.role ?? "student",
+    }
+
+    setTokens(nextTokens)
+    setUser(hydratedUser)
+    saveAuthToCookies(nextTokens, hydratedUser)
+  }
+
+  const login = async (payload: LoginPayload) => {
+    const response = await loginRequest(payload)
+    updateAuthState(response.tokens, response.user)
+  }
+
+  const register = async (payload: RegisterPayload) => {
+    await registerRequest(payload)
+  }
+
+  const logout = async () => {
+    if (tokens?.accessToken) {
+      try {
+        await logoutRequest(tokens.accessToken)
+      } catch {
+        // Client should still clear state even if backend logout fails.
+      }
+    }
+
+    setUser(null)
+    setTokens(null)
+    clearAuthCookies()
+  }
+
+  const setUserData = (nextUser: UserData) => {
+    setUser(nextUser)
+    if (tokens) {
+      saveAuthToCookies(tokens, nextUser)
+    }
+  }
+
+  const value: AuthContextValue = {
+    user,
+    tokens,
+    isAuthenticated: !!tokens?.accessToken,
+    isLoading,
+    login,
+    register,
+    logout,
+    setUserData,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider")
   }
+
   return context
 }
