@@ -10,6 +10,7 @@ type LoginRequestPayload = {
 type RegisterRequestPayload = {
   nama_lengkap: string
   email: string
+  role: string
   password: string
 }
 
@@ -37,6 +38,8 @@ async function postAuth(endpoint: string, body: Record<string, unknown>) {
     body: JSON.stringify(body),
   })
 
+  console.log(response)
+
   const contentType = response.headers.get("content-type") ?? ""
   const payload = contentType.includes("application/json") ? await response.json() : null
 
@@ -55,6 +58,7 @@ export async function registerRequest(payload: RegisterRequestPayload) {
   await postAuth("/auth/register", {
     nama_lengkap: payload.nama_lengkap,
     email: payload.email,
+    role: "user",
     password: payload.password,
   })
 }
@@ -65,7 +69,9 @@ export async function loginRequest(payload: LoginRequestPayload) {
     password: payload.password,
   })
 
-  const accessToken = toText(result.access_token) || toText(result.accessToken)
+  console.log(result)
+
+  const accessToken = toText(result.access_token) || toText(result.accessToken) || toText(result.AccessToken)
   const refreshToken = toText(result.refresh_token) || toText(result.refreshToken)
 
   if (!accessToken || !refreshToken) throw new Error("Invalid auth response from server")
@@ -85,4 +91,19 @@ export async function logoutRequest(accessToken: string) {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}` },
   })
+}
+
+export function getAuthToken(): { accessToken: string; refreshToken: string } | null {
+  if (typeof window === "undefined") return null
+
+  try {
+    const accessToken = localStorage.getItem("accessToken")
+    const refreshToken = localStorage.getItem("refreshToken")
+
+    if (!accessToken || !refreshToken) return null
+
+    return { accessToken, refreshToken }
+  } catch {
+    return null
+  }
 }

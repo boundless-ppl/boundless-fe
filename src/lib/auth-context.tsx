@@ -25,6 +25,7 @@ type RegisterPayload = {
   nama_lengkap: string
   email: string
   password: string
+  role: string
 }
 
 const ACCESS_TOKEN_COOKIE = "boundless_access_token"
@@ -133,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (payload: LoginPayload) => {
     const response = await loginRequest(payload)
+    console.log(response)
     updateAuthState(response.tokens, response.user)
   }
 

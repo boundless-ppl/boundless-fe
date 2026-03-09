@@ -10,6 +10,7 @@ import type {
   RecommendationFormData,
   ApiErrorResponse,
 } from "@/lib/api-types";
+import { getAuthToken } from "@/lib/services/auth.service";
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -102,16 +103,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
 
   return response.json();
-}
-
-/**
- * Get auth token from storage (implement based on your auth system)
- * For now, this is a placeholder
- */
-function getAuthToken(): string | null {
-  // TODO: Implement based on your auth system
-  // Example: return localStorage.getItem('access_token');
-  return null;
 }
 
 /**
