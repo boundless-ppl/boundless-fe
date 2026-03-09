@@ -9,7 +9,7 @@ export const HomePageModule = () => {
     <div>
       <GetStartedSection />
       <ProductValuesSection />
-      <UserProcedureSection />
+      {/* <UserProcedureSection /> */}
       <PricingTableSection />
     </div>
   )

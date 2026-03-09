@@ -2,6 +2,10 @@ import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
 
 export type FeatureStatus = 'in-development' | 'coming-soon' | 'live';
 
+export const FEATURE_FLAGS = {
+  SHOW_PRICING: false,
+};
+
 export const FEATURES = [
     {
       title: "Scholarship Hub",
@@ -65,16 +69,22 @@ export const FEATURES_NEW = [
     icon: "🤖",
     title: "Unlimited GlobalMatch AI Access",
     description: "Get unlimited AI-powered university matching and recommendations tailored to your profile.",
+    status: "live" as FeatureStatus,
+    featureKey: "globalmatch-ai"
   },
   {
     icon: "📋",
     title: "Document Verification Dashboard",
     description: "Upload and verify all your important documents in one secure place.",
+    status: "coming-soon" as FeatureStatus,
+    featureKey: "dreamtracker"
   },
   {
     icon: "⚡",
     title: "Bulk University Form Filler",
     description: "Fill out application forms for multiple universities at once. Save hours of work.",
+    status: "coming-soon" as FeatureStatus,
+    featureKey: "auto-fill"
   },
 ];
 
