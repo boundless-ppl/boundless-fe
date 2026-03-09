@@ -1,4 +1,4 @@
-import { GlobalmatchPageModule } from '@/modules/GlobamatchPageModule';
+import { GlobalmatchPageModule } from '@/modules/GlobalmatchPageModule';
 
 const GlobalmatchPage = () => {
   return <GlobalmatchPageModule />;
