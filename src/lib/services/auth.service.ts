@@ -93,12 +93,22 @@ export async function logoutRequest(accessToken: string) {
   })
 }
 
+function getCookieValue(name: string): string | null {
+  if (typeof document === "undefined") return null
+
+  const cookies = document.cookie ? document.cookie.split("; ") : []
+  const hit = cookies.find((entry) => entry.startsWith(`${name}=`))
+  if (!hit) return null
+
+  return decodeURIComponent(hit.substring(name.length + 1))
+}
+
 export function getAuthToken(): { accessToken: string; refreshToken: string } | null {
   if (typeof window === "undefined") return null
 
   try {
-    const accessToken = localStorage.getItem("accessToken")
-    const refreshToken = localStorage.getItem("refreshToken")
+    const accessToken = getCookieValue("boundless_access_token")
+    const refreshToken = getCookieValue("boundless_refresh_token")
 
     if (!accessToken || !refreshToken) return null
 

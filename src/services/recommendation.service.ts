@@ -111,11 +111,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export async function submitProfileRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
-  const token = getAuthToken();
+  const tokens = getAuthToken();
   const headers: HeadersInit = {};
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (tokens?.accessToken) {
+    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
   }
 
   const formData = buildRecommendationFormData(data);
@@ -135,11 +135,11 @@ export async function submitProfileRecommendation(
 export async function submitTranscriptRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
-  const token = getAuthToken();
+  const tokens = getAuthToken();
   const headers: HeadersInit = {};
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (tokens?.accessToken) {
+    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
   }
 
   const formData = buildRecommendationFormData(data);
@@ -159,11 +159,11 @@ export async function submitTranscriptRecommendation(
 export async function submitCVRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
-  const token = getAuthToken();
+  const tokens = getAuthToken();
   const headers: HeadersInit = {};
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (tokens?.accessToken) {
+    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
   }
 
   const formData = buildRecommendationFormData(data);
@@ -183,11 +183,11 @@ export async function submitCVRecommendation(
 export async function getSubmissionDetails(
   submissionId: string
 ): Promise<SubmissionDetails> {
-  const token = getAuthToken();
+  const tokens = getAuthToken();
   const headers: HeadersInit = {};
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (tokens?.accessToken) {
+    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
   }
 
   const response = await fetch(
