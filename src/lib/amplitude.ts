@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import * as amplitude from '@amplitude/unified';
 
-function initAmplitude() {
-  if (typeof window !== 'undefined') {
+export const Amplitude = () => {
+  useEffect(() => {
     const isDev = process.env.NODE_ENV === 'development';
     
     if (isDev) {
@@ -11,7 +12,14 @@ function initAmplitude() {
       return;
     }
     
-    amplitude.initAll(process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY!, {
+    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('[Amplitude] API key not found');
+      return;
+    }
+    
+    amplitude.initAll(apiKey, {
       analytics: {
         autocapture: true,
       },
@@ -19,10 +27,11 @@ function initAmplitude() {
         sampleRate: 1,
       },
     });
-  }
-}
+    
+    console.log('[Amplitude] Initialized');
+  }, []);
+  
+  return null;
+};
 
-initAmplitude();
-
-export const Amplitude = () => null;
 export default amplitude;

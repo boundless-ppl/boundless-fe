@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { AuthProvider } from "@/lib/auth-context";
 import AnimatedTooltip from "@/components/Bonbon";
+import { Amplitude } from "@/lib/amplitude";
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -26,6 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Amplitude />
       <body
         className={`${fontSans.variable} font-sans antialiased`}
       >

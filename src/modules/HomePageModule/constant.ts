@@ -1,76 +1,90 @@
+import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
+
+export type FeatureStatus = 'in-development' | 'coming-soon' | 'live';
+
+export const FEATURE_FLAGS = {
+  SHOW_PRICING: false,
+};
+
 export const FEATURES = [
     {
-      title: "Scholarship & Funding Matcher",
-      description: "Get matched with scholarships based on your background and goals.",
-      image: "/card.png"
+      title: "Scholarship Hub",
+      description: "View, filter, and access a complete list of Master's degree scholarships from a single, trustworthy source.",
+      icon: GraduationCap
     },
     {
-      title: "Step-by-Step Preparation Roadmap", 
-      description: "Know exactly what to do, from research to money management.",
-      image: "/card2.png"
+      title: "Globalmatch AI", 
+      description: "Get AI-powered personalized recommendations of universities and topics tailored to your academic profile.",
+      icon: Sparkles
     },
     {
-      title: "Cultural & Religious Fit Finder",
-      description: "Discover universities that support your values, needs, and lifestyle.",
-      image: "/card3.png"
+      title: "Dreamtracker",
+      description: "Track all your scholarship applications, deadlines, and progress in one organized dashboard.",
+      icon: Target
+    },
+    {
+      title: "Auto-Fill",
+      description: "Save time by automatically populating application forms with your stored profile data.",
+      icon: Zap
     }
   ];
 
-export const featureSteps = [
+export const FEATURE_STEPS = [
   {
-    title: "Generate QR Code",
-    description: "Merchants create payment QR codes instantly with custom amounts and preferred currencies.",
-    bgColor: "bg-blue-500",
-    illustration: "/GENERATE_QR_ILLUST.png"
+    title: "Scholarship Hub",
+    description: "View, filter, and access a complete list of Master's degree scholarships from a single, trustworthy source. Say goodbye to 50 open tabs.",
+    bgColor: "bg-blue-600",
+    accentColor: "border-blue-500",
+    illustration: "/SCHOLARSHIP_HUB.jpg",
+    status: "coming-soon" as FeatureStatus
   },
   {
-    title: "Customer Scans & Pays",
-    description: "Customers scan the QR code and choose to pay with crypto or fiat through their preferred wallet.",
-    bgColor: "bg-green-500",
-    illustration: "/SCAN_PAY_ILLUST.png"
+    title: "Globalmatch AI",
+    description: "Upload your CV and academic records to get AI-powered personalized recommendations of universities and topics tailored to your profile.",
+    bgColor: "bg-violet-600",
+    accentColor: "border-violet-500",
+    illustration: "/SCHOLARSHIP_MATCHER.jpg",
+    status: "live" as FeatureStatus
   },
   {
-    title: "Instant Settlement",
-    description: "Payments are processed immediately with real-time confirmation and automatic currency conversion.",
-    bgColor: "bg-purple-500",
-    illustration: "/SETTLEMENT_ILLUST.png"
+    title: "Dreamtracker",
+    description: "Track all your scholarship applications, deadlines, and progress in one organized dashboard. Never miss a deadline again.",
+    bgColor: "bg-emerald-600",
+    accentColor: "border-emerald-500",
+    illustration: "/DREAMTRACKER.jpg",
+    status: "coming-soon" as FeatureStatus
   },
   {
-    title: "Easy Cash Out",
-    description: "Merchants can withdraw earnings to their bank account or keep them as cryptocurrency.",
-    bgColor: "bg-orange-500",
-    illustration: "/CASH_OUT_ILLUST.png"
+    title: "Auto-Fill",
+    description: "Save time by automatically populating application forms with your stored profile data. Apply to multiple scholarships faster.",
+    bgColor: "bg-orange-600",
+    accentColor: "border-orange-500",
+    illustration: "/BONBON_AI.jpg",
+    status: "coming-soon" as FeatureStatus
   }
 ];
-
-export const PRICES = [
-  {
-    name: "Basic",
-    price: "$19/month",
-    features: [
-      "Access to basic scholarship matches",
-      "Standard preparation roadmap",
-      "Limited cultural fit insights",
-      "Email support"
-    ] 
-  },
-]
 
 export const FEATURES_NEW = [
   {
     icon: "🤖",
     title: "Unlimited GlobalMatch AI Access",
     description: "Get unlimited AI-powered university matching and recommendations tailored to your profile.",
+    status: "live" as FeatureStatus,
+    featureKey: "globalmatch-ai"
   },
   {
     icon: "📋",
     title: "Document Verification Dashboard",
     description: "Upload and verify all your important documents in one secure place.",
+    status: "coming-soon" as FeatureStatus,
+    featureKey: "dreamtracker"
   },
   {
     icon: "⚡",
     title: "Bulk University Form Filler",
     description: "Fill out application forms for multiple universities at once. Save hours of work.",
+    status: "coming-soon" as FeatureStatus,
+    featureKey: "auto-fill"
   },
 ];
 
@@ -95,7 +109,7 @@ export const PRICING_PLANS = [
     price: "Rp 199.000",
     subtext: "per 3 bulan · Rp 66.333/bulan",
     buttonText: "Mulai Sekarang",
-    highlight: true, // Untuk kartu "Populer"
+    highlight: true,
     badge: "Populer",
     discount: "Hemat 16%",
     checkColor: "#FA8613",
