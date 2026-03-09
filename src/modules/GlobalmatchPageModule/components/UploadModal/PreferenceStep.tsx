@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Pill } from "@/components/ui/pill";
+import { PreferenceData } from "./types";
 import { 
   REGIONS, 
   COUNTRIES, 
@@ -11,25 +13,12 @@ import {
   START_PERIODS 
 } from "../../constant";
 
-export interface PreferenceData {
-  regions: string[];
-  countries: string[];
-  fields: string[];
-  educationLevel: string;
-  languages: string[];
-  budget: string;
-  scholarships: string[];
-  startPeriod: string;
-  additional: string;
-}
-
 interface PreferenceStepProps {
   onBack: () => void;
   onSubmit: (data: PreferenceData) => void;
 }
 
 export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
-  // States
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
@@ -40,27 +29,11 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
   const [startPeriod, setStartPeriod] = useState<string>("");
   const [additionalPreferences, setAdditionalPreferences] = useState<string>("");
 
-  // Helper untuk toggle multi-select (Pills)
   const toggleMulti = (item: string, state: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) => {
     state.includes(item) 
       ? setState(state.filter(i => i !== item)) 
       : setState([...state, item]);
   };
-
-  // Reusable Pill Component
-  const Pill = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-4 py-2 rounded-lg border transition-all font-medium text-[13px] ${
-        active
-          ? "bg-[#fff0e0] border-[#fa8613] text-[#fa8613]"
-          : "bg-white border-[#e8e8e8] text-[#2b2b2b] hover:border-[#fa8613]"
-      }`}
-    >
-      {label}
-    </button>
-  );
 
   const handleFormSubmit = () => {
     onSubmit({

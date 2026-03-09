@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { Upload, FileText, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogDescription } from "@/components/ui/dialog";
-
-interface FileData {
-  name: string;
-  size: string;
-}
+import { FileData } from "./types";
 
 interface DocumentStepProps {
   onNext: (cv: FileData, transcript: FileData) => void;
