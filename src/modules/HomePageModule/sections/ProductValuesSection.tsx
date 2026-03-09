@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { FEATURES } from "../constant";
+import { ProductValueCard } from "../components/ProductValueCard";
 
 export const ProductValuesSection = () => {
   return (
@@ -22,23 +23,12 @@ export const ProductValuesSection = () => {
 
         <div className="w-auto flex flex-row gap-8 justify-center">
           {FEATURES.map((feature, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div className="relative">
-                <Image
-                  src={feature.image}
-                  alt={feature.title}
-                  width={300}
-                  height={200}
-                  className="mb-6"
-                />
-                <div className="absolute inset-0 flex flex-col justify-center items-center -mt-4 text-center p-4">
-                  <h3 className="text-xl font-bold text-white mb-3 text-start">
-                    {feature.title}
-                  </h3>
-                  <p className="text-white/90 text-sm text-start">{feature.description}</p>
-                </div>
-              </div>
-            </div>
+            <ProductValueCard
+              key={index}
+              title={feature.title}
+              description={feature.description}
+              icon={feature.icon}
+            />
           ))}
         </div>
       </div>

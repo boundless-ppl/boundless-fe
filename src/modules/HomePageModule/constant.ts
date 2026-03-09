@@ -1,18 +1,25 @@
+import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
+
 export const FEATURES = [
     {
-      title: "Scholarship & Funding Matcher",
-      description: "Get matched with scholarships based on your background and goals.",
-      image: "/card.png"
+      title: "Scholarship Hub",
+      description: "View, filter, and access a complete list of Master's degree scholarships from a single, trustworthy source.",
+      icon: GraduationCap
     },
     {
-      title: "Step-by-Step Preparation Roadmap", 
-      description: "Know exactly what to do, from research to money management.",
-      image: "/card2.png"
+      title: "Globalmatch AI", 
+      description: "Get AI-powered personalized recommendations of universities and topics tailored to your academic profile.",
+      icon: Sparkles
     },
     {
-      title: "Cultural & Religious Fit Finder",
-      description: "Discover universities that support your values, needs, and lifestyle.",
-      image: "/card3.png"
+      title: "Dreamtracker",
+      description: "Track all your scholarship applications, deadlines, and progress in one organized dashboard.",
+      icon: Target
+    },
+    {
+      title: "Auto-Fill",
+      description: "Save time by automatically populating application forms with your stored profile data.",
+      icon: Zap
     }
   ];
 
