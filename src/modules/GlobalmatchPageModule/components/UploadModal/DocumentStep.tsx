@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Upload, FileText, Check, X } from "lucide-react";
+import { Upload, FileText, Check, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogDescription } from "@/components/ui/dialog";
+import { validateDocumentFile, FILE_VALIDATION } from "@/lib/file-validation";
 import { FileData } from "./types";
 
 interface DocumentStepProps {
@@ -11,16 +12,42 @@ interface DocumentStepProps {
 export function DocumentStep({ onNext }: DocumentStepProps) {
   const [cvFile, setCvFile] = useState<FileData | null>(null);
   const [tsFile, setTsFile] = useState<FileData | null>(null);
+  const [cvError, setCvError] = useState<string | null>(null);
+  const [tsError, setTsError] = useState<string | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: "cv" | "ts") => {
     const file = event.target.files?.[0];
+    
     if (file) {
-      const uploaded: FileData = { 
-        name: file.name, 
-        size: (file.size / 1024).toFixed(2) 
-      };
-      type === "cv" ? setCvFile(uploaded) : setTsFile(uploaded);
+      // Validate file using centralized utility
+      const validation = validateDocumentFile(file);
+      
+      if (!validation.isValid) {
+        // Set error and don't upload
+        if (type === "cv") {
+          setCvError(validation.error || "Invalid file");
+          setCvFile(null);
+        } else {
+          setTsError(validation.error || "Invalid file");
+          setTsFile(null);
+        }
+      } else {
+        // Clear error and upload file
+        if (type === "cv") {
+          setCvError(null);
+        } else {
+          setTsError(null);
+        }
+        
+        const uploaded: FileData = { 
+          file: file,
+          name: file.name, 
+          size: (file.size / 1024).toFixed(2) 
+        };
+        type === "cv" ? setCvFile(uploaded) : setTsFile(uploaded);
+      }
     }
+    
     event.target.value = ""; 
   };
 
@@ -40,7 +67,13 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
           <label className="text-[14px] font-medium text-[#2b2b2b]">
             Curriculum Vitae (CV) <span className="text-[#fa8613]">*</span>
           </label>
-          <input type="file" id="cv-up" className="hidden" onChange={(e) => handleFileUpload(e, "cv")} />
+          <input 
+            type="file" 
+            id="cv-up" 
+            className="hidden" 
+            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={(e) => handleFileUpload(e, "cv")} 
+          />
           
           {cvFile ? (
             <div className="border border-[#e8e8e8] rounded-[12px] p-4 flex items-center gap-3 bg-white">
@@ -64,13 +97,26 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
               <p className="text-[12px] text-[#9b9b9b]">PDF, DOC, DOCX (Max 10MB)</p>
             </label>
           )}
+          
+          {cvError && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+              <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+              <p className="text-[13px] text-red-700">{cvError}</p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
           <label className="text-[14px] font-medium text-[#2b2b2b]">
             Transkrip Akademis <span className="text-[#fa8613]">*</span>
           </label>
-          <input type="file" id="ts-up" className="hidden" onChange={(e) => handleFileUpload(e, "ts")} />
+          <input 
+            type="file" 
+            id="ts-up" 
+            className="hidden" 
+            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={(e) => handleFileUpload(e, "ts")} 
+          />
           
           {tsFile ? (
             <div className="border border-[#e8e8e8] rounded-[12px] p-4 flex items-center gap-3 bg-white">
@@ -93,6 +139,13 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
               <p className="text-[14px] font-medium">Klik untuk upload Transkrip</p>
               <p className="text-[12px] text-[#9b9b9b]">PDF, DOC, DOCX (Max 10MB)</p>
             </label>
+          )}
+          
+          {tsError && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+              <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+              <p className="text-[13px] text-red-700">{tsError}</p>
+            </div>
           )}
         </div>
       </div>

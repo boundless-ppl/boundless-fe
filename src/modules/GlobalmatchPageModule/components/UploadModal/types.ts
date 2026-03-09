@@ -1,4 +1,5 @@
 export interface FileData {
+  file: File;
   name: string;
   size: string;
 }
@@ -15,4 +16,4 @@ export interface PreferenceData {
   additional: string;
 }
 
-export type ModalStep = "upload" | "preferences" | "summary";
+export type ModalStep = "upload" | "preferences" | "summary" | "result";
