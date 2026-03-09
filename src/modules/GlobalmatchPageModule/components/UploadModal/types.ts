@@ -16,4 +16,4 @@ export interface PreferenceData {
   additional: string;
 }
 
-export type ModalStep = "upload" | "preferences" | "summary" | "result";
+export type ModalStep = "upload" | "preferences" | "summary";

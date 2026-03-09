@@ -167,7 +167,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           disabled={!educationLevel}
           onClick={handleFormSubmit}
         >
-          Submit Rekomendasi
+          Lanjut ke Ringkasan
         </Button>
       </div>
     </div>

@@ -72,3 +72,9 @@ export const START_PERIODS = [
   "Fall 2027",
   "Spring 2028",
 ];
+
+// Feature Flags
+export const GLOBALMATCH_FEATURE_FLAGS = {
+  USE_MOCK_DATA: true, // Set to false to use real backend API
+  MOCK_API_DELAY: 2000, // Delay in ms to simulate network request
+} as const;
