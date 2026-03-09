@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { UploadModal } from "../components/UploadModal"; 
+import { UploadModal } from "../components/UploadModal/index"; 
 
 export const HeroSection = () => {
-  // 1. Inisialisasi state untuk mengontrol modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -50,6 +49,7 @@ export const HeroSection = () => {
               Unggah CV dan transkrip nilai Anda untuk mendapatkan rekomendasi program studi yang paling sesuai
             </p>
 
+            {/* Tombol yang mentrigger state modal */}
             <Button 
               size="lg"
               onClick={() => setIsModalOpen(true)}
@@ -69,6 +69,8 @@ export const HeroSection = () => {
         </Card>
       </div>
 
+      {/* 2. Modal yang sudah di-refactor (SOLID) dipanggil di sini */}
+      {/* Ia akan otomatis menampilkan DocumentStep sebagai langkah pertama */}
       <UploadModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
