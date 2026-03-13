@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: "Boundless",
   description: "Membuka jalan menuju pendidikan global",
   icons: {
-    icon: '/favicon.ico', 
-    shortcut: '/logo.png', 
+    icon: "/favicon.ico",
+    shortcut: "/logo.png",
   },
 };
 
