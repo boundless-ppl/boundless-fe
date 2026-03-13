@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/lib/auth-context";
 import { Amplitude } from "@/lib/amplitude";
+import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const fontSans = Geist({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta-sans',
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
   title: "Boundless",
-  description: "Breaking Barriers to Global Education",
+  description: "Membuka jalan menuju pendidikan global",
   icons: {
     icon: '/favicon.ico', 
     shortcut: '/logo.png', 
@@ -27,12 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
-      <Amplitude />
-      <body
-        className={`${fontSans.variable} font-sans antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="id" className={cn("font-sans", plusJakartaSans.variable)}>
+      <body className="font-sans antialiased">
+        <AuthProvider>
+          <Amplitude />
+          <Navbar />
+          {children}
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -6,23 +6,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DocumentStep } from "./DocumentStep";
 import { PreferenceStep } from "./PreferenceStep";
 import { SummaryStep } from "./SummaryStep";
-import { FileData, PreferenceData, ModalStep } from "./types";
-import { submitRecommendation, ApiError } from "@/services/recommendation.service";
-import { GLOBALMATCH_FEATURE_FLAGS } from "../../constant";
-import { MOCK_API_RESPONSE, mockApiDelay } from "../../mock-data";
+import { PreferenceData, ModalStep, SelectedFiles } from "./types";
+import { submitRecommendation, ApiError } from "@/features/globalmatch/services/recommendation.service";
 import type { RecommendationFormData } from "@/lib/api-types";
 import { Loader2 } from "lucide-react";
 
 export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const router = useRouter();
   const [step, setStep] = useState<ModalStep>("upload");
-  const [files, setFiles] = useState<{ cv: FileData; transcript: FileData } | null>(null);
+  const [files, setFiles] = useState<SelectedFiles | null>(null);
   const [preferences, setPreferences] = useState<PreferenceData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDocumentSubmit = (cv: FileData, transcript: FileData) => {
-    setFiles({ cv, transcript });
+  const handleDocumentSubmit = (selectedFiles: SelectedFiles) => {
+    setFiles(selectedFiles);
     setStep("preferences");
   };
 
@@ -36,40 +34,18 @@ export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChang
       setError("Missing files or preferences");
       return;
     }
+    if (!files.cv && !files.transcript) {
+      setError("Pilih minimal satu dokumen untuk dianalisis.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Check if using mock data
-      if (GLOBALMATCH_FEATURE_FLAGS.USE_MOCK_DATA) {
-        console.log("=== USING MOCK DATA ===");
-        console.log("Mock mode enabled - simulating API call");
-        
-        // Simulate API delay
-        await mockApiDelay(GLOBALMATCH_FEATURE_FLAGS.MOCK_API_DELAY);
-        
-        console.log("=== MOCK RECOMMENDATION RECEIVED ===");
-        console.log("Submission ID:", MOCK_API_RESPONSE.submission_id);
-        console.log("Status:", MOCK_API_RESPONSE.status);
-        console.log("Top recommendations count:", MOCK_API_RESPONSE.result.top_recommendations.length);
-
-        // Store mock data in sessionStorage
-        sessionStorage.setItem(
-          `globalmatch_result_${MOCK_API_RESPONSE.submission_id}`,
-          JSON.stringify(MOCK_API_RESPONSE)
-        );
-
-        // Close modal and navigate to results page
-        handleClose();
-        router.push(`/globalmatch/results/${MOCK_API_RESPONSE.submission_id}`);
-        return;
-      }
-
-      // Real API call
       const requestData: RecommendationFormData = {
-        cv_file: files.cv.file,
-        transcript_file: files.transcript.file,
+        cv_file: files.cv?.file,
+        transcript_file: files.transcript?.file,
         continents: preferences.regions,
         countries: preferences.countries,
         fields_of_study: preferences.fields,
@@ -81,37 +57,16 @@ export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChang
         additional_preference: preferences.additional || "",
       };
 
-      console.log("=== SUBMITTING TO REAL API ===");
-      console.log("Request data prepared:", {
-        hasCV: !!requestData.cv_file,
-        hasTranscript: !!requestData.transcript_file,
-        preferences: {
-          continents: requestData.continents,
-          countries: requestData.countries,
-          fields: requestData.fields_of_study,
-          degreeLevel: requestData.degree_level,
-        },
-      });
-
       const response = await submitRecommendation(requestData);
 
-      console.log("=== REAL API RECOMMENDATION RECEIVED ===");
-      console.log("Submission ID:", response.submission_id);
-      console.log("Status:", response.status);
-      console.log("Top recommendations count:", response.result.top_recommendations.length);
-
-      // Store result in sessionStorage
       sessionStorage.setItem(
         `globalmatch_result_${response.submission_id}`,
         JSON.stringify(response)
       );
 
-      // Close modal and navigate to results page
       handleClose();
       router.push(`/globalmatch/results/${response.submission_id}`);
     } catch (err) {
-      console.error("=== RECOMMENDATION ERROR ===", err);
-      
       if (err instanceof ApiError) {
         setError(`Error ${err.statusCode}: ${err.message}`);
       } else if (err instanceof Error) {
@@ -136,15 +91,14 @@ export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChang
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-175 p-0 overflow-hidden rounded-3xl border-none font-sans">
-        <DialogHeader className="px-8 py-6 border-b border-[#e8e8e8] bg-white sticky top-0 z-10">
-          <DialogTitle className="text-[#2b2b2b] text-[18px] font-semibold text-center md:text-left">
-            Submit untuk Rekomendasi
+      <DialogContent className="w-full max-w-[calc(100vw-2rem)] rounded-[28px] border border-[#eadfce] p-0 font-sans shadow-[0_28px_80px_rgba(31,41,55,0.16)] sm:max-w-[calc(100vw-3rem)] xl:max-w-[1380px] 2xl:max-w-[1520px]">
+        <DialogHeader className="sticky top-0 z-10 border-b border-[#ebe2d5] bg-white px-8 py-5">
+          <DialogTitle className="text-center text-[18px] font-semibold text-[#2b2b2b] md:text-left">
+            Globalmatch
           </DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[80vh] overflow-y-auto">
-          {/* Loading State */}
+        <div className="max-h-[calc(100vh-3rem)] overflow-y-auto bg-[#fcfaf7]">
           {isLoading && (
             <div className="px-8 py-16 flex flex-col items-center justify-center space-y-4">
               <Loader2 className="w-12 h-12 text-[#fa8613] animate-spin" />
@@ -155,16 +109,10 @@ export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChang
                 <p className="text-[14px] text-[#9b9b9b]">
                   Mohon tunggu, kami sedang mencari program terbaik untuk Anda
                 </p>
-                {GLOBALMATCH_FEATURE_FLAGS.USE_MOCK_DATA && (
-                  <p className="text-[12px] text-orange-600 mt-2 font-medium">
-                    🔧 Mode: Mock Data (Development)
-                  </p>
-                )}
               </div>
             </div>
           )}
 
-          {/* Error State */}
           {error && !isLoading && (
             <div className="px-8 py-8">
               <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
@@ -182,7 +130,6 @@ export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChang
             </div>
           )}
 
-          {/* Steps */}
           {!isLoading && !error && (
             <>
               {step === "upload" && <DocumentStep onNext={handleDocumentSubmit} />}

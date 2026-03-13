@@ -30,9 +30,12 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
   const [additionalPreferences, setAdditionalPreferences] = useState<string>("");
 
   const toggleMulti = (item: string, state: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) => {
-    state.includes(item) 
-      ? setState(state.filter(i => i !== item)) 
-      : setState([...state, item]);
+    if (state.includes(item)) {
+      setState(state.filter(i => i !== item));
+      return;
+    }
+
+    setState([...state, item]);
   };
 
   const handleFormSubmit = () => {
@@ -50,15 +53,14 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
   };
 
   return (
-    <div className="px-8 py-8 space-y-8 animate-in slide-in-from-right-4 duration-300 font-sans">
+    <div className="animate-in slide-in-from-right-4 space-y-6 px-8 py-8 font-sans duration-300">
       <div>
         <h2 className="text-[24px] font-bold text-[#2b2b2b] mb-2">Preferensi Rekomendasi</h2>
         <p className="text-[#9b9b9b] text-[13px]">Beritahu kami preferensi Anda agar kami dapat memberikan rekomendasi yang lebih tepat</p>
       </div>
 
-      <div className="space-y-8">
-        {/* Wilayah */}
-        <div className="space-y-3">
+      <div className="grid gap-5 xl:grid-cols-2">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Dimana pilihan wilayah Anda?</label>
           <div className="flex flex-wrap gap-2">
             {REGIONS.map(r => (
@@ -67,8 +69,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Negara */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</label>
           <div className="flex flex-wrap gap-2">
             {COUNTRIES.map(c => (
@@ -77,8 +78,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Bidang Studi */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Bidang studi</label>
           <div className="flex flex-wrap gap-2">
             {FIELDS_OF_STUDY.map(f => (
@@ -87,8 +87,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Jenjang Pendidikan */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</label>
           <div className="flex flex-wrap gap-2">
             {EDUCATION_LEVELS.map(lvl => (
@@ -97,8 +96,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Bahasa */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Bahasa pengantar</label>
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map(l => (
@@ -107,8 +105,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Budget */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Preferensi budget tahunan (USD)</label>
           <div className="flex flex-wrap gap-2">
             {BUDGET_PREFERENCES.map(b => (
@@ -117,12 +114,11 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Tipe Beasiswa */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Tipe beasiswa yang dicari</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {SCHOLARSHIP_TYPES.map(s => (
-              <label key={s.value} className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <label key={s.value} className="flex items-center gap-3 rounded-xl border border-[#e8e8e8] p-3 cursor-pointer hover:bg-gray-50 transition-colors">
                 <input 
                   type="checkbox" 
                   className="w-4 h-4 accent-[#fa8613]" 
@@ -135,8 +131,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Periode Mulai */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Rencana periode mulai</label>
           <div className="flex flex-wrap gap-2">
             {START_PERIODS.map(p => (
@@ -145,11 +140,10 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           </div>
         </div>
 
-        {/* Tambahan */}
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5 xl:col-span-2">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Preferensi tambahan (Opsional)</label>
           <textarea 
-            className="w-full p-4 border border-[#e8e8e8] rounded-xl text-[14px] focus:outline-none focus:border-[#fa8613] min-h-[100px]"
+            className="min-h-[92px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
             placeholder="Contoh: Saya mencari universitas yang dekat dengan pusat industri teknologi..."
             value={additionalPreferences}
             onChange={(e) => setAdditionalPreferences(e.target.value)}
@@ -157,13 +151,12 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
         </div>
       </div>
 
-      {/* Navigasi */}
-      <div className="flex gap-3 pt-6 border-t border-[#e8e8e8] sticky bottom-0 bg-white z-10">
-        <Button variant="outline" className="flex-1 py-6 rounded-xl border-[#e8e8e8]" onClick={onBack}>
+      <div className="flex gap-3 border-t border-[#f0e6d7] pt-5">
+        <Button variant="outline" className="flex-1 rounded-xl border-[#e8e8e8] py-6" onClick={onBack}>
           Kembali
         </Button>
         <Button 
-          className="flex-1 py-6 bg-[#2b2b2b] text-white rounded-xl hover:bg-[#1a1a1a]" 
+          className="flex-1 rounded-xl bg-[#f58a1f] py-6 text-white hover:bg-[#dd7611]" 
           disabled={!educationLevel}
           onClick={handleFormSubmit}
         >

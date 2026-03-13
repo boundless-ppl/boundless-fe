@@ -1,5 +1,5 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { Check, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,70 +8,65 @@ import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../co
 
 export default function PricingTableSection() {
   const isPricingActive = FEATURE_FLAGS.SHOW_PRICING;
+  const launchHighlights = [
+    "Akses penuh ke fitur yang sudah live",
+    "Tanpa kartu kredit atau komitmen langganan",
+    "Cocok untuk coba workflow studi abroad dari awal",
+  ];
   
   return (
-    <section className="bg-white py-16 md:py-24 px-4 font-sans">
+    <section className="bg-white py-16 md:py-24 px-4">
       <div className="max-w-[1052px] mx-auto">
         
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
-          <p className="text-[#FA8613] text-[13px] md:text-[15px] font-semibold tracking-[1.5px] uppercase mb-3">
-            Pricing
-          </p>
-          <h2 className="text-[#2B2B2B] text-3xl md:text-[44px] font-bold leading-tight mb-4">
+          <h2 className="text-[#2B2B2B] text-3xl md:text-5xl font-bold leading-tight mb-4">
             {isPricingActive ? (
               <>
                 Investasi Terbaik untuk{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FA8613] to-[#FFC994]">
-                  Masa Depanmu
-                </span>
+                <span className="text-[#FA8613]">Masa Depanmu</span>
               </>
             ) : (
               <>
-                Everything is{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FA8613] to-[#FFC994]">
-                  FREE
-                </span>{" "}
-                for Limited Time!
+                Semua <span className="text-[#FA8613]">gratis</span> selama peluncuran
               </>
             )}
           </h2>
-          <p className="text-[#6B6B6B] text-base md:text-[17px] max-w-[560px] mx-auto">
+          <p className="text-[#6B6B6B] text-base md:text-lg max-w-lg mx-auto">
             {isPricingActive 
               ? "Dapatkan akses penuh ke semua fitur Boundless dan mulai perjalanan studi abroadmu hari ini."
-              : "Try Boundless and get full access to all features. Start your study abroad journey today!"
+              : "Coba Boundless dengan akses penuh selama periode peluncuran. Jelajahi fitur inti kami sebelum harga resmi diumumkan."
             }
           </p>
         </div>
 
-        {/* Feature Cards (Top) - Menggunakan UI Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10 md:mb-14">
           {FEATURES_NEW.map((f) => (
             <Card 
               key={f.title} 
-              className="rounded-[20px] border-[#F0E6D8] bg-[#FDF6EE] transition-transform hover:scale-[1.02] shadow-none"
+              className="rounded-2xl border border-[#eee] bg-[#faf8f5] shadow-none"
             >
-              <CardContent className="p-4 md:p-6 flex flex-col gap-2 md:gap-3">
-                <div className="flex items-start justify-between">
-                  <span className="text-[24px] md:text-[30px]">{f.icon}</span>
+              <CardContent className="p-5 md:p-6">
+                <div className="flex items-start justify-between mb-3">
                   {f.status === 'live' && (
-                    <Badge className="bg-violet-100 text-violet-700 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full font-medium border-none">
-                      Live
+                    <Badge className="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium border border-green-200">
+                      Aktif
                     </Badge>
                   )}
                   {f.status === 'in-development' && (
-                    <Badge className="bg-violet-100 text-violet-700 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full font-medium border-none">
-                      In Development
+                    <Badge className="bg-amber-50 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium border border-amber-200">
+                      Dalam Pengembangan
                     </Badge>
                   )}
                   {f.status === 'coming-soon' && (
-                    <Badge className="bg-gray-100 text-gray-600 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full font-medium border-none">
-                      Coming Soon
+                    <Badge className="bg-gray-50 text-gray-500 text-xs px-2 py-0.5 rounded-full font-medium border border-gray-200">
+                      Segera Hadir
                     </Badge>
                   )}
                 </div>
-                <p className="text-[#2B2B2B] text-[14px] md:text-[16px] font-semibold">{f.title}</p>
-                <p className="text-[#6B6B6B] text-[13px] md:text-[14px] leading-relaxed">{f.description}</p>
+                <p className="text-[#2B2B2B] text-sm md:text-base font-semibold mb-1">{f.title}</p>
+                <p className="text-[#888] text-sm leading-relaxed">{f.description}</p>
               </CardContent>
             </Card>
           ))}
@@ -85,52 +80,52 @@ export default function PricingTableSection() {
                 <Card
                   key={plan.name}
                   className={cn(
-                    "relative rounded-[24px] flex flex-col transition-all overflow-visible",
+                    "relative rounded-2xl flex flex-col overflow-visible",
                     plan.highlight 
-                      ? "border-[1.6px] border-[#FA8613] bg-gradient-to-b from-[#FFF8F0] to-white shadow-[0_8px_40px_0_rgba(250,134,19,0.15)] md:-mt-4" 
-                      : "border-[1.6px] border-[#E8E8E8] bg-white shadow-sm"
+                      ? "border-2 border-[#FA8613] bg-white shadow-lg md:-mt-4" 
+                      : "border border-[#E8E8E8] bg-white shadow-sm"
                   )}
                 >
                   <CardContent className="p-7 flex flex-col gap-6">
                     {plan.badge && (
-                      <div className="absolute -top-[14px] left-1/2 -translate-x-1/2">
-                        <Badge className="px-4 py-1.5 rounded-full text-white text-[13px] font-semibold bg-gradient-to-r from-[#FA8613] to-[#FFC994] border-none whitespace-nowrap shadow-sm">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="px-4 py-1 rounded-full text-white text-xs font-semibold bg-[#FA8613] border-none whitespace-nowrap">
                           {plan.badge}
                         </Badge>
                       </div>
                     )}
 
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[#FA8613] text-[14px] font-semibold tracking-[0.7px] uppercase">{plan.name}</p>
+                    <div>
+                      <p className="text-[#FA8613] text-sm font-semibold tracking-wide uppercase">{plan.name}</p>
                       {plan.discount && (
-                        <Badge variant="secondary" className="bg-[#FFF0E0] text-[#FA8613] text-[12px] font-semibold px-[10px] py-[2px] rounded-full border-none">
+                        <span className="inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full">
                           {plan.discount}
-                        </Badge>
+                        </span>
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[#2B2B2B] text-[32px] font-bold leading-none">{plan.price}</p>
-                      <p className="text-[13px] text-[#9B9B9B]">
-                        {plan.subtext.split('·')[0]} · <span className="text-[#6B6B6B]">{plan.subtext.split('·')[1]}</span>
+                    <div>
+                      <p className="text-[#2B2B2B] text-3xl font-bold">{plan.price}</p>
+                      <p className="text-sm text-[#999] mt-1">
+                        {plan.subtext.split('·')[0]}· <span className="text-[#666]">{plan.subtext.split('·')[1]}</span>
                       </p>
                     </div>
 
                     <ul className="flex flex-col gap-3 flex-1">
                       {PLAN_FEATURES.map((item) => (
-                        <li key={item} className="flex items-center gap-[10px]">
-                          <Check size={16} strokeWidth={3} color={plan.checkColor} className="shrink-0" />
-                          <span className="text-[#2B2B2B] text-[14px] leading-tight">{item}</span>
+                        <li key={item} className="flex items-center gap-2.5">
+                          <Check size={15} strokeWidth={2.5} color={plan.checkColor} className="shrink-0" />
+                          <span className="text-[#2B2B2B] text-sm">{item}</span>
                         </li>
                       ))}
                     </ul>
 
                     <Button
                       className={cn(
-                        "w-full py-6 rounded-[12px] text-[15px] font-semibold transition-all active:scale-95 h-auto",
+                        "w-full py-5 rounded-xl text-sm font-semibold h-auto",
                         plan.highlight
-                          ? "text-white bg-gradient-to-r from-[#FA8613] to-[#F6A040] shadow-md hover:opacity-90 border-none"
-                          : "text-[#6B6B6B] border-[1.6px] border-[#E8E8E8] bg-white hover:bg-gray-50 shadow-none"
+                          ? "text-white bg-[#FA8613] hover:bg-[#e57a0f] border-none"
+                          : "text-[#666] border border-[#ddd] bg-white hover:bg-gray-50"
                       )}
                     >
                       {plan.buttonText}
@@ -140,28 +135,83 @@ export default function PricingTableSection() {
               ))}
             </div>
 
-            {/* Footer note */}
-            <p className="text-center text-[#9B9B9B] text-[13px] mt-10">
+            <p className="text-center text-[#aaa] text-sm mt-10">
               Semua paket termasuk akses ke semua fitur. Tidak ada biaya tersembunyi.
             </p>
           </>
         ) : (
           <>
-            {/* Free Access Banner */}
-            <div className="text-center mt-8">
-              <div className="inline-flex flex-col items-center gap-3 bg-gradient-to-r from-[#FA8613] to-[#F6A040] text-white px-8 py-6 rounded-2xl shadow-lg">
-                <p className="text-2xl md:text-3xl font-bold">FREE for Limited Time!</p>
-                <p className="text-sm md:text-base opacity-90">All features unlocked. No credit card required.</p>
-                <Button className="bg-white text-[#FA8613] hover:bg-gray-100 font-semibold px-8 py-6 rounded-xl mt-2">
-                  Try Boundless Now
-                </Button>
+            <div className="rounded-3xl border border-[#e8ddd0] bg-[#fffaf5] p-6 md:p-10">
+              <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+                {/* Left side */}
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-[#c76600] mb-5">
+                    Akses Peluncuran
+                  </p>
+
+                  <h3 className="text-3xl md:text-[38px] font-bold leading-snug text-[#2B2B2B]">
+                    Semua fitur aktif bisa dicoba gratis selama periode peluncuran.
+                  </h3>
+                  <p className="mt-4 max-w-md text-base leading-7 text-[#777]">
+                    Gunakan Boundless sekarang untuk mencoba GlobalMatch AI dan fondasi workflow studi abroad kami tanpa biaya, sambil kami menyiapkan struktur pricing final.
+                  </p>
+
+                  <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                    {launchHighlights.map((item) => (
+                      <div
+                        key={item}
+                        className="rounded-xl bg-white border border-[#eee] px-4 py-4"
+                      >
+                        <Check className="h-5 w-5 text-[#FA8613] mb-3" />
+                        <p className="text-sm font-medium leading-snug text-[#2B2B2B]">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right side - pricing card */}
+                <div className="rounded-2xl border border-[#e8ddd0] bg-white p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#FA8613]">
+                      Waktu Terbatas
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[#999] text-xs">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      Harga diumumkan nanti
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#FA8613] px-5 py-6 text-white">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                      Penawaran Saat Ini
+                    </p>
+                    <div className="mt-2 flex items-end gap-2">
+                      <span className="text-5xl font-bold leading-none">Gratis</span>
+                      <span className="pb-1 text-sm text-white/70">akses penuh</span>
+                    </div>
+                    <p className="mt-3 text-sm leading-relaxed text-white/80">
+                      Tidak ada biaya untuk akses selama fase early launch. Cukup daftar dan mulai eksplorasi.
+                    </p>
+                  </div>
+
+                  <ul className="mt-5 space-y-3 text-sm text-[#555]">
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#FA8613]" />
+                      Akses sekarang ideal untuk mencoba produk sebelum fitur premium dan paket berbayar dirilis.
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#FA8613]" />
+                      Fokus kami saat ini adalah validasi produk dan pengalaman pengguna, bukan monetisasi dini.
+                    </li>
+                  </ul>
+
+                  <Button className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
+                    Coba Boundless Sekarang
+                  </Button>
+                </div>
               </div>
             </div>
 
-            {/* Footer note */}
-            <p className="text-center text-[#9B9B9B] text-[13px] mt-10">
-              Get started for free. Pricing will be announced later.
-            </p>
           </>
         )}
       </div>

@@ -1,22 +1,19 @@
 /**
  * Recommendation Service
- * Handles all API calls related to GlobalMatch AI recommendations
+ * Handles all API calls related to GlobalMatch recommendations.
  */
 
+import { getAuthToken } from "@/features/auth/services/auth.service";
 import { API_CONFIG } from "@/lib/api-config";
 import type {
-  ProfileSubmissionResponse,
-  SubmissionDetails,
-  RecommendationFormData,
   ApiErrorResponse,
+  ProfileSubmissionResponse,
+  RecommendationFormData,
+  SubmissionDetails,
 } from "@/lib/api-types";
-import { getAuthToken } from "@/lib/services/auth.service";
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
-/**
- * Custom error class for API errors
- */
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -28,13 +25,9 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Helper function to build FormData for multipart requests
- */
 function buildRecommendationFormData(data: RecommendationFormData): FormData {
   const formData = new FormData();
 
-  // Add files
   if (data.transcript_file) {
     formData.append("transcript_file", data.transcript_file);
   }
@@ -42,7 +35,6 @@ function buildRecommendationFormData(data: RecommendationFormData): FormData {
     formData.append("cv_file", data.cv_file);
   }
 
-  // Add repeatable arrays
   if (data.continents) {
     data.continents.forEach((continent) => formData.append("continents", continent));
   }
@@ -53,7 +45,7 @@ function buildRecommendationFormData(data: RecommendationFormData): FormData {
     data.fields_of_study.forEach((field) => formData.append("fields_of_study", field));
   }
   if (data.languages) {
-    data.languages.forEach((lang) => formData.append("languages", lang));
+    data.languages.forEach((language) => formData.append("languages", language));
   }
   if (data.budget_preferences) {
     data.budget_preferences.forEach((budget) => formData.append("budget_preferences", budget));
@@ -67,7 +59,6 @@ function buildRecommendationFormData(data: RecommendationFormData): FormData {
     data.start_periods.forEach((period) => formData.append("start_periods", period));
   }
 
-  // Add single-value fields
   if (data.degree_level) {
     formData.append("degree_level", data.degree_level);
   }
@@ -78,16 +69,13 @@ function buildRecommendationFormData(data: RecommendationFormData): FormData {
   return formData;
 }
 
-/**
- * Helper function to handle API responses
- */
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let errorData: ApiErrorResponse | undefined;
     try {
       errorData = await response.json();
     } catch {
-      // Response might not be JSON
+      // Response might not be JSON.
     }
 
     throw new ApiError(
@@ -97,7 +85,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
     );
   }
 
-  // Handle 204 No Content
   if (response.status === 204) {
     return {} as T;
   }
@@ -105,106 +92,62 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-/**
- * Submit recommendation request with profile mode (both CV and transcript)
- */
+function buildAuthHeaders(): HeadersInit {
+  const tokens = getAuthToken();
+  if (!tokens?.accessToken) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${tokens.accessToken}`,
+  };
+}
+
 export async function submitProfileRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
-  const tokens = getAuthToken();
-  const headers: HeadersInit = {};
-
-  if (tokens?.accessToken) {
-    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-  }
-
-  const formData = buildRecommendationFormData(data);
-
   const response = await fetch(`${API_BASE_URL}/recommendations/profile`, {
     method: "POST",
-    headers,
-    body: formData,
+    headers: buildAuthHeaders(),
+    body: buildRecommendationFormData(data),
   });
 
   return handleResponse<ProfileSubmissionResponse>(response);
 }
 
-/**
- * Submit recommendation request with transcript-only mode
- */
 export async function submitTranscriptRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
-  const tokens = getAuthToken();
-  const headers: HeadersInit = {};
-
-  if (tokens?.accessToken) {
-    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-  }
-
-  const formData = buildRecommendationFormData(data);
-
   const response = await fetch(`${API_BASE_URL}/recommendations/transcript`, {
     method: "POST",
-    headers,
-    body: formData,
+    headers: buildAuthHeaders(),
+    body: buildRecommendationFormData(data),
   });
 
   return handleResponse<ProfileSubmissionResponse>(response);
 }
 
-/**
- * Submit recommendation request with CV-only mode
- */
 export async function submitCVRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
-  const tokens = getAuthToken();
-  const headers: HeadersInit = {};
-
-  if (tokens?.accessToken) {
-    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-  }
-
-  const formData = buildRecommendationFormData(data);
-
   const response = await fetch(`${API_BASE_URL}/recommendations/cv`, {
     method: "POST",
-    headers,
-    body: formData,
+    headers: buildAuthHeaders(),
+    body: buildRecommendationFormData(data),
   });
 
   return handleResponse<ProfileSubmissionResponse>(response);
 }
 
-/**
- * Get submission details by ID
- */
-export async function getSubmissionDetails(
-  submissionId: string
-): Promise<SubmissionDetails> {
-  const tokens = getAuthToken();
-  const headers: HeadersInit = {};
-
-  if (tokens?.accessToken) {
-    headers["Authorization"] = `Bearer ${tokens.accessToken}`;
-  }
-
-  const response = await fetch(
-    `${API_BASE_URL}/recommendations/submissions/${submissionId}`,
-    {
-      method: "GET",
-      headers,
-    }
-  );
+export async function getSubmissionDetails(submissionId: string): Promise<SubmissionDetails> {
+  const response = await fetch(`${API_BASE_URL}/recommendations/submissions/${submissionId}`, {
+    method: "GET",
+    headers: buildAuthHeaders(),
+  });
 
   return handleResponse<SubmissionDetails>(response);
 }
 
-/**
- * Submit recommendation (auto-detects mode based on files provided)
- * This is a convenience function that routes to the appropriate endpoint
- */
 export async function submitRecommendation(
   data: RecommendationFormData
 ): Promise<ProfileSubmissionResponse> {
@@ -213,11 +156,13 @@ export async function submitRecommendation(
 
   if (hasTranscript && hasCV) {
     return submitProfileRecommendation(data);
-  } else if (hasTranscript) {
-    return submitTranscriptRecommendation(data);
-  } else if (hasCV) {
-    return submitCVRecommendation(data);
-  } else {
-    throw new Error("At least one file (transcript or CV) must be provided");
   }
+  if (hasTranscript) {
+    return submitTranscriptRecommendation(data);
+  }
+  if (hasCV) {
+    return submitCVRecommendation(data);
+  }
+
+  throw new Error("At least one file (transcript or CV) must be provided");
 }

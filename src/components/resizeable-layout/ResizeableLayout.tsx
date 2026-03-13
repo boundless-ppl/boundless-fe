@@ -1,24 +1,36 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { CVUpload } from "@/modules/CVScannerModule/components/CVUpload";
 import { FEATURE_BUTTONS, type FeatureButtonId } from "./constant";
-import MapComponent from "../Map";
-import CountryDetailsModule from "@/modules/CompareDetailsModukle";
-import { AIChatbotModule } from "@/modules/AIChatbotModule";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
-
 
 interface City {
   city: string;
   country: string;
   lat: number;
   lon: number;
+}
+
+function FeaturePlaceholder({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex h-full min-h-[320px] items-center justify-center rounded-3xl border border-[#eadfce] bg-white p-8">
+      <div className="max-w-md text-center">
+        <h3 className="text-xl font-semibold text-[#2b2b2b]">{title}</h3>
+        <p className="mt-3 text-sm leading-7 text-[#6b7280]">{description}</p>
+      </div>
+    </div>
+  );
 }
 
 export default function ResizableLayout() {
@@ -37,11 +49,30 @@ export default function ResizableLayout() {
   const renderFeatureContent = () => {
     switch (activeFeature) {
       case "comparison-details":
-        return <CountryDetailsModule selectedCity={selectedCity} />;
+        return (
+          <FeaturePlaceholder
+            title="Detail negara tujuan"
+            description={
+              selectedCity
+                ? `${selectedCity.city}, ${selectedCity.country} dipilih. Modul detail lama sudah tidak tersedia di codebase ini.`
+                : "Pilih kota pada peta untuk melihat detail negara tujuan."
+            }
+          />
+        );
       case "cv-analyzer":
-        return <CVUpload />;
+        return (
+          <FeaturePlaceholder
+            title="Analisis CV"
+            description="Komponen analisis CV lama sudah tidak tersedia di codebase ini. Jika fitur ini masih dibutuhkan, perlu dibuat ulang atau dipindahkan ke modul aktif."
+          />
+        );
       case "chatbot":
-        return <AIChatbotModule />;
+        return (
+          <FeaturePlaceholder
+            title="Bonbon AI"
+            description="Komponen chatbot lama tidak ditemukan di project saat ini."
+          />
+        );
       default:
         return <div>Select a feature</div>;
     }
@@ -50,13 +81,34 @@ export default function ResizableLayout() {
   return (
     <div className="h-screen">
       <ResizablePanelGroup
-        direction="horizontal"
+        orientation="horizontal"
         className="min-h-full border rounded-lg"
       >
         <ResizablePanel defaultSize={60} minSize={30}>
-          <MapComponent onCityClick={handleCityClick} />
+          <div className="flex h-full min-h-[480px] items-center justify-center rounded-l-lg bg-[#fcfaf7] p-8">
+            <div className="max-w-md text-center">
+              <h2 className="text-2xl font-semibold text-[#2b2b2b]">Peta interaktif</h2>
+              <p className="mt-3 text-sm leading-7 text-[#6b7280]">
+                Komponen peta lama tidak tersedia di codebase ini. Layout ini sekarang memakai placeholder agar build tetap valid.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  handleCityClick({
+                    city: "Tokyo",
+                    country: "Jepang",
+                    lat: 35.6762,
+                    lon: 139.6503,
+                  })
+                }
+                className="mt-5 rounded-2xl bg-[#f58a1f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#dd7611]"
+              >
+                Coba pilih contoh kota
+              </button>
+            </div>
+          </div>
         </ResizablePanel>
-        <ResizableHandle withHandle />
+        <ResizableHandle withHandle orientation="horizontal" />
         <ResizablePanel defaultSize={40} minSize={25}>
           <div className="flex flex-col h-full overflow-y-auto">
             <div className="relative h-full">

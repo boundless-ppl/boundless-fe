@@ -3,7 +3,7 @@ import { HeroSection } from './sections/HeroSection'
 
 export const GlobalmatchPageModule = () => {
   return (
-    <div>
+    <div className="bg-[#fbf6ef]">
       <HeroSection />
     </div>
   )

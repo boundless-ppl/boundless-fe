@@ -4,6 +4,11 @@ export interface FileData {
   size: string;
 }
 
+export interface SelectedFiles {
+  cv: FileData | null;
+  transcript: FileData | null;
+}
+
 export interface PreferenceData {
   regions: string[];
   countries: string[];

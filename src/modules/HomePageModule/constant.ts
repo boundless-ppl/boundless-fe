@@ -66,32 +66,29 @@ export const FEATURE_STEPS = [
 
 export const FEATURES_NEW = [
   {
-    icon: "🤖",
-    title: "Unlimited GlobalMatch AI Access",
-    description: "Get unlimited AI-powered university matching and recommendations tailored to your profile.",
+    title: "Akses GlobalMatch AI Tanpa Batas",
+    description: "Dapatkan rekomendasi universitas yang dipersonalisasi berdasarkan profilmu, tanpa batasan penggunaan.",
     status: "live" as FeatureStatus,
     featureKey: "globalmatch-ai"
   },
   {
-    icon: "📋",
-    title: "Document Verification Dashboard",
-    description: "Upload and verify all your important documents in one secure place.",
+    title: "Dashboard Verifikasi Dokumen",
+    description: "Unggah dan verifikasi semua dokumen pentingmu di satu tempat yang aman.",
     status: "coming-soon" as FeatureStatus,
     featureKey: "dreamtracker"
   },
   {
-    icon: "⚡",
-    title: "Bulk University Form Filler",
-    description: "Fill out application forms for multiple universities at once. Save hours of work.",
+    title: "Pengisian Formulir Universitas Massal",
+    description: "Isi formulir aplikasi ke banyak universitas sekaligus. Hemat waktu berjam-jam.",
     status: "coming-soon" as FeatureStatus,
     featureKey: "auto-fill"
   },
 ];
 
 export const PLAN_FEATURES = [
-  "Unlimited GlobalMatch AI",
+  "GlobalMatch AI tanpa batas",
   "Dashboard verifikasi dokumen",
-  "Bulk form filler universitas",
+  "Pengisian formulir universitas massal",
   "Akses semua fitur baru",
 ];
 

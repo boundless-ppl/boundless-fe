@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Upload } from "lucide-react";
+import { ArrowRight, Globe2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { UploadModal } from "../components/UploadModal/index"; 
@@ -12,65 +11,65 @@ export const HeroSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="flex-1 py-12 md:py-20 px-4 font-sans">
-      <div className="max-w-[800px] mx-auto">
-        
-        {/* Badge */}
-        <div className="flex justify-center mb-6">
-          <Badge 
-            className="bg-gradient-to-r from-[#fa8613] to-[#ffc994] border-none px-4 py-2 text-white text-[13px] font-semibold rounded-full"
-          >
-            GlobalMatch AI
-          </Badge>
-        </div>
-
-        {/* Heading */}
-        <h1 className="font-bold text-[#2b2b2b] text-[32px] md:text-[40px] lg:text-[48px] leading-tight mb-4 text-center">
-          Dapatkan Rekomendasi Program yang Tepat untuk Anda
-        </h1>
-
-        {/* Subtitle */}
-        <p className="font-normal text-[#9b9b9b] text-[14px] md:text-[16px] leading-relaxed mb-12 text-center max-w-[600px] mx-auto">
-          Upload CV dan transkrip Anda, kami akan merekomendasikan program yang sesuai dengan profil akademis dan pengalaman Anda
-        </p>
-
-        {/* Upload Card */}
-        <Card className="rounded-[24px] border-[#e8e8e8] shadow-sm overflow-hidden">
-          <CardContent className="p-8 md:p-12 flex flex-col items-center text-center">
-            <div className="bg-[#fff0e0] rounded-full p-6 mb-6">
-              <Upload className="w-8 h-8 text-[#fa8613]" />
+    <section className="relative overflow-hidden px-4 py-10 font-sans md:px-6 md:py-14">
+      <div className="relative mx-auto max-w-4xl">
+        <Card className="overflow-hidden rounded-[28px] border-[#eadfce] bg-white shadow-[0_20px_48px_rgba(31,41,55,0.08)]">
+          <CardContent className="p-7 md:p-8">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="mt-2 text-[26px] font-semibold text-[#1f2937]">
+                  Upload CV atau transkrip Anda
+                </h2>
+              </div>
             </div>
 
-            <h2 className="font-semibold text-[#2b2b2b] text-[20px] md:text-[24px] mb-3">
-              Upload Dokumen Anda
-            </h2>
-
-            <p className="font-normal text-[#9b9b9b] text-[13px] md:text-[14px] mb-8 max-w-[400px]">
-              Unggah CV dan transkrip nilai Anda untuk mendapatkan rekomendasi program studi yang paling sesuai
+            <p className="text-[15px] leading-7 text-[#6b7280]">
+              Anda bisa mulai dengan CV saja, transkrip saja, atau keduanya. Sistem akan memakai dokumen yang tersedia untuk menyusun rekomendasi program yang relevan.
             </p>
 
-            {/* Tombol yang mentrigger state modal */}
+            <div className="mt-6 grid gap-3">
+              <div className="flex items-start gap-4 rounded-[20px] border border-[#ece4d8] bg-[#fcfaf7] px-4 py-4">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white">
+                  <Upload className="h-5 w-5 text-[#f58a1f]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#1f2937]">Upload dokumen</h3>
+                  <p className="mt-1 text-sm leading-6 text-[#6b7280]">
+                    Pilih dokumen yang sudah tersedia sekarang. Anda tidak perlu menunggu CV dan transkrip lengkap dua-duanya.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 rounded-[20px] border border-[#ece4d8] bg-[#fcfaf7] px-4 py-4">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white">
+                  <Globe2 className="h-5 w-5 text-[#f58a1f]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#1f2937]">Tambahkan preferensi</h3>
+                  <p className="mt-1 text-sm leading-6 text-[#6b7280]">
+                    Semakin jelas preferensi Anda, semakin terarah shortlist yang dihasilkan.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <Button 
               size="lg"
               onClick={() => setIsModalOpen(true)}
               className={cn(
-                "bg-gradient-to-r from-[#fa8613] to-[#ffc994] hover:brightness-90 hover:shadow-lg transition-all duration-300",
-                "rounded-[24px] px-8 py-7 h-auto flex items-center gap-3 w-full md:w-auto text-white font-semibold text-[16px]"
+                "mt-7 h-auto w-full rounded-[22px] bg-[#f58a1f] px-6 py-4 text-left text-[15px] font-semibold text-white transition-all hover:bg-[#dd7611] hover:shadow-lg",
+                "flex items-center justify-between gap-3"
               )}
             >
-              <Upload className="w-5 h-5" />
-              Submit CV & Transkrip untuk Rekomendasi
+              <span className="flex items-center gap-3">
+                <Upload className="h-5 w-5" />
+                Mulai upload dokumen
+              </span>
+              <ArrowRight className="h-5 w-5" />
             </Button>
-
-            <p className="font-normal text-[#9b9b9b] text-[12px] mt-4">
-              Format didukung: PDF, DOC, DOCX (Max 10MB)
-            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 2. Modal yang sudah di-refactor (SOLID) dipanggil di sini */}
-      {/* Ia akan otomatis menampilkan DocumentStep sebagai langkah pertama */}
       <UploadModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 

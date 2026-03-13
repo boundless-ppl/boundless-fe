@@ -4,9 +4,69 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProfileSubmissionResponse } from "@/lib/api-types";
-import { GLOBALMATCH_FEATURE_FLAGS } from "@/modules/GlobalmatchPageModule/constant";
+import type { ProfileSubmissionResponse, SubmissionDetails } from "@/lib/api-types";
+import { getSubmissionDetails } from "@/features/globalmatch/services/recommendation.service";
 import { RecommendationDisplay } from "@/modules/GlobalmatchPageModule/components/ResultsPage/RecommendationDisplay";
+
+function mapSubmissionDetailsToProfileResult(
+  details: SubmissionDetails,
+  submissionId: string
+): ProfileSubmissionResponse | null {
+  const latestResult = details.latest_result;
+  const programs = latestResult?.results;
+
+  if (!latestResult || !Array.isArray(programs) || programs.length === 0) {
+    return null;
+  }
+
+  return {
+    submission_id: details.submission_id || submissionId,
+    status: details.status === "completed" ? "completed" : "processing",
+    result_set_id: latestResult.result_set_id,
+    result: {
+      student_profile_summary: {
+        academic_background: "Ringkasan profil akademik tidak tersedia pada hasil server ini.",
+        experience_summary: "",
+        strengths: [],
+        improvement_areas: [],
+        preferred_themes: [],
+        raw_text: "",
+      },
+      top_recommendations: programs.map((program) => ({
+        rank: program.rank_no,
+        university_name: program.university_name,
+        program_name: program.program_name,
+        country: program.country,
+        fit_score: program.fit_score,
+        admission_chance_score: 0,
+        overall_recommendation_score: program.fit_score,
+        fit_level: program.fit_level,
+        admission_difficulty: "moderate",
+        score_breakdown: {
+          academic_fit: program.fit_score,
+          preference_match: program.fit_score,
+          curriculum_relevance: program.fit_score,
+          admission_chance: 0,
+        },
+        overview: program.overview,
+        why_this_university: program.why_this_university,
+        why_this_program: program.why_this_program,
+        preference_reasoning: [program.reason_summary].filter(Boolean),
+        match_evidence: [program.reason_summary].filter(Boolean),
+        scholarship_recommendations: [],
+        pros: program.pros,
+        cons: program.cons,
+      })),
+      selection_reasoning: "Hasil dimuat dari server menggunakan ringkasan recommendation terbaru.",
+      application_strategy: {
+        ambitious: "Belum tersedia pada response server.",
+        target: "Belum tersedia pada response server.",
+        balanced_option: "Belum tersedia pada response server.",
+      },
+      final_notes: [],
+    },
+  };
+}
 
 export default function GlobalmatchResultsPage() {
   const params = useParams();
@@ -23,33 +83,22 @@ export default function GlobalmatchResultsPage() {
         setIsLoading(true);
         setError(null);
 
-        // Check if using mock data
-        if (GLOBALMATCH_FEATURE_FLAGS.USE_MOCK_DATA) {
-          // Retrieve mock data from sessionStorage
-          const mockData = sessionStorage.getItem(`globalmatch_result_${submissionId}`);
-          if (mockData) {
-            const parsedData: ProfileSubmissionResponse = JSON.parse(mockData);
-            setResult(parsedData);
-          } else {
-            setError("Result tidak ditemukan. Silakan submit ulang.");
-          }
+        const storedData = sessionStorage.getItem(`globalmatch_result_${submissionId}`);
+        if (storedData) {
+          const parsedData: ProfileSubmissionResponse = JSON.parse(storedData);
+          setResult(parsedData);
         } else {
-          // Fetch from real API
-          // Note: For now, we'll try to get from sessionStorage as well
-          // In production, this would call the API
-          const storedData = sessionStorage.getItem(`globalmatch_result_${submissionId}`);
-          if (storedData) {
-            const parsedData: ProfileSubmissionResponse = JSON.parse(storedData);
-            setResult(parsedData);
-          } else {
-            // Fallback to API call (when backend is ready)
-            // const data = await getSubmissionDetails(submissionId);
-            // setResult(data);
-            setError("Hasil tidak ditemukan di cache. Fitur API sedang dalam pengembangan.");
+          const details = await getSubmissionDetails(submissionId);
+          const fallbackResult = mapSubmissionDetailsToProfileResult(details, submissionId);
+
+          if (!fallbackResult) {
+            setError("Hasil rekomendasi tidak ditemukan. Silakan submit ulang.");
+            return;
           }
+
+          setResult(fallbackResult);
         }
       } catch (err) {
-        console.error("Error fetching results:", err);
         setError(err instanceof Error ? err.message : "Gagal memuat hasil rekomendasi");
       } finally {
         setIsLoading(false);
@@ -60,43 +109,37 @@ export default function GlobalmatchResultsPage() {
   }, [submissionId]);
 
   const handleBackToHome = () => {
-    // Clear session storage
-    if (GLOBALMATCH_FEATURE_FLAGS.USE_MOCK_DATA) {
-      sessionStorage.removeItem(`globalmatch_result_${submissionId}`);
-    }
+    sessionStorage.removeItem(`globalmatch_result_${submissionId}`);
     router.push("/globalmatch");
   };
 
   const handleNewSubmission = () => {
-    // Clear session storage
-    if (GLOBALMATCH_FEATURE_FLAGS.USE_MOCK_DATA) {
-      sessionStorage.removeItem(`globalmatch_result_${submissionId}`);
-    }
+    sessionStorage.removeItem(`globalmatch_result_${submissionId}`);
     router.push("/globalmatch");
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-orange-50 to-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#fff8f1_0%,#f8fafc_38%,#ffffff_100%)]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <button
               onClick={handleBackToHome}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-slate-600 transition-colors hover:text-slate-900"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Kembali</span>
             </button>
             
-            <h1 className="text-xl font-bold text-gray-900">
-              Hasil Rekomendasi GlobalMatch AI
+            <h1 className="text-center text-lg font-semibold text-slate-950 sm:text-xl">
+              Hasil rekomendasi Globalmatch
             </h1>
 
             <Button
               onClick={handleNewSubmission}
               variant="outline"
-              className="border-[#fa8613] text-[#fa8613] hover:bg-[#fa8613] hover:text-white"
+              className="rounded-2xl border-[#f58a1f] text-[#f58a1f] hover:bg-[#f58a1f] hover:text-white"
             >
               Submit Baru
             </Button>
@@ -105,23 +148,16 @@ export default function GlobalmatchResultsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Loading State */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <Loader2 className="w-16 h-16 text-[#fa8613] animate-spin" />
+          <div className="flex flex-col items-center justify-center space-y-4 py-24">
+            <Loader2 className="h-16 w-16 animate-spin text-[#fa8613]" />
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-slate-950">
                 Memuat hasil...
               </h3>
-              <p className="text-gray-600">
-                Mohon tunggu sebentar
-              </p>
-              {GLOBALMATCH_FEATURE_FLAGS.USE_MOCK_DATA && (
-                <p className="text-sm text-orange-600 mt-2 font-medium">
-                  🔧 Mode: Mock Data (Development)
-                </p>
-              )}
+              <p className="text-slate-600">Mohon tunggu sebentar</p>
             </div>
           </div>
         )}
@@ -129,10 +165,10 @@ export default function GlobalmatchResultsPage() {
         {/* Error State */}
         {error && !isLoading && (
           <div className="max-w-2xl mx-auto">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="rounded-[28px] border border-red-200 bg-red-50 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
                 <svg
-                  className="w-8 h-8 text-red-600"
+                  className="h-8 w-8 text-red-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -145,17 +181,17 @@ export default function GlobalmatchResultsPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-slate-950">
                 Terjadi Kesalahan
               </h3>
-              <p className="text-gray-600 mb-6">{error}</p>
-              <div className="flex gap-3 justify-center">
-                <Button onClick={handleBackToHome} variant="outline">
+              <p className="mb-6 text-slate-600">{error}</p>
+              <div className="flex justify-center gap-3">
+                <Button onClick={handleBackToHome} variant="outline" className="rounded-2xl">
                   Kembali ke Beranda
                 </Button>
                 <Button
                   onClick={() => window.location.reload()}
-                  className="bg-[#fa8613] hover:bg-[#e07612]"
+                  className="rounded-2xl bg-[#fa8613] hover:bg-[#e07612]"
                 >
                   Coba Lagi
                 </Button>
