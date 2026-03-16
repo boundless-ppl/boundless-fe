@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import {
   loginRequest,
@@ -30,7 +30,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [bootstrappedAuth] = useState(() => readAuthFromCookies());
   const [user, setUser] = useState<UserData | null>(bootstrappedAuth?.user ?? null);
   const [tokens, setTokens] = useState<AuthTokens | null>(bootstrappedAuth?.tokens ?? null);
@@ -48,21 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     if (isAccessTokenExpired(tokens.accessToken)) {
-      const timeout = window.setTimeout(clearAuthState, 0);
-      return () => window.clearTimeout(timeout);
+      const timeout = globalThis.setTimeout(clearAuthState, 0);
+      return () => globalThis.clearTimeout(timeout);
     }
 
     const claims = parseAccessToken(tokens.accessToken);
     if (!claims) {
-      const timeout = window.setTimeout(clearAuthState, 0);
-      return () => window.clearTimeout(timeout);
+      const timeout = globalThis.setTimeout(clearAuthState, 0);
+      return () => globalThis.clearTimeout(timeout);
     }
 
-    const timeout = window.setTimeout(() => {
+    const timeout = globalThis.setTimeout(() => {
       clearAuthState();
     }, Math.max(claims.expiresAt.getTime() - Date.now(), 0));
 
-    return () => window.clearTimeout(timeout);
+    return () => globalThis.clearTimeout(timeout);
   }, [tokens]);
 
   const updateAuthState = (nextTokens: AuthTokens, partialUser: Partial<UserData>) => {
@@ -107,17 +107,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value: AuthContextValue = {
-    user,
-    tokens,
-    isAuthenticated: !!tokens?.accessToken,
-    isLoggedIn: !!tokens?.accessToken,
-    isLoading,
-    login,
-    register,
-    logout,
-    setUserData,
-  };
+  const value: AuthContextValue = useMemo(
+    () => ({
+      user,
+      tokens,
+      isAuthenticated: !!tokens?.accessToken,
+      isLoggedIn: !!tokens?.accessToken,
+      isLoading,
+      login,
+      register,
+      logout,
+      setUserData,
+    }),
+    [user, tokens, isLoading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

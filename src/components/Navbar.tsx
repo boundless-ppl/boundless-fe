@@ -21,7 +21,7 @@ type NavLink = {
   comingSoon?: boolean
 }
 
-export function Navbar({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HTMLElement>>) {
   const { isAuthenticated, isLoading, logout, user } = useAuth()
   const [isMounted, setIsMounted] = React.useState(false)
   const [comingSoonItem, setComingSoonItem] = React.useState<string | null>(null)
@@ -37,6 +37,35 @@ export function Navbar({ className, ...props }: React.HTMLAttributes<HTMLElement
     { label: "Beasiswa", loggedIn: true, comingSoon: true },
     { label: "Dreamtracker", loggedIn: true, comingSoon: true },
   ]
+  const canShowLink = (link: NavLink) => !link.loggedIn || (isMounted && isAuthenticated)
+  const renderNavItem = (link: NavLink) => {
+    if (!canShowLink(link)) {
+      return null
+    }
+
+    if (link.comingSoon) {
+      return (
+        <button
+          key={link.label}
+          type="button"
+          onClick={() => setComingSoonItem(link.label)}
+          className="text-black transition-colors hover:text-foreground/80"
+        >
+          {link.label}
+        </button>
+      )
+    }
+
+    return (
+      <Link
+        key={link.href}
+        href={link.href!}
+        className="text-black transition-colors hover:text-foreground/80"
+      >
+        {link.label}
+      </Link>
+    )
+  }
 
   return (
     <header
@@ -61,28 +90,7 @@ export function Navbar({ className, ...props }: React.HTMLAttributes<HTMLElement
 
         <div className="flex w-1/3 justify-center">
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            {navLinks.map((link) =>
-              !link.loggedIn || (isMounted && isAuthenticated) ? (
-                link.comingSoon ? (
-                  <button
-                    key={link.label}
-                    type="button"
-                    onClick={() => setComingSoonItem(link.label)}
-                    className="text-black transition-colors hover:text-foreground/80"
-                  >
-                    {link.label}
-                  </button>
-                ) : (
-                  <Link
-                    key={link.href}
-                    href={link.href!}
-                    className="text-black transition-colors hover:text-foreground/80"
-                  >
-                    {link.label}
-                  </Link>
-                )
-              ) : null
-            )}
+            {navLinks.map(renderNavItem)}
           </nav>
         </div>
 

@@ -22,9 +22,9 @@ export const ProductValuesSection = () => {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
-          {FEATURES.map((feature, index) => (
+          {FEATURES.map((feature) => (
             <ProductValueCard
-              key={index}
+              key={feature.title}
               title={feature.title}
               description={feature.description}
               icon={feature.icon}

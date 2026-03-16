@@ -140,7 +140,6 @@ export default function PricingTableSection() {
             </p>
           </>
         ) : (
-          <>
             <div className="rounded-3xl border border-[#e8ddd0] bg-[#fffaf5] p-6 md:p-10">
               <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
                 {/* Left side */}
@@ -212,7 +211,6 @@ export default function PricingTableSection() {
               </div>
             </div>
 
-          </>
         )}
       </div>
     </section>

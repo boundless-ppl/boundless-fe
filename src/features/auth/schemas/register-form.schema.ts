@@ -10,7 +10,7 @@ export const registerFormSchema = z
       .regex(/[A-Z]/, "Password must include an uppercase letter.")
       .regex(/[a-z]/, "Password must include a lowercase letter.")
       .regex(/\d/, "Password must include a number.")
-      .regex(/[!@#$%^&*(),.?\":{}|<>]/, "Password must include a special character."),
+      .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must include a special character."),
     confirmPassword: z.string(),
     acceptedPrivacyPolicy: z.boolean().refine((value) => value, {
       message: "You must accept the privacy policy.",

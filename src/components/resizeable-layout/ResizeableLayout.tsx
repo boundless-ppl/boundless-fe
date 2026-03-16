@@ -19,10 +19,10 @@ interface City {
 function FeaturePlaceholder({
   title,
   description,
-}: {
+}: Readonly<{
   title: string;
   description: string;
-}) {
+}>) {
   return (
     <div className="flex h-full min-h-[320px] items-center justify-center rounded-3xl border border-[#eadfce] bg-white p-8">
       <div className="max-w-md text-center">
@@ -117,8 +117,9 @@ export default function ResizableLayout() {
               </div>
                     <div className="flex justify-start rotate-90 -translate-x-1/2 ml-6 gap-1 absolute top-1/4">
                   {FEATURE_BUTTONS.map((button) => (
-                    <div
+                    <button
                       key={button.id}
+                      type="button"
                       onClick={() => handleButtonClick(button.id)}
                       className={cn(
                         "flex items-center justify-center px-3 py-2 text-sm cursor-pointer transition-colors duration-200 rounded-md",
@@ -140,7 +141,7 @@ export default function ResizableLayout() {
                         null
                       )}
                       <span className="ml-1">{button.label}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

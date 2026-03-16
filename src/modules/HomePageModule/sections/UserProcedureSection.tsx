@@ -51,8 +51,9 @@ export const UserProcedureSection = () => {
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="space-y-3 md:space-y-4">
             {FEATURE_STEPS.map((step, index) => (
-              <div
+              <button
                 key={step.title}
+                type="button"
                 onClick={() => handleStepClick(index)}
                 className={`relative p-4 md:p-6 rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 ease-out border ${
                   activeStep === index
@@ -97,7 +98,7 @@ export const UserProcedureSection = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -129,13 +130,14 @@ export const UserProcedureSection = () => {
               <div className="flex justify-center mt-4 md:mt-6 gap-2 md:gap-3">
                 {FEATURE_STEPS.map((step, index) => (
                   <button
-                    key={index}
+                    key={step.title}
                     onClick={() => handleStepClick(index)}
                     className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                       activeStep === index 
                         ? `${step.bgColor} scale-125 shadow-sm` 
                         : 'bg-gray-300 hover:bg-gray-400'
                     }`}
+                    aria-label={`Go to ${step.title}`}
                   />
                 ))}
               </div>

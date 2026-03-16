@@ -77,7 +77,7 @@ function getCookieValue(name: string): string | null {
 }
 
 export function getAuthToken(): { accessToken: string; refreshToken: string } | null {
-  if (typeof window === "undefined") return null;
+  if (globalThis.window === undefined) return null;
 
   try {
     const accessToken = getCookieValue(ACCESS_TOKEN_COOKIE);

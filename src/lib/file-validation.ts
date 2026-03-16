@@ -40,7 +40,7 @@ export function formatFileSize(bytes: number): string {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 /**
@@ -151,7 +151,7 @@ export function validateImageFile(
  */
 export function getFileExtension(fileName: string): string {
   const parts = fileName.split(".");
-  return parts.length > 1 ? `.${parts[parts.length - 1].toLowerCase()}` : "";
+  return parts.length > 1 ? `.${parts.at(-1)?.toLowerCase()}` : "";
 }
 
 /**

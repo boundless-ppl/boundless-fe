@@ -10,7 +10,7 @@ export interface SummaryStepProps {
   onSubmit: () => void;
 }
 
-export function SummaryStep({ files, preferences, onEdit, onSubmit }: SummaryStepProps) {
+export function SummaryStep({ files, preferences, onEdit, onSubmit }: Readonly<SummaryStepProps>) {
   const formatList = (list: string[]) => (list.length > 0 ? list.join(", ") : "-");
 
   return (

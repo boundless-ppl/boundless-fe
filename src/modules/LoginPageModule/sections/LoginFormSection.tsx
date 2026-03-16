@@ -46,10 +46,10 @@ export const LoginFormSection = () => {
       });
 
       const nextPath = searchParams.get("next");
-      router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/dashboard");
+      router.push(nextPath?.startsWith("/") ? nextPath : "/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setAuthError(err.message || "Login failed.");
+        setAuthError(err.message ?? "Login failed.");
       } else {
         setAuthError("Login failed.");
       }

@@ -28,6 +28,20 @@ function asScholarshipList(value: ProgramRecommendation["scholarship_recommendat
   return Array.isArray(value) ? value : [];
 }
 
+function keyedListItem(value: string, index: number) {
+  return `${value}-${index}`;
+}
+
+function scholarshipKey(scholarship: ProgramRecommendation["scholarship_recommendations"][number], index: number) {
+  return `${scholarship.scholarship_name}-${index}`;
+}
+
+function openProgramSearch(program: ProgramRecommendation) {
+  const searchQuery = `${program.university_name} ${program.program_name}`;
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+  window.open(searchUrl, "_blank");
+}
+
 function getFitTone(score: number) {
   if (score >= 90) {
     return {
@@ -72,18 +86,18 @@ function formatScoreLabel(key: string) {
     admission_chance: "Admission chance",
   };
 
-  return labels[key] ?? key.replace(/_/g, " ");
+  return labels[key] ?? key.replaceAll("_", " ");
 }
 
 function SummaryMetric({
   icon,
   label,
   value,
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   label: string;
   value: string;
-}) {
+}>) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
@@ -95,7 +109,7 @@ function SummaryMetric({
   );
 }
 
-function RecommendationCard({ program }: { program: ProgramRecommendation }) {
+function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendation }>) {
   const [showDetails, setShowDetails] = useState(false);
   const matchEvidence = asStringList(program.match_evidence);
   const preferenceReasoning = asStringList(program.preference_reasoning);
@@ -188,13 +202,13 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
               </div>
               <ul className="space-y-3 text-sm leading-6 text-slate-600">
                 {matchEvidence.slice(0, 3).map((evidence, idx) => (
-                  <li key={idx} className="flex gap-3">
+                  <li key={keyedListItem(evidence, idx)} className="flex gap-3">
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f58a1f]" />
                     <span>{evidence}</span>
                   </li>
                 ))}
                 {preferenceReasoning.slice(0, 2).map((reason, idx) => (
-                  <li key={idx} className="flex gap-3">
+                  <li key={keyedListItem(reason, idx)} className="flex gap-3">
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
                     <span>{reason}</span>
                   </li>
@@ -237,7 +251,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 </h4>
                 <div className="mt-4 space-y-3">
                   {scholarships.slice(0, 2).map((scholarship, idx) => (
-                    <div key={idx} className="rounded-2xl border border-orange-100 bg-white/85 p-4">
+                    <div key={scholarshipKey(scholarship, idx)} className="rounded-2xl border border-orange-100 bg-white/85 p-4">
                       <p className="text-sm font-semibold text-slate-900">{scholarship.scholarship_name}</p>
                       <p className="mt-1 text-sm leading-6 text-slate-600">{scholarship.coverage_summary}</p>
                     </div>
@@ -268,12 +282,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
           </Button>
           <Button
             className="rounded-2xl bg-slate-950 px-5 py-6 text-white hover:bg-slate-800"
-            onClick={() =>
-              window.open(
-                `https://www.google.com/search?q=${encodeURIComponent(`${program.university_name} ${program.program_name}`)}`,
-                "_blank"
-              )
-            }
+            onClick={() => openProgramSearch(program)}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
             Cari program resmi
@@ -303,7 +312,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 </h4>
                 <ul className="mt-4 space-y-2 text-sm leading-6 text-emerald-900">
                   {pros.map((pro, idx) => (
-                    <li key={idx} className="flex gap-3">
+                    <li key={keyedListItem(pro, idx)} className="flex gap-3">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                       <span>{pro}</span>
                     </li>
@@ -318,7 +327,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                   </h4>
                   <ul className="mt-4 space-y-2 text-sm leading-6 text-amber-900">
                     {cons.map((con, idx) => (
-                      <li key={idx} className="flex gap-3">
+                      <li key={keyedListItem(con, idx)} className="flex gap-3">
                         <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
                         <span>{con}</span>
                       </li>
@@ -335,7 +344,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 </h4>
                 <div className="mt-4 space-y-3">
                   {scholarships.map((scholarship, idx) => (
-                    <div key={idx} className="rounded-2xl border border-slate-200 p-4">
+                    <div key={scholarshipKey(scholarship, idx)} className="rounded-2xl border border-slate-200 p-4">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-sm font-semibold text-slate-900">{scholarship.scholarship_name}</p>
                         <Badge className="w-fit rounded-full border border-slate-200 bg-slate-50 text-slate-600">
@@ -356,7 +365,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
   );
 }
 
-export function RecommendationDisplay({ result }: RecommendationDisplayProps) {
+export function RecommendationDisplay({ result }: Readonly<RecommendationDisplayProps>) {
   const { student_profile_summary, top_recommendations, application_strategy, final_notes, selection_reasoning } = result.result;
   const strengths = asStringList(student_profile_summary.strengths);
   const improvementAreas = asStringList(student_profile_summary.improvement_areas);
@@ -439,7 +448,7 @@ export function RecommendationDisplay({ result }: RecommendationDisplayProps) {
               </h4>
               <ul className="mt-4 space-y-2 text-sm leading-6 text-emerald-900">
                 {strengths.map((strength, idx) => (
-                  <li key={idx} className="flex gap-3">
+                  <li key={keyedListItem(strength, idx)} className="flex gap-3">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                     <span>{strength}</span>
                   </li>
@@ -454,7 +463,7 @@ export function RecommendationDisplay({ result }: RecommendationDisplayProps) {
               <ul className="mt-4 space-y-2 text-sm leading-6 text-slate-700">
                 {improvementAreas.length > 0 ? (
                   improvementAreas.map((area, idx) => (
-                    <li key={idx} className="flex gap-3">
+                    <li key={keyedListItem(area, idx)} className="flex gap-3">
                       <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
                       <span>{area}</span>
                     </li>
@@ -491,7 +500,7 @@ export function RecommendationDisplay({ result }: RecommendationDisplayProps) {
               <h3 className="text-xl font-semibold text-slate-950">Catatan penting</h3>
               <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-600">
                 {notes.map((note, idx) => (
-                  <li key={idx} className="flex gap-3">
+                  <li key={keyedListItem(note, idx)} className="flex gap-3">
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f58a1f]" />
                     <span>{note}</span>
                   </li>

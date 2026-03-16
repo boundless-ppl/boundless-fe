@@ -3,10 +3,8 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
 
 export const Footer = () => {
-  const pathname = usePathname()
   const [year, setYear] = React.useState<number | null>(null)
 
   React.useEffect(() => {
@@ -19,10 +17,9 @@ export const Footer = () => {
     { href: "/timeline", label: "Preparation Roadmap", loggedIn: true },
     { href: "/scholarships", label: "Scholarships", loggedIn: true },
   ]
-  const isAuthPage = pathname === "/login" || pathname === "/register"
 
   return (
-    <footer className={`bg-white border-t border-gray-200 ${isAuthPage ? "" : ""}`}>
+    <footer className="bg-white border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           <div>

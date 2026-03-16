@@ -11,7 +11,7 @@ import { submitRecommendation, ApiError } from "@/features/globalmatch/services/
 import type { RecommendationFormData } from "@/lib/api-types";
 import { Loader2 } from "lucide-react";
 
-export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function UploadModal({ open, onOpenChange }: Readonly<{ open: boolean; onOpenChange: (o: boolean) => void }>) {
   const router = useRouter();
   const [step, setStep] = useState<ModalStep>("upload");
   const [files, setFiles] = useState<SelectedFiles | null>(null);

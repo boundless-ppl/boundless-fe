@@ -9,9 +9,15 @@ interface DocumentStepProps {
   onNext: (files: SelectedFiles) => void;
 }
 
+type UploadKind = "cv" | "ts";
+type UploadState = {
+  file: FileData | null;
+  error: string | null;
+};
+
 const MAX_TOTAL_FILE_SIZE_BYTES = 350 * 1024;
 
-export function DocumentStep({ onNext }: DocumentStepProps) {
+export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
   const [cvFile, setCvFile] = useState<FileData | null>(null);
   const [tsFile, setTsFile] = useState<FileData | null>(null);
   const [cvError, setCvError] = useState<string | null>(null);
@@ -26,56 +32,57 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
       sizeInBytes / 1024
     ).toFixed(2)} KB.`;
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: "cv" | "ts") => {
+  const applyUploadState = (type: UploadKind, nextState: UploadState) => {
+    if (type === "cv") {
+      setCvFile(nextState.file);
+      setCvError(nextState.error);
+      return;
+    }
+
+    setTsFile(nextState.file);
+    setTsError(nextState.error);
+  };
+
+  const buildUploadedFile = (file: File): FileData => ({
+    file,
+    name: file.name,
+    size: (file.size / 1024).toFixed(2),
+  });
+
+  const getNextFiles = (type: UploadKind, uploaded: FileData) => ({
+    nextCvFile: type === "cv" ? uploaded : cvFile,
+    nextTsFile: type === "ts" ? uploaded : tsFile,
+  });
+
+  const handleInvalidUpload = (type: UploadKind, error: string) => {
+    applyUploadState(type, { file: null, error });
+    setTotalSizeError(null);
+  };
+
+  const handleValidUpload = (type: UploadKind, uploaded: FileData) => {
+    const { nextCvFile, nextTsFile } = getNextFiles(type, uploaded);
+    const combinedSize = getCombinedSize(nextCvFile, nextTsFile);
+
+    if (combinedSize > MAX_TOTAL_FILE_SIZE_BYTES) {
+      applyUploadState(type, { file: null, error: null });
+      setTotalSizeError(getTotalSizeMessage(combinedSize));
+      return;
+    }
+
+    applyUploadState(type, { file: uploaded, error: null });
+    setTotalSizeError(null);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: UploadKind) => {
     const file = event.target.files?.[0];
     
     if (file) {
-      // Validate file using centralized utility
       const validation = validateDocumentFile(file);
-      
-      if (!validation.isValid) {
-        // Set error and don't upload
-        if (type === "cv") {
-          setCvError(validation.error || "Invalid file");
-          setCvFile(null);
-        } else {
-          setTsError(validation.error || "Invalid file");
-          setTsFile(null);
-        }
-        setTotalSizeError(null);
+
+      if (validation.isValid) {
+        handleValidUpload(type, buildUploadedFile(file));
       } else {
-        // Clear error and upload file
-        if (type === "cv") {
-          setCvError(null);
-        } else {
-          setTsError(null);
-        }
-        
-        const uploaded: FileData = { 
-          file: file,
-          name: file.name, 
-          size: (file.size / 1024).toFixed(2) 
-        };
-
-        const nextCvFile = type === "cv" ? uploaded : cvFile;
-        const nextTsFile = type === "ts" ? uploaded : tsFile;
-        const combinedSize = getCombinedSize(nextCvFile, nextTsFile);
-
-        if (combinedSize > MAX_TOTAL_FILE_SIZE_BYTES) {
-          if (type === "cv") {
-            setCvFile(null);
-          } else {
-            setTsFile(null);
-          }
-          setTotalSizeError(getTotalSizeMessage(combinedSize));
-        } else {
-          setTotalSizeError(null);
-          if (type === "cv") {
-            setCvFile(uploaded);
-          } else {
-            setTsFile(uploaded);
-          }
-        }
+        handleInvalidUpload(type, validation.error || "Invalid file");
       }
     }
     
@@ -103,9 +110,9 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
 
       <div className="grid gap-5 md:grid-cols-2">
         <div className="space-y-3 rounded-[24px] border border-[#ebe2d5] bg-white p-5">
-          <label className="text-[14px] font-medium text-[#2b2b2b]">
+          <p className="text-[14px] font-medium text-[#2b2b2b]">
             Curriculum Vitae (CV)
-          </label>
+          </p>
           <input 
             type="file" 
             id="cv-up" 
@@ -146,9 +153,9 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
         </div>
 
         <div className="space-y-3 rounded-[24px] border border-[#ebe2d5] bg-white p-5">
-          <label className="text-[14px] font-medium text-[#2b2b2b]">
+          <p className="text-[14px] font-medium text-[#2b2b2b]">
             Transkrip Akademis
-          </label>
+          </p>
           <input 
             type="file" 
             id="ts-up" 
