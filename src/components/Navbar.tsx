@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import {
   Dialog,
@@ -26,6 +27,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   const [isMounted, setIsMounted] = React.useState(false)
   const [comingSoonItem, setComingSoonItem] = React.useState<string | null>(null)
   const [isOpen, setIsOpen] = React.useState(false)
+  const router = useRouter()
 
   React.useEffect(() => {
     setIsMounted(true)
@@ -135,7 +137,10 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
                         {user.email}
                       </span>
                     )}
-                    <Button onClick={logout} variant="destructive">
+                    <Button onClick={async () => {
+                      await logout()
+                      router.push("/login")
+                    }} variant="destructive">
                       Keluar
                     </Button>
                   </>
@@ -196,9 +201,10 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
                     </span>
                   )}
                   <Button
-                    onClick={() => {
-                      logout()
+                    onClick={async () => {
+                      await logout()
                       setIsOpen(false)
+                      router.push("/login")
                     }}
                     variant="destructive"
                   >

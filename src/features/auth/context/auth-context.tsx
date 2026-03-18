@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
   loginRequest,
@@ -107,8 +107,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
   };
 
-  const value: AuthContextValue = useMemo(
-    () => ({
+  // existing memoization could not be preserved
+  const value: AuthContextValue = {
       user,
       tokens,
       isAuthenticated: !!tokens?.accessToken,
@@ -117,10 +117,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       login,
       register,
       logout,
-      setUserData,
-    }),
-    [user, tokens, isLoading]
-  );
+      setUserData
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
