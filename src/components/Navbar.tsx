@@ -25,6 +25,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   const { isAuthenticated, isLoading, logout, user } = useAuth()
   const [isMounted, setIsMounted] = React.useState(false)
   const [comingSoonItem, setComingSoonItem] = React.useState<string | null>(null)
+  const [isOpen, setIsOpen] = React.useState(false)
 
   React.useEffect(() => {
     setIsMounted(true)
@@ -33,9 +34,9 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   const navLinks: NavLink[] = [
     { href: "/", label: "Beranda", loggedIn: false },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
-    { href: "/globalmatch", label: "Globalmatch", loggedIn: true },
-    { label: "Beasiswa", loggedIn: true, comingSoon: true },
-    { label: "Dreamtracker", loggedIn: true, comingSoon: true },
+    { href: "/globalmatch", label: "Globalmatch AI", loggedIn: true },
+    // { label: "Beasiswa", loggedIn: true, comingSoon: true },
+    // { label: "Dreamtracker", loggedIn: true, comingSoon: true },
   ]
   const canShowLink = (link: NavLink) => !link.loggedIn || (isMounted && isAuthenticated)
   const renderNavItem = (link: NavLink) => {
@@ -70,12 +71,12 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        "sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60",
         className
       )}
       {...props}
     >
-      <div className="pl-4 pr-4 flex w-full h-16 items-center">
+      <div className="px-4 md:px-8 lg:px-16 flex w-full h-16 items-center">
         <div className="flex w-1/3 justify-start">
           <Link href="/" className="flex items-center">
             <Image
@@ -94,14 +95,35 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
           </nav>
         </div>
 
-        <div className="flex w-1/3 justify-end">
-          <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex w-1/3 justify-end items-center gap-2">
+          <button
+            className="md:hidden flex flex-col justify-center items-center w-8 h-8 relative"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <span
+              className={`absolute w-6 h-0.5 bg-black transition-all duration-300 ${
+                isOpen ? "rotate-45" : "-translate-y-2"
+              }`}
+            />
+            <span
+              className={`absolute w-6 h-0.5 bg-black transition-all duration-300 ${
+                isOpen ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`absolute w-6 h-0.5 bg-black transition-all duration-300 ${
+                isOpen ? "-rotate-45" : "translate-y-2"
+              }`}
+            />
+          </button>
+
+          <div className="hidden md:flex items-center gap-2 md:gap-4">
             {isLoading ? (
               <div className="w-20 h-9 bg-gray-200 animate-pulse rounded"></div>
             ) : (
               <>
                 {(!isMounted || !isAuthenticated) && (
-                  <button className="bg-[linear-gradient(180deg,_#4479B2_0%,_#669DD9_100%)] backdrop-blur-sm shadow-[0px_2px_4px_0px_#00000040] px-3 py-2 rounded-md text-white font-bold">
+                  <button className="bg-[linear-gradient(180deg,#4479B2_0%,#669DD9_100%)] backdrop-blur-sm shadow-[0px_2px_4px_0px_#00000040] px-3 py-2 rounded-md text-white font-bold">
                     <Link href="/register">Mulai</Link>
                   </button>
                 )}
@@ -123,6 +145,72 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
           </div>
         </div>
       </div>
+
+      {isOpen && (
+        <div className="md:hidden fixed top-12 left-0 w-full z-10">
+          <div className="flex flex-col gap-4 mt-2 rounded-2xl border-b border-gray-200 bg-white shadow-md p-4 animate-in slide-in-from-top-2">
+            {navLinks.map((link) => {
+              if (!canShowLink(link)) return null
+
+              if (link.comingSoon) {
+                return (
+                  <button
+                    key={link.label}
+                    onClick={() => {
+                      setComingSoonItem(link.label)
+                      setIsOpen(false)
+                    }}
+                    className="text-left text-black"
+                  >
+                    {link.label}
+                  </button>
+                )
+              }
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href!}
+                  onClick={() => setIsOpen(false)}
+                  className="text-black"
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
+
+            <div className="border-t pt-4">
+              {(!isMounted || !isAuthenticated) && (
+                <Link href="/register" onClick={() => setIsOpen(false)}>
+                  <button className="w-full bg-[linear-gradient(180deg,#4479B2_0%,#669DD9_100%)] backdrop-blur-sm shadow-[0px_2px_4px_0px_#00000040] px-3 py-2 rounded-md text-white font-bold">
+                    Mulai
+                  </button>
+                </Link>
+              )}
+
+              {isMounted && isAuthenticated && (
+                <div className="flex flex-col gap-2">
+                  {user?.email && (
+                    <span className="text-sm text-foreground/60">
+                      {user.email}
+                    </span>
+                  )}
+                  <Button
+                    onClick={() => {
+                      logout()
+                      setIsOpen(false)
+                    }}
+                    variant="destructive"
+                  >
+                    Keluar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Dialog open={!!comingSoonItem} onOpenChange={(open) => !open && setComingSoonItem(null)}>
         <DialogContent className="max-w-md rounded-3xl border-[#eadfce] p-8">
           <DialogHeader className="space-y-3 text-left">
@@ -130,7 +218,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
               {comingSoonItem}
             </DialogTitle>
             <DialogDescription className="text-base leading-7 text-[#6b7280]">
-              Fitur ini sedang disiapkan dan akan hadir segera. Sementara itu, kamu sudah bisa mencoba Globalmatch sekarang.
+              Fitur ini sedang disiapkan dan akan hadir segera. Sementara itu, kamu sudah bisa mencoba Globalmatch AI sekarang.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 flex items-center gap-3">
@@ -140,7 +228,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
               asChild
             >
               <Link href="/globalmatch" onClick={() => setComingSoonItem(null)}>
-                Buka Globalmatch
+                Buka Globalmatch AI
               </Link>
             </Button>
             <Button
