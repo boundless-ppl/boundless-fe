@@ -216,7 +216,7 @@ export const PrivacyPolicy = () => {
                 <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
                   Privacy Policy
                 </h1>
-                <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+                <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base text-justify">
                   Dokumen ini menjelaskan bagaimana Boundless mengumpulkan,
                   menggunakan, menyimpan, dan melindungi data pribadi pengguna secara
                   jelas, proporsional, dan sesuai ketentuan perlindungan data yang
@@ -231,7 +231,7 @@ export const PrivacyPolicy = () => {
             </div>
           </div>
 
-          <div className="grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="lg:grid gap-8 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside className="space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
@@ -240,14 +240,14 @@ export const PrivacyPolicy = () => {
                 <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
                   {highlights.map((item) => (
                     <li key={item} className="flex gap-3">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400" />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 p-5">
+              <div className="rounded-2xl border border-slate-200 p-5 max-lg:mb-6">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Daftar Isi
                 </h2>
@@ -275,15 +275,15 @@ export const PrivacyPolicy = () => {
                   key={section.id}
                   className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-950/5 sm:p-8"
                 >
-                  <div className="mb-5 flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold text-white">
+                  <div className="mb-5 md:flex items-center gap-4 max-md:space-y-5">
+                    <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-2xl bg-orange-400 text-sm font-semibold text-white">
                       {index + 1}
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-950">
                         Section
                       </p>
-                      <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                      <h2 className="text-2xl font-semibold tracking-tight text-orange-500">
                         {section.title}
                       </h2>
                     </div>
@@ -296,10 +296,10 @@ export const PrivacyPolicy = () => {
 
               <section className="rounded-3xl border border-orange-200 bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_100%)] p-6 sm:p-8">
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-500">
                     Contact
                   </p>
-                  <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                  <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-950">
                     Pertanyaan mengenai privasi dan penggunaan data
                   </h2>
                   <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-[15px]">
@@ -308,23 +308,23 @@ export const PrivacyPolicy = () => {
                   </p>
                 </div>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white bg-white/80 p-5">
+                <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-100 bg-white/80 p-5">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
                       Email
                     </p>
                     <a
                       href="mailto:boundless.startup@gmail.com"
-                      className="mt-2 block text-base font-medium text-slate-950 hover:text-orange-700"
+                      className="mt-2 block text-sm md:text-base font-medium text-slate-950 hover:text-orange-500"
                     >
                       boundless.startup@gmail.com
                     </a>
                   </div>
-                  <div className="rounded-2xl border border-white bg-white/80 p-5">
+                  <div className="rounded-2xl border border-slate-100 bg-white/80 p-5">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
                       Domisili
                     </p>
-                    <p className="mt-2 text-base font-medium text-slate-950">
+                    <p className="mt-2 text-sm md:text-base font-medium text-slate-950">
                       Depok, Indonesia
                     </p>
                   </div>
