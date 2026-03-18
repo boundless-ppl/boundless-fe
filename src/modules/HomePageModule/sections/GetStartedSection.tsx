@@ -1,4 +1,3 @@
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -82,10 +81,10 @@ export const GetStartedSection = () => {
         />
         <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight">
           Breaking Barriers to <br></br>
-          <span className="text-orange-500">Studying Abroad</span>
+          <span className="text-orange-400">Studying Abroad</span>
         </h1>
-        <button className="bg-[linear-gradient(180deg,_#4479B2_0%,_#669DD9_100%)] backdrop-blur-sm shadow-[0px_2px_4px_0px_#00000040] px-6 md:px-8 py-3 md:py-4 rounded-md text-white font-bold text-sm md:text-base">
-          <Link href="/register">Get started</Link>
+        <button className="bg-[linear-gradient(180deg,#4479B2_0%,#669DD9_100%)] backdrop-blur-sm shadow-[0px_2px_4px_0px_#00000040] px-6 md:px-8 py-3 md:py-4 rounded-md text-white font-bold text-sm md:text-base">
+          <Link href="/register">Mulai</Link>
         </button>
       </div>
     </section>

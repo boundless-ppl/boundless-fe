@@ -12,16 +12,16 @@ export const Footer = () => {
   }, [])
 
   const navLinks = [
-    { href: "/", label: "Home", loggedIn: false },
-    { href: "/discover", label: "Discover", loggedIn: true },
-    { href: "/timeline", label: "Preparation Roadmap", loggedIn: true },
-    { href: "/scholarships", label: "Scholarships", loggedIn: true },
+    { href: "/", label: "Beranda", loggedIn: false },
+    // { href: "/discover", label: "Jelajahi", loggedIn: true },
+    // { href: "/timeline", label: "Rencana Persiapan", loggedIn: true },
+    // { href: "/scholarships", label: "Beasiswa", loggedIn: true },
   ]
 
   return (
     <footer className="bg-white border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      <div className="px-4 md:px-8 lg:px-16 pt-8 md:pt-12">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_0.8fr_2fr] gap-10 items-start">
           <div>
             <Link href="/" className="inline-block mb-4">
               <Image
@@ -32,13 +32,13 @@ export const Footer = () => {
                 className="h-8 w-auto"
               />
             </Link>
-            <p className="text-sm text-gray-600 max-w-sm">
-              Breaking Barriers to Global Education. Join thousands of students preparing to study abroad with confidence.
+            <p className="text-sm text-gray-600 md:max-w-sm text-justify">
+              Menembus batas untuk pendidikan global. Bergabunglah dengan ribuan mahasiswa yang mempersiapkan studi ke luar negeri dengan penuh keyakinan.
             </p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Explore</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-4">Jelajahi</h4>
             <ul className="space-y-2">
               {navLinks.map((link) => (
                 <li key={link.href}>
@@ -50,16 +50,18 @@ export const Footer = () => {
             </ul>
           </div>
 
-          <Image
-                src="/BONBON_FOOTER.svg"
-                alt="Have a good day!"
-                width={1200}
-                height={200}
-                className="h-40 w-auto"
+          <div className="flex justify-center lg:justify-end">
+            <Image
+              src="/BONBON_FOOTER.svg"
+              alt="Have a good day!"
+              width={1200}
+              height={200}
+              className="h-32 md:h-40 w-auto"
             />
+          </div>
         </div>
 
-        <div className="mt-12 border-t border-gray-100 pt-6 text-sm text-gray-400 text-center">
+        <div className="mt-2 md:mt-12 border-t border-gray-100 py-4 text-xs md:text-sm text-gray-400 text-center">
           &copy; {year ?? ""} Boundless. All rights reserved.
         </div>
       </div>
