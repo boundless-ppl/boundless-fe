@@ -26,6 +26,15 @@ describe("middleware", () => {
     expect(response?.headers.get("location")).toContain("/login?next=%2Fdashboard");
   });
 
+  it("redirects guests away from /profile", () => {
+    const request = new NextRequest("https://example.com/profile");
+
+    const response = middleware(request);
+
+    expect(response?.status).toBe(307);
+    expect(response?.headers.get("location")).toContain("/login?next=%2Fprofile");
+  });
+
   it("redirects expired-token users away from protected routes", () => {
     const request = new NextRequest("https://example.com/globalmatch");
     request.cookies.set(ACCESS_TOKEN_COOKIE, createToken(Math.floor(Date.now() / 1000) - 60));
