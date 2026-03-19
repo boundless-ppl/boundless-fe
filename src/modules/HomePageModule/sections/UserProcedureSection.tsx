@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FEATURE_STEPS } from '../constant';
 
@@ -71,7 +71,7 @@ export const UserProcedureSection = () => {
                 )}
                 
                 <div className="flex items-start gap-3 md:gap-4">
-                  <div className={`${step.bgColor} text-white w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center font-bold text-xs md:text-sm flex-shrink-0 shadow-sm transition-transform duration-300 ${
+                  <div className={`${step.bgColor} text-white w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center font-bold text-xs md:text-sm shrink-0 shadow-sm transition-transform duration-300 ${
                     activeStep === index ? 'scale-110' : ''
                   }`}>
                     {index + 1}
