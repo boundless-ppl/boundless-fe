@@ -27,6 +27,8 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   const [isMounted, setIsMounted] = React.useState(false)
   const [comingSoonItem, setComingSoonItem] = React.useState<string | null>(null)
   const [isOpen, setIsOpen] = React.useState(false)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = React.useState(false)
+  const profileMenuRef = React.useRef<HTMLDivElement | null>(null)
   const router = useRouter()
 
   React.useEffect(() => {
@@ -40,6 +42,36 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
     // { label: "Beasiswa", loggedIn: true, comingSoon: true },
     // { label: "Dreamtracker", loggedIn: true, comingSoon: true },
   ]
+
+  const getNameInitials = (fullName?: string, email?: string) => {
+    const normalizedName = (fullName ?? "").replace(/\s+/g, "").trim()
+    if (normalizedName.length >= 2) {
+      return normalizedName.slice(0, 2).toUpperCase()
+    }
+
+    const emailPrefix = (email ?? "").split("@")[0] ?? ""
+    if (emailPrefix.length >= 2) {
+      return emailPrefix.slice(0, 2).toUpperCase()
+    }
+
+    return "N/A"
+  }
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!profileMenuRef.current) return
+      if (!profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false)
+      }
+    }
+
+    globalThis.addEventListener("mousedown", handleClickOutside)
+
+    return () => {
+      globalThis.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+  
   const canShowLink = (link: NavLink) => !link.loggedIn || (isMounted && isAuthenticated)
   const renderNavItem = (link: NavLink) => {
     if (!canShowLink(link)) {
@@ -131,19 +163,46 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
                 )}
 
                 {isMounted && isAuthenticated && (
-                  <>
-                    {user?.email && (
-                      <span className="text-sm text-foreground/60 hidden md:inline">
-                        {user.email}
-                      </span>
+                  <div className="relative" ref={profileMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f58a1f] text-sm font-bold text-white shadow-[0_8px_18px_rgba(245,138,31,0.35)] transition hover:bg-[#dd7611]"
+                      aria-label="Buka menu akun"
+                    >
+                      {getNameInitials(user?.nama_lengkap, user?.email)}
+                    </button>
+
+                    {isProfileMenuOpen && (
+                      <div className="absolute right-0 top-12 z-20 w-60 rounded-2xl border border-[#eadfce] bg-white p-4 shadow-[0_16px_35px_rgba(31,31,31,0.12)]">
+                        <p className="text-sm text-[#6b7280]">
+                          Hi, <span className="font-semibold text-[#1f2937]">{user?.email || "Pengguna"}</span>
+                        </p>
+
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="mt-3 w-full"
+                        >
+                          <Link href="/profile" onClick={() => setIsProfileMenuOpen(false)}>
+                            Profile
+                          </Link>
+                        </Button>
+
+                        <Button
+                          onClick={async () => {
+                            setIsProfileMenuOpen(false)
+                            await logout()
+                            router.push("/login")
+                          }}
+                          variant="destructive"
+                          className="mt-3 w-full"
+                        >
+                          Keluar
+                        </Button>
+                      </div>
                     )}
-                    <Button onClick={async () => {
-                      await logout()
-                      router.push("/login")
-                    }} variant="destructive">
-                      Keluar
-                    </Button>
-                  </>
+                  </div>
                 )}
               </>
             )}
@@ -183,6 +242,16 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
                 </Link>
               )
             })}
+
+            {isMounted && isAuthenticated && (
+              <Link
+                href="/profile"
+                onClick={() => setIsOpen(false)}
+                className="text-black"
+              >
+                Profile
+              </Link>
+            )}
 
             <div className="border-t pt-4">
               {(!isMounted || !isAuthenticated) && (
