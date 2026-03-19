@@ -1,6 +1,6 @@
 import type { LoginPayload, RegisterPayload, UserData } from "@/features/auth/types/auth.types";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/features/auth/constants/auth.constants";
-import { isAccessTokenExpired, parseAccessToken } from "@/features/auth/utils/access-token";
+import { isAccessTokenExpired } from "@/features/auth/utils/access-token";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -49,14 +49,7 @@ export async function loginRequest(payload: LoginPayload) {
 
   if (!accessToken || !refreshToken) throw new Error("Invalid auth response from server");
 
-  const claims = parseAccessToken(accessToken);
-  const user: Pick<UserData, "userId" | "email" | "role"> = {
-    userId: claims?.userId ?? "",
-    email: payload.email,
-    role: claims?.role || "user",
-  };
-
-  return { tokens: { accessToken, refreshToken }, user };
+  return { accessToken, refreshToken };
 }
 
 export async function logoutRequest(accessToken: string) {
@@ -64,6 +57,28 @@ export async function logoutRequest(accessToken: string) {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+}
+
+export async function getMe(accessToken: string): Promise<UserData> {
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+
+  const data = await response.json();
+
+  return {
+    userId: data.user_id,
+    nama_lengkap: data.nama_lengkap,
+    email: data.email,
+    role: data.role,
+  };
 }
 
 function getCookieValue(name: string): string | null {
