@@ -19,6 +19,7 @@ interface PreferenceStepProps {
 export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
+  const [customField, setCustomField] = useState<string>("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [budgetPreference, setBudgetPreference] = useState<string>("");
   const [scholarshipTypes, setScholarshipTypes] = useState<string[]>([]);
@@ -38,6 +39,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
     onSubmit({
       countries: selectedCountries,
       fields: selectedFields,
+      customField,
       educationLevel: "master",
       languages: selectedLanguages,
       budget: budgetPreference,
@@ -71,6 +73,12 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
               <Pill key={f} label={f} active={selectedFields.includes(f)} onClick={() => toggleMulti(f, selectedFields, setSelectedFields)} />
             ))}
           </div>
+          <textarea
+            className="min-h-[76px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            placeholder="Tambahkan bidang studi lainnya (opsional)"
+            value={customField}
+            onChange={(e) => setCustomField(e.target.value)}
+          />
         </div>
 
         <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">

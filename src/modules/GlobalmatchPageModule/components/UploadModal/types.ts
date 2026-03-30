@@ -12,6 +12,7 @@ export interface SelectedFiles {
 export interface PreferenceData {
   countries: string[];
   fields: string[];
+  customField: string;
   educationLevel: "master";
   languages: string[];
   budget: string;
