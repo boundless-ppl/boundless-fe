@@ -46,7 +46,7 @@ export function UploadModal({ open, onOpenChange }: { open: boolean; onOpenChang
       const requestData: RecommendationFormData = {
         cv_file: files.cv?.file,
         transcript_file: files.transcript?.file,
-        continents: preferences.regions,
+        continents: [],
         countries: preferences.countries,
         fields_of_study: preferences.fields,
         degree_level: preferences.educationLevel,

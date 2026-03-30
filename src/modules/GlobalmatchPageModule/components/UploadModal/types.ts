@@ -10,10 +10,9 @@ export interface SelectedFiles {
 }
 
 export interface PreferenceData {
-  regions: string[];
   countries: string[];
   fields: string[];
-  educationLevel: string;
+  educationLevel: "master";
   languages: string[];
   budget: string;
   scholarships: string[];

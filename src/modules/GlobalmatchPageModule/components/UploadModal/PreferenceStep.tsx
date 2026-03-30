@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { PreferenceData } from "./types";
 import { 
-  REGIONS, 
   COUNTRIES, 
   FIELDS_OF_STUDY, 
-  EDUCATION_LEVELS, 
   LANGUAGES, 
   BUDGET_PREFERENCES, 
   SCHOLARSHIP_TYPES, 
@@ -19,10 +17,8 @@ interface PreferenceStepProps {
 }
 
 export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const [educationLevel, setEducationLevel] = useState<string>("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [budgetPreference, setBudgetPreference] = useState<string>("");
   const [scholarshipTypes, setScholarshipTypes] = useState<string[]>([]);
@@ -40,10 +36,9 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
 
   const handleFormSubmit = () => {
     onSubmit({
-      regions: selectedRegions,
       countries: selectedCountries,
       fields: selectedFields,
-      educationLevel,
+      educationLevel: "master",
       languages: selectedLanguages,
       budget: budgetPreference,
       scholarships: scholarshipTypes,
@@ -60,15 +55,6 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Dimana pilihan wilayah Anda?</label>
-          <div className="flex flex-wrap gap-2">
-            {REGIONS.map(r => (
-              <Pill key={r} label={r} active={selectedRegions.includes(r)} onClick={() => toggleMulti(r, selectedRegions, setSelectedRegions)} />
-            ))}
-          </div>
-        </div>
-
         <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</label>
           <div className="flex flex-wrap gap-2">
@@ -90,9 +76,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
         <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <label className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</label>
           <div className="flex flex-wrap gap-2">
-            {EDUCATION_LEVELS.map(lvl => (
-              <Pill key={lvl.value} label={lvl.label} active={educationLevel === lvl.value} onClick={() => setEducationLevel(lvl.value)} />
-            ))}
+            <Pill label="S2/Master" active onClick={() => {}} />
           </div>
         </div>
 
@@ -157,7 +141,6 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
         </Button>
         <Button 
           className="flex-1 rounded-xl bg-[#f58a1f] py-6 text-white hover:bg-[#dd7611]" 
-          disabled={!educationLevel}
           onClick={handleFormSubmit}
         >
           Lanjut ke Ringkasan
