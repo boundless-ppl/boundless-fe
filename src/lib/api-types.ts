@@ -1,8 +1,3 @@
-/**
- * API Types and Interfaces for Boundless BE
- * Based on API contract version 2026-03-09
- */
-
 // ============================================
 // Common Types
 // ============================================
@@ -194,15 +189,160 @@ export interface SubmissionDetails {
 }
 
 // ============================================
+// Dream Tracker Types
+// ============================================
+
+export type DreamTrackerStatus = "ACTIVE" | "COMPLETED" | "ARCHIVED";
+export type DreamRequirementStatus = "NOT_UPLOADED" | "UPLOADED" | "VERIFIED" | "REJECTED";
+export type MilestoneStatus = "NOT_STARTED" | "DONE" | "MISSED";
+export type FundingType = "SCHOLARSHIP" | "SELF_FUNDED" | "ASSISTANTSHIP" | "LOAN" | "SPONSORSHIP";
+export type FundingStatus = "AVAILABLE" | "SELECTED";
+
+export interface DreamTrackerSummaryData {
+  completion_percentage: number;
+  completed_requirements: number;
+  total_requirements: number;
+  next_deadline_at: string | null;
+  is_deadline_near: boolean;
+  is_overdue: boolean;
+}
+
+export interface DreamTrackerProgress {
+  percentage: number;
+  completed_documents: number;
+  total_documents: number;
+}
+
+export interface DreamTrackerProgram {
+  program_id: string;
+  program_name: string;
+  university_name: string;
+  admission_name: string;
+  intake: string;
+  admission_url: string;
+  admission_deadline: string;
+}
+
+export interface DreamRequirement {
+  dream_req_status_id: string;
+  document_id: string | null;
+  req_catalog_id: string;
+  requirement_key: string;
+  requirement_label: string;
+  category: string;
+  description: string;
+  status: DreamRequirementStatus;
+  notes: string | null;
+  ai_status: string | null;
+  ai_messages: string[];
+  label: string;
+  is_required: boolean;
+  status_label: string;
+  status_variant: string;
+  message: string | null;
+  action_label: string;
+  can_upload: boolean;
+  needs_reupload: boolean;
+  created_at: string;
+}
+
+export interface DreamMilestone {
+  dream_milestone_id: string;
+  title: string;
+  description: string;
+  deadline_date: string;
+  is_required: boolean;
+  status: MilestoneStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DreamFunding {
+  funding_id: string;
+  nama_beasiswa: string;
+  deskripsi: string;
+  provider: string;
+  tipe_pembiayaan: FundingType;
+  website: string;
+  status: FundingStatus;
+}
+
+export interface DreamTrackerItem {
+  dream_tracker_id: string;
+  user_id: string;
+  program_id: string;
+  admission_id: string | null;
+  funding_id: string | null;
+  title: string;
+  subtitle: string;
+  status: DreamTrackerStatus;
+  status_label: string;
+  status_variant: string;
+  created_at: string;
+  updated_at: string;
+  source_type: string;
+  req_submission_id: string | null;
+  source_rec_result_id: string | null;
+  deadline_at: string | null;
+  progress: DreamTrackerProgress;
+  summary: DreamTrackerSummaryData;
+  program: DreamTrackerProgram;
+  requirements: DreamRequirement[];
+  milestones: DreamMilestone[];
+  fundings: DreamFunding[];
+}
+
+export interface DreamTrackerListResponse {
+  items: DreamTrackerItem[];
+}
+
+export interface DreamTrackerDashboardSummary {
+  total_applications: number;
+  in_progress_count: number;
+  completed_count: number;
+  deadline_near_count: number;
+}
+
+export interface CreateDreamTrackerRequest {
+  program_id: string;
+  admission_id?: string | null;
+  funding_id?: string | null;
+  title: string;
+  status?: string;
+  source_type: string;
+  req_submission_id?: string | null;
+  source_rec_result_id?: string | null;
+}
+
+export interface CreateDreamTrackerResponse {
+  dream_tracker_id: string;
+  status: string;
+}
+
+export interface SubmitRequirementRequest {
+  document_id: string;
+}
+
+export interface SubmitRequirementResponse {
+  dream_req_status_id: string;
+  document_id: string;
+  status: DreamRequirementStatus;
+  ai_status: string;
+  ai_messages: string[];
+  status_label: string;
+  status_variant: string;
+  message: string;
+  meta?: Record<string, unknown>;
+}
+
+// ============================================
 // Form Data for Multipart Requests
 // ============================================
 
 export interface RecommendationFormData {
-  // Files
   transcript_file?: File;
   cv_file?: File;
   
-  // Preferences (all repeatable arrays)
   continents?: string[];
   countries?: string[];
   fields_of_study?: string[];
