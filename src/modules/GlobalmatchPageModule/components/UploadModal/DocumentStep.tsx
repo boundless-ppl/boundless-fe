@@ -6,10 +6,11 @@ import { validateDocumentFile } from "@/lib/file-validation";
 import { FileData, SelectedFiles } from "./types";
 
 interface DocumentStepProps {
-  onNext: (files: SelectedFiles) => void;
+  readonly onNext: (files: SelectedFiles) => void;
 }
 
 const MAX_TOTAL_FILE_SIZE_BYTES = 350 * 1024;
+type FileType = "cv" | "ts";
 
 export function DocumentStep({ onNext }: DocumentStepProps) {
   const [cvFile, setCvFile] = useState<FileData | null>(null);
@@ -26,60 +27,71 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
       sizeInBytes / 1024
     ).toFixed(2)} KB.`;
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: "cv" | "ts") => {
+  const setSelectedFile = (type: FileType, file: FileData | null) => {
+    if (type === "cv") {
+      setCvFile(file);
+      return;
+    }
+
+    setTsFile(file);
+  };
+
+  const setSelectedFileError = (type: FileType, error: string | null) => {
+    if (type === "cv") {
+      setCvError(error);
+      return;
+    }
+
+    setTsError(error);
+  };
+
+  const handleExceededTotalSize = (type: FileType, combinedSize: number) => {
+    setSelectedFile(type, null);
+    setTotalSizeError(getTotalSizeMessage(combinedSize));
+  };
+
+  const handleValidFile = (file: File, type: FileType) => {
+    const uploaded: FileData = {
+      file,
+      name: file.name,
+      size: (file.size / 1024).toFixed(2),
+    };
+
+    setSelectedFileError(type, null);
+
+    const nextCvFile = type === "cv" ? uploaded : cvFile;
+    const nextTsFile = type === "ts" ? uploaded : tsFile;
+    const combinedSize = getCombinedSize(nextCvFile, nextTsFile);
+
+    if (combinedSize > MAX_TOTAL_FILE_SIZE_BYTES) {
+      handleExceededTotalSize(type, combinedSize);
+      return;
+    }
+
+    setTotalSizeError(null);
+    setSelectedFile(type, uploaded);
+  };
+
+  const handleRejectedFile = (type: FileType, error: string | undefined) => {
+    setSelectedFileError(type, error || "Invalid file");
+    setSelectedFile(type, null);
+    setTotalSizeError(null);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: FileType) => {
     const file = event.target.files?.[0];
-    
+
     if (file) {
-      // Validate file using centralized utility
       const validation = validateDocumentFile(file);
-      
-      if (!validation.isValid) {
-        // Set error and don't upload
-        if (type === "cv") {
-          setCvError(validation.error || "Invalid file");
-          setCvFile(null);
-        } else {
-          setTsError(validation.error || "Invalid file");
-          setTsFile(null);
-        }
-        setTotalSizeError(null);
+
+      if (validation.isValid) {
+        handleValidFile(file, type);
       } else {
-        // Clear error and upload file
-        if (type === "cv") {
-          setCvError(null);
-        } else {
-          setTsError(null);
-        }
-        
-        const uploaded: FileData = { 
-          file: file,
-          name: file.name, 
-          size: (file.size / 1024).toFixed(2) 
-        };
-
-        const nextCvFile = type === "cv" ? uploaded : cvFile;
-        const nextTsFile = type === "ts" ? uploaded : tsFile;
-        const combinedSize = getCombinedSize(nextCvFile, nextTsFile);
-
-        if (combinedSize > MAX_TOTAL_FILE_SIZE_BYTES) {
-          if (type === "cv") {
-            setCvFile(null);
-          } else {
-            setTsFile(null);
-          }
-          setTotalSizeError(getTotalSizeMessage(combinedSize));
-        } else {
-          setTotalSizeError(null);
-          if (type === "cv") {
-            setCvFile(uploaded);
-          } else {
-            setTsFile(uploaded);
-          }
-        }
+        handleRejectedFile(type, validation.error);
       }
     }
-    
-    event.target.value = ""; 
+
+    event.target.value = "";
   };
 
   return (
@@ -103,7 +115,7 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
 
       <div className="grid gap-5 md:grid-cols-2">
         <div className="space-y-3 rounded-[24px] border border-[#ebe2d5] bg-white p-5">
-          <label className="text-[14px] font-medium text-[#2b2b2b]">
+          <label htmlFor="cv-up" className="text-[14px] font-medium text-[#2b2b2b]">
             Curriculum Vitae (CV)
           </label>
           <input 
@@ -128,7 +140,7 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
               </button>
             </div>
           ) : (
-            <label htmlFor="cv-up" className="flex min-h-[190px] cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-[#e5ddd1] bg-[#fcfaf7] p-6 transition-all hover:border-[#fa8613] hover:bg-[#fff8f3]">
+            <label htmlFor="cv-up" className="flex min-h-47.5 cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-[#e5ddd1] bg-[#fcfaf7] p-6 transition-all hover:border-[#fa8613] hover:bg-[#fff8f3]">
               <div className="mb-3 rounded-full bg-[#fff0e0] p-3">
                 <Upload className="text-[#fa8613] w-6 h-6" />
               </div>
@@ -146,7 +158,7 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
         </div>
 
         <div className="space-y-3 rounded-[24px] border border-[#ebe2d5] bg-white p-5">
-          <label className="text-[14px] font-medium text-[#2b2b2b]">
+          <label htmlFor="ts-up" className="text-[14px] font-medium text-[#2b2b2b]">
             Transkrip Akademis
           </label>
           <input 
@@ -171,7 +183,7 @@ export function DocumentStep({ onNext }: DocumentStepProps) {
               </button>
             </div>
           ) : (
-            <label htmlFor="ts-up" className="flex min-h-[190px] cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-[#e5ddd1] bg-[#fcfaf7] p-6 transition-all hover:border-[#fa8613] hover:bg-[#fff8f3]">
+            <label htmlFor="ts-up" className="flex min-h-47.5 cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-[#e5ddd1] bg-[#fcfaf7] p-6 transition-all hover:border-[#fa8613] hover:bg-[#fff8f3]">
               <div className="mb-3 rounded-full bg-[#fff0e0] p-3">
                 <FileText className="text-[#fa8613] w-6 h-6" />
               </div>

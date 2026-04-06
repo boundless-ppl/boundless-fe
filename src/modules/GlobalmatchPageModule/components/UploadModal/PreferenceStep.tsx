@@ -12,8 +12,8 @@ import {
 } from "../../constant";
 
 interface PreferenceStepProps {
-  onBack: () => void;
-  onSubmit: (data: PreferenceData) => void;
+  readonly onBack: () => void;
+  readonly onSubmit: (data: PreferenceData) => void;
 }
 
 export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
@@ -57,57 +57,57 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</legend>
           <div className="flex flex-wrap gap-2">
             {COUNTRIES.map(c => (
               <Pill key={c} label={c} active={selectedCountries.includes(c)} onClick={() => toggleMulti(c, selectedCountries, setSelectedCountries)} />
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Bidang studi</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Bidang studi</legend>
           <div className="flex flex-wrap gap-2">
             {FIELDS_OF_STUDY.map(f => (
               <Pill key={f} label={f} active={selectedFields.includes(f)} onClick={() => toggleMulti(f, selectedFields, setSelectedFields)} />
             ))}
           </div>
           <textarea
-            className="min-h-[76px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            className="min-h-19 w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
             placeholder="Tambahkan bidang studi lainnya (opsional)"
             value={customField}
             onChange={(e) => setCustomField(e.target.value)}
           />
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</legend>
           <div className="flex flex-wrap gap-2">
             <Pill label="S2/Master" active onClick={() => {}} />
           </div>
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Bahasa pengantar</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Bahasa pengantar</legend>
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map(l => (
               <Pill key={l} label={l} active={selectedLanguages.includes(l)} onClick={() => toggleMulti(l, selectedLanguages, setSelectedLanguages)} />
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Preferensi budget tahunan (USD)</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Preferensi budget tahunan (USD)</legend>
           <div className="flex flex-wrap gap-2">
             {BUDGET_PREFERENCES.map(b => (
               <Pill key={b.value} label={b.label} active={budgetPreference === b.value} onClick={() => setBudgetPreference(b.value)} />
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Tipe beasiswa yang dicari</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Tipe beasiswa yang dicari</legend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {SCHOLARSHIP_TYPES.map(s => (
               <label key={s.value} className="flex items-center gap-3 rounded-xl border border-[#e8e8e8] p-3 cursor-pointer hover:bg-gray-50 transition-colors">
@@ -121,26 +121,26 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
               </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Rencana periode mulai</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Rencana periode mulai</legend>
           <div className="flex flex-wrap gap-2">
             {START_PERIODS.map(p => (
               <Pill key={p} label={p} active={startPeriod === p} onClick={() => setStartPeriod(p)} />
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5 xl:col-span-2">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Preferensi tambahan (Opsional)</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5 xl:col-span-2">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Preferensi tambahan (Opsional)</legend>
           <textarea 
-            className="min-h-[92px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            className="min-h-23 w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
             placeholder="Contoh: Saya mencari universitas yang dekat dengan pusat industri teknologi..."
             value={additionalPreferences}
             onChange={(e) => setAdditionalPreferences(e.target.value)}
           />
-        </div>
+        </fieldset>
       </div>
 
       <div className="flex gap-3 border-t border-[#f0e6d7] pt-5">

@@ -4,10 +4,10 @@ import { FileText } from "lucide-react";
 import { PreferenceData } from "./types";
 
 export interface SummaryStepProps {
-  files: { cv: { name: string } | null; transcript: { name: string } | null };
-  preferences: PreferenceData;
-  onEdit: () => void;
-  onSubmit: () => void;
+  readonly files: { readonly cv: { readonly name: string } | null; readonly transcript: { readonly name: string } | null };
+  readonly preferences: Readonly<PreferenceData>;
+  readonly onEdit: () => void;
+  readonly onSubmit: () => void;
 }
 
 export function SummaryStep({ files, preferences, onEdit, onSubmit }: SummaryStepProps) {
