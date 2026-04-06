@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSearchParams } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import type {
   PaymentFormSectionProps,
   PaymentPlanId,
 } from "@/features/payment/types/payment-form.types";
+import { paymentPlanValues } from "@/features/payment/types/payment-form.types";
 import { PAYMENT_ADMIN_FEE, PAYMENT_PLANS } from "../constant";
 import {
   BenefitsCard,
@@ -47,10 +49,15 @@ const getMobileLayoutSnapshot = () => {
   return globalThis.window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches;
 };
 
+const isPaymentPlanId = (value: string): value is PaymentPlanId =>
+  paymentPlanValues.includes(value as PaymentPlanId);
+
 export const PaymentFormSection = ({
   onPlanSelected,
   onReceiptSubmitted,
 }: PaymentFormSectionProps) => {
+  const searchParams = useSearchParams();
+  const requestedPlanParam = searchParams.get("plan");
   const uploadSectionRef = useRef<HTMLElement | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
@@ -72,6 +79,18 @@ export const PaymentFormSection = ({
     getMobileLayoutSnapshot,
     () => false
   );
+
+  useEffect(() => {
+    if (!requestedPlanParam || !isPaymentPlanId(requestedPlanParam)) {
+      return;
+    }
+
+    form.setValue("planId", requestedPlanParam, { shouldDirty: false, shouldValidate: true });
+    onPlanSelected?.({
+      planId: requestedPlanParam,
+      price: PAYMENT_PLANS.find((plan) => plan.id === requestedPlanParam)?.price ?? 0,
+    });
+  }, [form, onPlanSelected, requestedPlanParam]);
 
   const onPlanSelect = (planId: PaymentPlanId) => {
     form.setValue("planId", planId, { shouldDirty: true, shouldValidate: true });

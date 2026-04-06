@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Check, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,9 @@ import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../co
 
 export default function PricingTableSection() {
   const isPricingActive = FEATURE_FLAGS.SHOW_PRICING;
+  const buildPaymentHref = (planId?: string) =>
+    planId ? `/payment?plan=${encodeURIComponent(planId)}` : "/payment";
+
   const launchHighlights = [
     "Akses penuh ke fitur yang sudah live",
     "Tanpa kartu kredit atau komitmen langganan",
@@ -121,6 +125,7 @@ export default function PricingTableSection() {
                     </ul>
 
                     <Button
+                      asChild
                       className={cn(
                         "w-full py-5 rounded-xl text-sm font-semibold h-auto",
                         plan.highlight
@@ -128,7 +133,7 @@ export default function PricingTableSection() {
                           : "text-[#666] border border-[#ddd] bg-white hover:bg-gray-50"
                       )}
                     >
-                      {plan.buttonText}
+                      <Link href={buildPaymentHref(plan.paymentPlanId)}>{plan.buttonText}</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -205,8 +210,8 @@ export default function PricingTableSection() {
                     </li>
                   </ul>
 
-                  <Button className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
-                    Coba Boundless Sekarang
+                  <Button asChild className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
+                    <Link href={buildPaymentHref()}>Coba Boundless Sekarang</Link>
                   </Button>
                 </div>
               </div>

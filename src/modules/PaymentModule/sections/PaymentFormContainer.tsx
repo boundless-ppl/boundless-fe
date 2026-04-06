@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { trackEvent } from "@/lib/track-event";
 import { PaymentFormSection } from "./PaymentFormSection";
 import {
@@ -32,9 +33,11 @@ export const PaymentFormContainer = () => {
   };
 
   return (
-    <PaymentFormSection
-      onPlanSelected={handlePlanSelected}
-      onReceiptSubmitted={handleReceiptSubmitted}
-    />
+    <Suspense fallback={<div />}>
+      <PaymentFormSection
+        onPlanSelected={handlePlanSelected}
+        onReceiptSubmitted={handleReceiptSubmitted}
+      />
+    </Suspense>
   );
 };

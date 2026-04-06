@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
@@ -23,8 +24,38 @@ type NavLink = {
 
 export function Navbar({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
   const { isAuthenticated, isLoading, logout, user } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
   const [isMounted, setIsMounted] = React.useState(false)
   const [comingSoonItem, setComingSoonItem] = React.useState<string | null>(null)
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
+
+  const isProtectedPath = ["/dashboard", "/globalmatch", "/payment"].some(
+    (protectedPath) => pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)
+  )
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return
+    }
+
+    setIsLoggingOut(true)
+
+    try {
+      await logout()
+
+      if (isProtectedPath) {
+        const currentSearch = typeof window !== "undefined" ? window.location.search : ""
+        const nextTarget = `${pathname}${currentSearch}`
+        router.replace(`/login?next=${encodeURIComponent(nextTarget)}`)
+        return
+      }
+
+      router.refresh()
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   React.useEffect(() => {
     setIsMounted(true)
@@ -105,8 +136,8 @@ export function Navbar({ className, ...props }: React.HTMLAttributes<HTMLElement
                         {user.email}
                       </span>
                     )}
-                    <Button onClick={logout} variant="destructive">
-                      Keluar
+                    <Button onClick={handleLogout} variant="destructive" disabled={isLoggingOut}>
+                      {isLoggingOut ? "Keluar..." : "Keluar"}
                     </Button>
                   </>
                 )}
