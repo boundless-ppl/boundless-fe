@@ -3,7 +3,7 @@ import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
 export type FeatureStatus = 'in-development' | 'coming-soon' | 'live';
 
 export const FEATURE_FLAGS = {
-  SHOW_PRICING: false,
+  SHOW_PRICING: true,
 };
 
 export const FEATURES = [
@@ -52,7 +52,7 @@ export const FEATURE_STEPS = [
     bgColor: "bg-emerald-600",
     accentColor: "border-emerald-500",
     illustration: "/DREAMTRACKER.jpg",
-    status: "coming-soon" as FeatureStatus
+    status: "live" as FeatureStatus
   },
   {
     title: "Auto-Fill",
@@ -74,7 +74,7 @@ export const FEATURES_NEW = [
   {
     title: "Dashboard Verifikasi Dokumen",
     description: "Unggah dan verifikasi semua dokumen pentingmu di satu tempat yang aman.",
-    status: "coming-soon" as FeatureStatus,
+    status: "live" as FeatureStatus,
     featureKey: "dreamtracker"
   },
   {
