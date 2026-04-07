@@ -1,7 +1,5 @@
 import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
 
-export const PAYMENT_ADMIN_FEE = 2500;
-
 export const PAYMENT_PLANS = [
   {
     id: "1month",

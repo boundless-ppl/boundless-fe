@@ -1,16 +1,71 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
+import { getSubscriptionPackages } from "@/features/payment/services/payment.service";
+import { mapPlanPricesFromPackages } from "@/features/payment/utils/package-mapper";
 import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../constant";
+
+const formatIdr = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const getPriceSubtext = (durationMonths: number, totalPrice: number) => {
+  const periodLabel = durationMonths === 1 ? "per bulan" : durationMonths === 12 ? "per tahun" : `per ${durationMonths} bulan`;
+  const monthlyPrice = Math.round(totalPrice / durationMonths);
+  return {
+    left: `${periodLabel} ·`,
+    right: `${formatIdr(monthlyPrice)}/bulan`,
+  };
+};
 
 export default function PricingTableSection() {
   const isPricingActive = FEATURE_FLAGS.SHOW_PRICING;
   const buildPaymentHref = (planId?: string) =>
     planId ? `/payment?plan=${encodeURIComponent(planId)}` : "/payment";
+  const [planPriceById, setPlanPriceById] = useState<Partial<Record<PaymentPlanId, number>>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPackagePrices = async () => {
+      const result = await getSubscriptionPackages();
+      if (!isMounted || result.error || !result.data) {
+        return;
+      }
+
+      setPlanPriceById(mapPlanPricesFromPackages(result.data.packages));
+    };
+
+    void loadPackagePrices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const pricingPlans = useMemo(
+    () =>
+      PRICING_PLANS.map((plan) => {
+        const priceAmount = planPriceById[plan.paymentPlanId] ?? plan.priceAmount;
+        return {
+          ...plan,
+          priceAmount,
+          formattedPrice: formatIdr(priceAmount),
+          subtextParts: getPriceSubtext(plan.durationMonths, priceAmount),
+        };
+      }),
+    [planPriceById]
+  );
 
   const launchHighlights = [
     "Akses penuh ke fitur yang sudah live",
@@ -80,7 +135,7 @@ export default function PricingTableSection() {
           <>
             {/* Pricing Cards - Active */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-              {PRICING_PLANS.map((plan) => (
+              {pricingPlans.map((plan) => (
                 <Card
                   key={plan.name}
                   className={cn(
@@ -109,9 +164,9 @@ export default function PricingTableSection() {
                     </div>
 
                     <div>
-                      <p className="text-[#2B2B2B] text-3xl font-bold">{plan.price}</p>
+                      <p className="text-[#2B2B2B] text-3xl font-bold">{plan.formattedPrice}</p>
                       <p className="text-sm text-[#999] mt-1">
-                        {plan.subtext.split('·')[0]}· <span className="text-[#666]">{plan.subtext.split('·')[1]}</span>
+                        {plan.subtextParts.left} <span className="text-[#666]">{plan.subtextParts.right}</span>
                       </p>
                     </div>
 

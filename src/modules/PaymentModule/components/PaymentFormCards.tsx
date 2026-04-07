@@ -2,6 +2,7 @@ import Image from "next/image";
 import { cva } from "class-variance-authority";
 import { Check, Circle, Upload } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   FormControl,
@@ -18,7 +19,6 @@ import {
   type UploadCardProps,
 } from "@/features/payment/types/payment-form.types";
 import {
-  PAYMENT_ADMIN_FEE,
   PAYMENT_BENEFITS,
   PAYMENT_INSTRUCTIONS,
   PAYMENT_PLANS,
@@ -50,6 +50,7 @@ export const PlanSelectorCard = ({
   control,
   selectedPlanId,
   onPlanSelect,
+  planPriceById,
 }: PlanSelectorCardProps) => {
   return (
     <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
@@ -62,6 +63,7 @@ export const PlanSelectorCard = ({
             <div className="mt-4 space-y-3" role="radiogroup" aria-label="Pilih Paket">
               {PAYMENT_PLANS.map((plan) => {
                 const isSelected = selectedPlanId === plan.id;
+                const planPrice = planPriceById?.[plan.id] ?? plan.price;
                 const inputId = `plan-${plan.id}`;
 
                 return (
@@ -100,7 +102,7 @@ export const PlanSelectorCard = ({
                         <p className="text-xs font-medium uppercase tracking-wide text-[#f58a1f]">{plan.label}</p>
                         <div className="flex items-baseline gap-2">
                           <p className="text-[30px] leading-none font-bold text-[#1f1f1f]">
-                            {formatIdr(plan.price)}
+                            {formatIdr(planPrice)}
                           </p>
                           {plan.savingsLabel ? (
                             <span className="text-xs text-[#f58a1f]">{plan.savingsLabel}</span>
@@ -163,6 +165,7 @@ export const UploadCard = ({
   uploadedFileName,
   receiptFile,
   isSubmitting,
+  disableSubmit,
   uploadInputId,
   uploadSectionRef,
   onFileSelect,
@@ -170,7 +173,7 @@ export const UploadCard = ({
   return (
     <section ref={uploadSectionRef} className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
       <h3 className="text-base font-semibold text-[#1d1d1d]">Upload Bukti Transfer</h3>
-      <p className="mt-2 text-sm text-[#8f8f8f]">Upload screenshot/foto bukti pembayaran (JPG/PNG, max 5MB)</p>
+      <p className="mt-2 text-sm text-[#8f8f8f]">Upload bukti pembayaran (PDF/JPG/PNG, max 5MB)</p>
 
       <FormField
         control={control}
@@ -185,7 +188,7 @@ export const UploadCard = ({
                 <input
                   id={uploadInputId}
                   type="file"
-                  accept="image/png,image/jpg,image/jpeg"
+                  accept="application/pdf,image/png,image/jpg,image/jpeg,image/webp"
                   className="sr-only"
                   onChange={(event) => {
                     const file = event.target.files?.[0] ?? null;
@@ -215,8 +218,13 @@ export const UploadCard = ({
 
       <Button
         type="submit"
-        disabled={!receiptFile || isSubmitting}
-        className="mt-4 h-11 w-full rounded-xl bg-[#d6d8dd] font-medium text-[#8d919a] hover:bg-[#d6d8dd]"
+        disabled={!receiptFile || isSubmitting || disableSubmit}
+        className={cn(
+          "mt-4 h-11 w-full rounded-xl font-medium",
+          !receiptFile || isSubmitting || disableSubmit
+            ? "bg-[#d6d8dd] text-[#8d919a] hover:bg-[#d6d8dd]"
+            : "bg-[#f58a1f] text-white hover:bg-[#e57d15]"
+        )}
       >
         Kirim Bukti Pembayaran
       </Button>
@@ -232,10 +240,6 @@ export const SummaryCard = ({ price, total }: SummaryCardProps) => {
         <div className="flex items-center justify-between">
           <span>Harga Langganan</span>
           <span>{formatIdr(price)}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span>Biaya Transaksi</span>
-          <span>{formatIdr(PAYMENT_ADMIN_FEE)}</span>
         </div>
       </div>
 

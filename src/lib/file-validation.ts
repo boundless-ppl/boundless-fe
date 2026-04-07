@@ -23,10 +23,18 @@ export const FILE_VALIDATION = {
       "image/png",
       "image/webp",
     ],
+    PAYMENT_PROOF: [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ],
   },
   ALLOWED_EXTENSIONS: {
     DOCUMENT: [".pdf", ".doc", ".docx"],
     IMAGE: [".jpg", ".jpeg", ".png", ".webp"],
+    PAYMENT_PROOF: [".pdf", ".jpg", ".jpeg", ".png", ".webp"],
   },
 } as const;
 
@@ -40,7 +48,7 @@ export function formatFileSize(bytes: number): string {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 /**
@@ -147,11 +155,36 @@ export function validateImageFile(
 }
 
 /**
+ * Validate payment proof file (PDF or image)
+ */
+export function validatePaymentProofFile(
+  file: File,
+  maxSize: number = FILE_VALIDATION.MAX_SIZE
+): FileValidationResult {
+  const sizeValidation = validateFileSize(file, maxSize);
+  if (!sizeValidation.isValid) {
+    return sizeValidation;
+  }
+
+  const typeValidation = validateFileType(
+    file,
+    FILE_VALIDATION.ALLOWED_TYPES.PAYMENT_PROOF,
+    FILE_VALIDATION.ALLOWED_EXTENSIONS.PAYMENT_PROOF
+  );
+  if (!typeValidation.isValid) {
+    return typeValidation;
+  }
+
+  return { isValid: true };
+}
+
+/**
  * Get file extension
  */
 export function getFileExtension(fileName: string): string {
   const parts = fileName.split(".");
-  return parts.length > 1 ? `.${parts[parts.length - 1].toLowerCase()}` : "";
+  const extension = parts.at(-1);
+  return parts.length > 1 && extension ? `.${extension.toLowerCase()}` : "";
 }
 
 /**

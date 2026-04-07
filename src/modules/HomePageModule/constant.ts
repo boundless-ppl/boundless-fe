@@ -96,7 +96,9 @@ export const PLAN_FEATURES = [
 export const PRICING_PLANS = [
   {
     paymentPlanId: "1month" as PaymentPlanId,
+    durationMonths: 1,
     name: "1 Bulan",
+    priceAmount: 79000,
     price: "Rp 79.000",
     subtext: "per bulan · Rp 79.000/bulan",
     buttonText: "Pilih Paket",
@@ -105,7 +107,9 @@ export const PRICING_PLANS = [
   },
   {
     paymentPlanId: "3month" as PaymentPlanId,
+    durationMonths: 3,
     name: "3 Bulan",
+    priceAmount: 199000,
     price: "Rp 199.000",
     subtext: "per 3 bulan · Rp 66.333/bulan",
     buttonText: "Mulai Sekarang",
@@ -116,7 +120,9 @@ export const PRICING_PLANS = [
   },
   {
     paymentPlanId: "1year" as PaymentPlanId,
+    durationMonths: 12,
     name: "1 Tahun",
+    priceAmount: 699000,
     price: "Rp 699.000",
     subtext: "per tahun · Rp 58.250/bulan",
     buttonText: "Pilih Paket",
