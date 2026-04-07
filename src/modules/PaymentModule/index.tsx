@@ -9,7 +9,7 @@ export const PaymentModule = () => {
             Berlangganan ke Boundless
           </h1>
           <p className="mt-3 text-sm text-[#a2a2a2] sm:text-base">
-            Pilih paket dan upload bukti pembayaran QRIS
+            Pilih paket dan upload bukti pembayaran transfer
           </p>
         </div>
 

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { trackEvent } from "@/lib/track-event";
 import {
   createPayment,
+  getPaymentDetail,
   getSubscriptionPackages,
   uploadPaymentProof,
 } from "@/features/payment/services/payment.service";
@@ -11,7 +12,14 @@ import {
   mapPlanPricesFromPackages,
   resolvePackageByPlanId,
 } from "@/features/payment/utils/package-mapper";
+import {
+  clearPendingPayment,
+  readPendingPayment,
+  savePendingPayment,
+  type PendingPaymentRecord,
+} from "@/features/payment/utils/pending-payment";
 import { PaymentFormSection } from "./PaymentFormSection";
+import { PaymentProcessingNotice } from "../components/PaymentProcessingNotice";
 import {
   type PlanSelectedPayload,
   type PaymentPlanId,
@@ -24,6 +32,51 @@ export const PaymentFormContainer = () => {
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
   const [packageLoadError, setPackageLoadError] = useState<string | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
+  const [isCheckingPending, setIsCheckingPending] = useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const checkPendingPayment = async () => {
+      const record = readPendingPayment();
+      if (!record) {
+        if (isActive) {
+          setPendingPayment(null);
+          setIsCheckingPending(false);
+        }
+        return;
+      }
+
+      const result = await getPaymentDetail(record.paymentId);
+      if (!isActive) {
+        return;
+      }
+
+      if (result.data?.status === "pending") {
+        setPendingPayment(record);
+        setIsCheckingPending(false);
+        return;
+      }
+
+      if (result.data?.status === "success" || result.data?.status === "failed") {
+        clearPendingPayment();
+        setPendingPayment(null);
+        setIsCheckingPending(false);
+        return;
+      }
+
+      // Keep pending state when status cannot be checked (network, auth, or transient errors).
+      setPendingPayment(record);
+      setIsCheckingPending(false);
+    };
+
+    void checkPendingPayment();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -150,11 +203,44 @@ export const PaymentFormContainer = () => {
     };
   };
 
+  const handleReceiptSubmittedWithPendingState: typeof handleReceiptSubmitted =
+    async (payload) => {
+      const result = await handleReceiptSubmitted(payload);
+      if (result.data?.paymentId && result.data?.transactionId) {
+        const record: PendingPaymentRecord = {
+          paymentId: result.data.paymentId,
+          transactionId: result.data.transactionId,
+          submittedAt: new Date().toISOString(),
+        };
+        savePendingPayment(record);
+        setPendingPayment(record);
+      }
+
+      return result;
+    };
+
+  if (isCheckingPending) {
+    return (
+      <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f]">
+        Mengecek status pembayaran Anda...
+      </div>
+    );
+  }
+
+  if (pendingPayment) {
+    return (
+      <PaymentProcessingNotice
+        transactionId={pendingPayment.transactionId}
+        submittedAt={pendingPayment.submittedAt}
+      />
+    );
+  }
+
   return (
     <Suspense fallback={<div />}>
       <PaymentFormSection
         onPlanSelected={handlePlanSelected}
-        onReceiptSubmitted={handleReceiptSubmitted}
+        onReceiptSubmitted={handleReceiptSubmittedWithPendingState}
         isPackageLoading={isPackageLoading}
         packageLoadError={packageLoadError}
         planPriceById={planPriceById}

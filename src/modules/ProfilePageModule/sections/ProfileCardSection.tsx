@@ -1,8 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Mail, ShieldCheck } from "lucide-react";
+import { Clock3, Mail, MessageCircleMore, ShieldCheck } from "lucide-react";
 
+import { getPaymentDetail } from "@/features/payment/services/payment.service";
+import {
+  clearPendingPayment,
+  readPendingPayment,
+  type PendingPaymentRecord,
+} from "@/features/payment/utils/pending-payment";
 import { useUserData } from "@/hooks/useUserData";
 
 function getAvatarInitials(fullName: string, email: string) {
@@ -24,6 +31,47 @@ function toTitleCasePerWord(value: string) {
 
 export const ProfileCardSection = () => {
   const { isAuthenticated, fullName, email, role } = useUserData();
+  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const checkPendingPayment = async () => {
+      const record = readPendingPayment();
+      if (!record) {
+        if (isActive) {
+          setPendingPayment(null);
+        }
+        return;
+      }
+
+      const result = await getPaymentDetail(record.paymentId);
+      if (!isActive) {
+        return;
+      }
+
+      if (result.data?.status === "pending") {
+        setPendingPayment(record);
+        return;
+      }
+
+      if (result.data?.status === "success" || result.data?.status === "failed") {
+        clearPendingPayment();
+        setPendingPayment(null);
+        return;
+      }
+
+      setPendingPayment(record);
+    };
+
+    if (isAuthenticated) {
+      void checkPendingPayment();
+    }
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAuthenticated]);
 
   const displayName = fullName || "Pengguna Boundless";
   const displayNameTitleCase = toTitleCasePerWord(displayName);
@@ -80,6 +128,25 @@ export const ProfileCardSection = () => {
             </div>
 
           </div>
+
+          {pendingPayment && isAuthenticated && (
+            <div className="mt-6 rounded-2xl border border-[#f6d2ab] bg-[#fff8f1] px-4 py-4">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#1f2937]">
+                <Clock3 className="h-4 w-4 text-[#f58a1f]" />
+                Pembayaran Anda sedang kami proses
+              </p>
+              <p className="mt-2 text-sm text-[#6b7280]">
+                Bukti pembayaran sudah diterima. Verifikasi membutuhkan waktu hingga 24 jam.
+              </p>
+              <p className="mt-2 text-sm text-[#4b5563]">
+                ID transaksi: <span className="font-semibold text-[#1f2937]">{pendingPayment.transactionId}</span>
+              </p>
+              <p className="mt-2 inline-flex items-center gap-2 text-sm text-[#4b5563]">
+                <MessageCircleMore className="h-4 w-4 text-[#f58a1f]" />
+                Support: <span className="font-semibold text-[#1f2937]">+6287874144135</span>
+              </p>
+            </div>
+          )}
 
           {!isAuthenticated && (
             <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
