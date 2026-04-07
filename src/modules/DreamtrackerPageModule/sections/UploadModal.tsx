@@ -1,42 +1,60 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { X, Upload, CheckCircle2 } from "lucide-react";
-import type { DreamRequirement } from "@/lib/api-types";
+import { X, Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import type { DreamRequirement, SubmitRequirementResponse } from "@/lib/api-types";
+import { uploadRequirementDocument } from "@/features/dreamtracker/services/dreamtracker.service";
 
 type Props = {
   req: DreamRequirement;
   onClose: () => void;
-  onUpload: (req: DreamRequirement, file: File) => void;
+  onSuccess: (response: SubmitRequirementResponse) => void;
 };
 
-export const UploadModal = ({ req, onClose, onUpload }: Props) => {
+export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setIsDragging(false);
     const f = e.dataTransfer.files[0];
-    if (f) setFile(f);
+    if (f) { setFile(f); setError(null); }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
-    if (f) setFile(f);
+    if (f) { setFile(f); setError(null); }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!file) return;
-    onUpload(req, file);
-    onClose();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const documentType = req.document?.document_type ?? req.requirement_key;
+      const response = await uploadRequirementDocument(
+        req.dream_req_status_id,
+        file,
+        documentType,
+        true
+      );
+      onSuccess(response);
+      onClose();
+    } catch (err) {
+      setError("Gagal mengunggah dokumen. Silakan coba lagi.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget && !isLoading) onClose(); }}
     >
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         {/* Header */}
@@ -46,15 +64,13 @@ export const UploadModal = ({ req, onClose, onUpload }: Props) => {
               {req.needs_reupload ? "Unggah Ulang Dokumen" : "Unggah Dokumen"}
             </p>
             <h2 className="text-lg font-bold text-gray-900">
-              {req.label || req.requirement_label}
+              {req.requirement_label}
             </h2>
-            {req.description && (
-              <p className="text-sm text-gray-400 mt-0.5">{req.description}</p>
-            )}
           </div>
           <button
             onClick={onClose}
-            className="ml-4 shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            disabled={isLoading}
+            className="ml-4 shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors disabled:opacity-40"
           >
             <X className="h-4 w-4" />
           </button>
@@ -63,14 +79,16 @@ export const UploadModal = ({ req, onClose, onUpload }: Props) => {
         {/* Drop zone */}
         <div className="px-6 pb-4">
           <div
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onClick={() => !isLoading && inputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); if (!isLoading) setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-10 cursor-pointer transition-colors ${
-              isDragging
-                ? "border-[#f58a1f] bg-orange-50"
-                : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
+            className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-10 transition-colors ${
+              isLoading
+                ? "border-gray-100 bg-gray-50 cursor-not-allowed"
+                : isDragging
+                ? "border-[#f58a1f] bg-orange-50 cursor-pointer"
+                : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50 cursor-pointer"
             }`}
           >
             <Upload className={`h-8 w-8 ${isDragging ? "text-[#f58a1f]" : "text-gray-300"}`} />
@@ -85,6 +103,7 @@ export const UploadModal = ({ req, onClose, onUpload }: Props) => {
             accept=".pdf,.jpg,.jpeg,.png"
             className="hidden"
             onChange={handleFileChange}
+            disabled={isLoading}
           />
 
           {file && (
@@ -96,22 +115,37 @@ export const UploadModal = ({ req, onClose, onUpload }: Props) => {
               </div>
             </div>
           )}
+
+          {error && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+              <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+              <p className="text-xs text-red-600">{error}</p>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
         <div className="flex gap-2 border-t border-gray-100 p-4">
           <button
             onClick={onClose}
-            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+            disabled={isLoading}
+            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-40"
           >
             Batal
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!file}
-            className="flex-1 rounded-xl bg-gradient-to-b from-[#f58a1f] to-[#d97a18] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={!file || isLoading}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#f58a1f] to-[#d97a18] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Unggah
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Mengunggah...
+              </>
+            ) : (
+              "Unggah"
+            )}
           </button>
         </div>
       </div>

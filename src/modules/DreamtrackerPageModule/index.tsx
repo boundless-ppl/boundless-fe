@@ -7,27 +7,31 @@ import { UniversityDetail } from "./sections/UniversityDetail";
 import { FundingDetail } from "./sections/FundingDetail";
 import {
   getDreamTrackerSummary,
-  getDreamTrackers,
+  getDreamTrackersGrouped,
   getDreamTrackerById,
 } from "@/features/dreamtracker/services/dreamtracker.service";
 import {
   getMockSummary,
-  getMockTrackers,
+  getMockGrouped,
   getMockTrackerById,
 } from "./mock/dreamtracker.mock";
-import type { DreamFunding, DreamTrackerDashboardSummary, DreamTrackerItem } from "@/lib/api-types";
+import type {
+  DreamTrackerDashboardSummary,
+  DreamTrackerGroupedResponse,
+  DreamTrackerItem,
+} from "@/lib/api-types";
 import type { ActiveView } from "./types";
 
 // ✅ Ganti ke `false` kalau BE sudah siap
 const USE_MOCK = true;
 
 const fetchSummary = USE_MOCK ? getMockSummary : getDreamTrackerSummary;
-const fetchTrackers = USE_MOCK ? getMockTrackers : getDreamTrackers;
+const fetchGrouped = USE_MOCK ? getMockGrouped : getDreamTrackersGrouped;
 const fetchTrackerById = USE_MOCK ? getMockTrackerById : getDreamTrackerById;
 
 export const DreamtrackerPageModule = () => {
   const [summary, setSummary] = useState<DreamTrackerDashboardSummary | null>(null);
-  const [trackers, setTrackers] = useState<DreamTrackerItem[]>([]);
+  const [grouped, setGrouped] = useState<DreamTrackerGroupedResponse | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,28 +39,26 @@ export const DreamtrackerPageModule = () => {
     async function fetchInitialData() {
       setIsLoading(true);
 
-      try {
-        const summaryData = await fetchSummary();
-        setSummary(summaryData);
-      } catch {
-        setSummary(null);
-      }
+      const [summaryResult, groupedResult] = await Promise.allSettled([
+        fetchSummary(),
+        fetchGrouped({ include_default_detail: true }),
+      ]);
 
-      try {
-        const listData = await fetchTrackers();
-        const items = listData.items ?? [];
-        setTrackers(items);
+      if (summaryResult.status === "fulfilled") setSummary(summaryResult.value);
+      if (groupedResult.status === "fulfilled") {
+        const g = groupedResult.value;
+        setGrouped(g);
 
-        if (items.length > 0) {
+        if (g.default_detail) {
+          setActiveView({ type: "university", tracker: g.default_detail });
+        } else if (g.default_selected_dream_tracker_id) {
           try {
-            const detail = await fetchTrackerById(items[0].dream_tracker_id);
+            const detail = await fetchTrackerById(g.default_selected_dream_tracker_id);
             setActiveView({ type: "university", tracker: detail });
           } catch {
-            setActiveView({ type: "university", tracker: items[0] });
+            // no default detail available
           }
         }
-      } catch {
-        setTrackers([]);
       }
 
       setIsLoading(false);
@@ -65,21 +67,35 @@ export const DreamtrackerPageModule = () => {
     fetchInitialData();
   }, []);
 
-  async function handleSelectUniversity(tracker: DreamTrackerItem) {
+  async function handleSelectUniversity(trackerId: string) {
     try {
-      const detail = await fetchTrackerById(tracker.dream_tracker_id);
+      const detail = await fetchTrackerById(trackerId);
       setActiveView({ type: "university", tracker: detail });
     } catch {
-      setActiveView({ type: "university", tracker });
+      // keep current view
     }
   }
 
-  async function handleSelectFunding(funding: DreamFunding, tracker: DreamTrackerItem) {
+  async function handleUploadSuccess() {
+    if (!activeView) return;
     try {
-      const detail = await fetchTrackerById(tracker.dream_tracker_id);
-      setActiveView({ type: "funding", funding, tracker: detail });
+      const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
+      if (activeView.type === "university") {
+        setActiveView({ type: "university", tracker: detail });
+      } else {
+        setActiveView({ type: "funding", fundingId: activeView.fundingId, tracker: detail });
+      }
     } catch {
-      setActiveView({ type: "funding", funding, tracker });
+      // keep current view
+    }
+  }
+
+  async function handleSelectFunding(fundingId: string, trackerId: string) {
+    try {
+      const detail = await fetchTrackerById(trackerId);
+      setActiveView({ type: "funding", fundingId, tracker: detail });
+    } catch {
+      // keep current view
     }
   }
 
@@ -95,28 +111,34 @@ export const DreamtrackerPageModule = () => {
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row">
             <aside className="w-full lg:w-56 shrink-0">
-              <Sidebar
-                trackers={trackers}
-                activeView={activeView}
-                onSelectUniversity={handleSelectUniversity}
-                onSelectFunding={handleSelectFunding}
-              />
+              {grouped && (
+                <Sidebar
+                  grouped={grouped}
+                  activeView={activeView}
+                  onSelectUniversity={handleSelectUniversity}
+                  onSelectFunding={handleSelectFunding}
+                />
+              )}
             </aside>
 
             <div className="flex-1 min-w-0">
               {activeView?.type === "university" && (
                 <UniversityDetail
                   tracker={activeView.tracker}
-                  onSelectFunding={handleSelectFunding}
+                  onSelectFunding={(funding, tracker) =>
+                    setActiveView({ type: "funding", fundingId: funding.funding_id, tracker })
+                  }
+                  onUploadSuccess={handleUploadSuccess}
                 />
               )}
               {activeView?.type === "funding" && (
                 <FundingDetail
-                  funding={activeView.funding}
+                  fundingId={activeView.fundingId}
                   tracker={activeView.tracker}
                   onBack={() =>
                     setActiveView({ type: "university", tracker: activeView.tracker })
                   }
+                  onUploadSuccess={handleUploadSuccess}
                 />
               )}
               {!activeView && (

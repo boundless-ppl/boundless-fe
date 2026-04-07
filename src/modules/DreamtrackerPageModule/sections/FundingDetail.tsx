@@ -7,21 +7,20 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
-  ExternalLink,
-  AlertCircle,
   FileText,
 } from "lucide-react";
 import type {
-  DreamFunding,
   DreamTrackerItem,
   MilestoneStatus,
+  SubmitRequirementResponse,
 } from "@/lib/api-types";
 import { RequirementCard } from "./RequirementCard";
 
 type Props = {
-  funding: DreamFunding;
+  fundingId: string;
   tracker: DreamTrackerItem;
   onBack: () => void;
+  onUploadSuccess?: (response: SubmitRequirementResponse) => void;
 };
 
 function milestoneStyle(status: MilestoneStatus) {
@@ -32,15 +31,18 @@ function milestoneStyle(status: MilestoneStatus) {
   return { circle: "bg-white border-gray-200 text-gray-400", label: "text-gray-400" };
 }
 
-export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
+export const FundingDetail = ({ fundingId, tracker, onBack, onUploadSuccess }: Props) => {
   const [showAllDocs, setShowAllDocs] = useState(false);
 
-  const { requirements, milestones, summary } = tracker;
-  const fundingReqs = requirements.some((r) => r.source_type)
-    ? requirements.filter((r) => r.source_type === "FUNDING")
-    : requirements;
-  const completedFundingReqs = fundingReqs.filter((r) => r.status === "VERIFIED" || r.status === "UPLOADED").length;
-  const visibleReqs = showAllDocs ? fundingReqs : fundingReqs.slice(0, 2);
+  const { requirements, milestones } = tracker;
+  const funding = tracker.fundings.find((f) => f.funding_id === fundingId);
+
+  const completedReqs = requirements.filter(
+    (r) => r.status === "VERIFIED" || r.status === "UPLOADED" || r.status === "REUSED"
+  ).length;
+  const visibleReqs = showAllDocs ? requirements : requirements.slice(0, 2);
+
+  if (!funding) return null;
 
   return (
     <div className="space-y-4">
@@ -62,17 +64,6 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
             </p>
             <h1 className="text-2xl font-bold text-gray-900">{funding.nama_beasiswa}</h1>
             <p className="text-sm text-gray-500 mt-0.5">{funding.provider}</p>
-
-            {funding.website && (
-              <a
-                href={funding.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-sm text-[#f58a1f] hover:underline"
-              >
-                Lihat Info Beasiswa <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            )}
           </div>
 
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50">
@@ -132,21 +123,21 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
             Dokumen yang Diperlukan
           </p>
           <span className="text-xs font-medium text-gray-400">
-            {completedFundingReqs} dari {fundingReqs.length}
+            {completedReqs} dari {requirements.length}
           </span>
         </div>
 
-        {fundingReqs.length === 0 ? (
+        {requirements.length === 0 ? (
           <p className="text-sm text-gray-400 py-2">Tidak ada dokumen yang diperlukan.</p>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {visibleReqs.map((req) => (
-                <RequirementCard key={req.dream_req_status_id} req={req} />
+                <RequirementCard key={req.dream_req_status_id} req={req} onUploadSuccess={onUploadSuccess} />
               ))}
             </div>
 
-            {fundingReqs.length > 2 && (
+            {requirements.length > 2 && (
               <button
                 onClick={() => setShowAllDocs((v) => !v)}
                 className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 py-2 text-sm font-medium text-orange-500 transition-colors hover:bg-orange-100 hover:border-orange-300"
@@ -154,7 +145,7 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
                 {showAllDocs ? (
                   <>Sembunyikan <ChevronUp className="h-3.5 w-3.5" /></>
                 ) : (
-                  <>Lihat Semua Dokumen ({fundingReqs.length}) <ChevronDown className="h-3.5 w-3.5" /></>
+                  <>Lihat Semua Dokumen ({requirements.length}) <ChevronDown className="h-3.5 w-3.5" /></>
                 )}
               </button>
             )}
@@ -162,7 +153,7 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
         )}
       </div>
 
-      {/* Submit Beasiswa */}
+      {/* Submit Application */}
       <div className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
@@ -170,31 +161,19 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
               <FileText className="h-4 w-4 text-purple-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">Submit Beasiswa</p>
+              <p className="text-sm font-semibold text-gray-800">Submit Application</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                Kamu bisa unduh{" "}
-                <span className="font-medium text-gray-500">Auto-Fill Extension</span>{" "}
-                (Chrome) untuk mengisi form otomatis menggunakan data yang sudah kamu input di Boundless.
+                Fitur <span className="font-medium text-gray-500">Auto-Fill</span> akan segera hadir untuk membantu kamu mengisi form pendaftaran secara otomatis.
               </p>
             </div>
           </div>
-          {funding.website ? (
-            <a
-              href={funding.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 rounded-xl bg-gradient-to-b from-[#6A6FD4] to-[#4A4FB8] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity text-center"
-            >
-              Submit Sekarang
-            </a>
-          ) : (
-            <button
-              disabled
-              className="shrink-0 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400 cursor-not-allowed"
-            >
-              Submit Sekarang
-            </button>
-          )}
+          <button
+            disabled
+            className="shrink-0 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400 cursor-not-allowed"
+            title="Fitur Auto-Fill akan segera hadir"
+          >
+            Submit Application
+          </button>
         </div>
       </div>
 
@@ -216,33 +195,6 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
           <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-[#f58a1f] transition-colors" />
         </button>
       </div>
-
-      {/* Deadline notice */}
-      {summary.is_deadline_near && !summary.is_overdue && (
-        <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-          <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-1">
-            Deadline Mendekat
-          </p>
-          <p className="text-sm text-orange-600">
-            Deadline beasiswa {funding.nama_beasiswa} semakin dekat. Segera lengkapi semua dokumen.
-          </p>
-        </div>
-      )}
-      {summary.is_overdue && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-1">
-                Lewat Deadline
-              </p>
-              <p className="text-sm text-red-600">
-                Deadline beasiswa {funding.nama_beasiswa} sudah terlewat.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

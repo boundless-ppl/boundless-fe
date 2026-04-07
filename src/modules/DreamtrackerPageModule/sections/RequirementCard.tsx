@@ -2,35 +2,36 @@
 
 import { useState } from "react";
 import { CheckCircle2, FileText, XCircle, Eye, Sparkles } from "lucide-react";
-import type { DreamRequirement, DreamRequirementStatus } from "@/lib/api-types";
+import type { DreamRequirement, DreamRequirementStatus, SubmitRequirementResponse } from "@/lib/api-types";
 import { UploadModal } from "./UploadModal";
 import { PreviewModal } from "./PreviewModal";
 
 function reqStatusIcon(status: DreamRequirementStatus) {
-  if (status === "VERIFIED") return <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />;
-  if (status === "UPLOADED") return <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0" />;
+  if (status === "VERIFIED" || status === "REUSED") return <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />;
+  if (status === "UPLOADED" || status === "REVIEWING") return <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0" />;
   if (status === "REJECTED") return <XCircle className="h-4 w-4 text-red-400 shrink-0" />;
   return <FileText className="h-4 w-4 text-gray-300 shrink-0" />;
 }
 
 function reqStatusBg(status: DreamRequirementStatus) {
-  if (status === "VERIFIED") return "bg-green-50 border-green-100";
-  if (status === "UPLOADED") return "bg-blue-50 border-blue-100";
+  if (status === "VERIFIED" || status === "REUSED") return "bg-green-50 border-green-100";
+  if (status === "UPLOADED" || status === "REVIEWING") return "bg-blue-50 border-blue-100";
   if (status === "REJECTED") return "bg-red-50 border-red-100";
   return "bg-gray-50 border-gray-100";
 }
 
 type Props = {
   req: DreamRequirement;
-  onUpload?: (req: DreamRequirement, file: File) => void;
+  onUploadSuccess?: (response: SubmitRequirementResponse) => void;
 };
 
-export const RequirementCard = ({ req, onUpload }: Props) => {
+export const RequirementCard = ({ req, onUploadSuccess }: Props) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  const hasAiMessages = req.ai_messages && req.ai_messages.length > 0;
-  const isReceived = req.status === "VERIFIED" || req.status === "UPLOADED";
+  const aiMessage = req.review?.ai_message;
+  const documentUrl = req.document?.public_url ?? null;
+  const isReceived = req.status === "VERIFIED" || req.status === "UPLOADED" || req.status === "REUSED";
   const isRejected = req.status === "REJECTED";
   const canUploadFresh = req.can_upload && !req.needs_reupload;
 
@@ -41,29 +42,17 @@ export const RequirementCard = ({ req, onUpload }: Props) => {
           <div className="mt-0.5 shrink-0">{reqStatusIcon(req.status)}</div>
 
           <div className="min-w-0 flex-1">
-            {/* Judul */}
             <p className="text-sm font-semibold text-gray-800 truncate">
-              {req.label || req.requirement_label}
+              {req.requirement_label}
             </p>
 
-            {/* Catatan (hanya jika bukan rejected) */}
-            {req.notes && !isRejected && (
-              <p className="text-xs text-gray-400 truncate mt-0.5">{req.notes}</p>
-            )}
-
-            {/* Pesan AI untuk dokumen yang perlu diperbaiki */}
-            {isRejected && hasAiMessages && (
-              <div className="mt-2 space-y-1">
-                {req.ai_messages.map((msg, i) => (
-                  <div key={i} className="flex items-start gap-1.5">
-                    <Sparkles className="h-3 w-3 text-purple-400 shrink-0 mt-0.5" />
-                    <p className="text-xs text-purple-600 leading-snug">{msg}</p>
-                  </div>
-                ))}
+            {aiMessage && (
+              <div className="mt-2 flex items-start gap-1.5">
+                <Sparkles className="h-3 w-3 text-purple-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-purple-600 leading-snug">{aiMessage}</p>
               </div>
             )}
 
-            {/* Tombol Unggah Ulang untuk REJECTED */}
             {isRejected && (
               <button
                 onClick={() => setShowUploadModal(true)}
@@ -74,8 +63,7 @@ export const RequirementCard = ({ req, onUpload }: Props) => {
             )}
           </div>
 
-          {/* Ikon mata di sisi kanan untuk dokumen yang sudah diterima */}
-          {isReceived && req.document_url && (
+          {isReceived && documentUrl && (
             <button
               onClick={() => setShowPreviewModal(true)}
               title="Lihat dokumen"
@@ -85,7 +73,6 @@ export const RequirementCard = ({ req, onUpload }: Props) => {
             </button>
           )}
 
-          {/* Tombol Unggah untuk dokumen yang belum diunggah */}
           {canUploadFresh && (
             <button
               onClick={() => setShowUploadModal(true)}
@@ -101,18 +88,18 @@ export const RequirementCard = ({ req, onUpload }: Props) => {
         <UploadModal
           req={req}
           onClose={() => setShowUploadModal(false)}
-          onUpload={(r, file) => {
-            onUpload?.(r, file);
+          onSuccess={(response) => {
+            onUploadSuccess?.(response);
             setShowUploadModal(false);
           }}
         />
       )}
 
-      {showPreviewModal && req.document_url && (
+      {showPreviewModal && documentUrl && (
         <PreviewModal
           req={req}
           onClose={() => setShowPreviewModal(false)}
-          onReupload={() => setShowUploadModal(true)}
+          onReupload={() => { setShowPreviewModal(false); setShowUploadModal(true); }}
         />
       )}
     </>

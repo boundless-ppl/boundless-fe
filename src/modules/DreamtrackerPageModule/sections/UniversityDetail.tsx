@@ -4,17 +4,17 @@ import { useState } from "react";
 import {
   Award,
   ChevronRight,
-  AlertCircle,
   FileText,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import type { DreamFunding, DreamTrackerItem, MilestoneStatus } from "@/lib/api-types";
+import type { DreamFunding, DreamTrackerItem, MilestoneStatus, SubmitRequirementResponse } from "@/lib/api-types";
 import { RequirementCard } from "./RequirementCard";
 
 type Props = {
   tracker: DreamTrackerItem;
   onSelectFunding: (funding: DreamFunding, tracker: DreamTrackerItem) => void;
+  onUploadSuccess?: (response: SubmitRequirementResponse) => void;
 };
 
 function milestoneStyle(status: MilestoneStatus) {
@@ -23,15 +23,14 @@ function milestoneStyle(status: MilestoneStatus) {
   return { circle: "bg-white border-gray-200 text-gray-400", label: "text-gray-400" };
 }
 
-export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
+export const UniversityDetail = ({ tracker, onSelectFunding, onUploadSuccess }: Props) => {
   const [showAllDocs, setShowAllDocs] = useState(false);
 
-  const { program, requirements, milestones, fundings, summary } = tracker;
-  const admissionReqs = requirements.some((r) => r.source_type)
-    ? requirements.filter((r) => r.source_type === "ADMISSION")
-    : requirements;
-  const completedAdmissionReqs = admissionReqs.filter((r) => r.status === "VERIFIED" || r.status === "UPLOADED").length;
-  const visibleReqs = showAllDocs ? admissionReqs : admissionReqs.slice(0, 2);
+  const { program, requirements, milestones, fundings } = tracker;
+  const completedAdmissionReqs = requirements.filter(
+    (r) => r.status === "VERIFIED" || r.status === "UPLOADED" || r.status === "REUSED"
+  ).length;
+  const visibleReqs = showAllDocs ? requirements : requirements.slice(0, 2);
 
   return (
     <div className="space-y-4">
@@ -107,21 +106,21 @@ export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
             Dokumen yang Diperlukan
           </p>
           <span className="text-xs font-medium text-gray-400">
-            {completedAdmissionReqs} dari {admissionReqs.length}
+            {completedAdmissionReqs} dari {requirements.length}
           </span>
         </div>
 
-        {admissionReqs.length === 0 ? (
+        {requirements.length === 0 ? (
           <p className="text-sm text-gray-400 py-2">Tidak ada dokumen yang diperlukan.</p>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {visibleReqs.map((req) => (
-                <RequirementCard key={req.dream_req_status_id} req={req} />
+                <RequirementCard key={req.dream_req_status_id} req={req} onUploadSuccess={onUploadSuccess} />
               ))}
             </div>
 
-            {admissionReqs.length > 2 && (
+            {requirements.length > 2 && (
               <button
                 onClick={() => setShowAllDocs((v) => !v)}
                 className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 py-2 text-sm font-medium text-orange-500 transition-colors hover:bg-orange-100 hover:border-orange-300"
@@ -129,7 +128,7 @@ export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
                 {showAllDocs ? (
                   <>Sembunyikan <ChevronUp className="h-3.5 w-3.5" /></>
                 ) : (
-                  <>Lihat Semua Dokumen ({admissionReqs.length}) <ChevronDown className="h-3.5 w-3.5" /></>
+                  <>Lihat Semua Dokumen ({requirements.length}) <ChevronDown className="h-3.5 w-3.5" /></>
                 )}
               </button>
             )}
@@ -137,7 +136,7 @@ export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
         )}
       </div>
 
-      {/* Submit Lamaran */}
+      {/* Submit Application */}
       <div className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
@@ -145,11 +144,9 @@ export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
               <FileText className="h-4 w-4 text-purple-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">Submit Lamaran</p>
+              <p className="text-sm font-semibold text-gray-800">Submit Application</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                Kamu bisa unduh{" "}
-                <span className="font-medium text-gray-500">Auto-Fill Extension</span>{" "}
-                (Chrome) untuk mengisi form otomatis menggunakan data yang sudah kamu input di Boundless.
+                Fitur <span className="font-medium text-gray-500">Auto-Fill</span> akan segera hadir untuk membantu kamu mengisi form pendaftaran secara otomatis.
               </p>
             </div>
           </div>
@@ -160,14 +157,15 @@ export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
               rel="noopener noreferrer"
               className="shrink-0 rounded-xl bg-gradient-to-b from-[#6A6FD4] to-[#4A4FB8] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity text-center"
             >
-              Submit Sekarang
+              Submit Application
             </a>
           ) : (
             <button
               disabled
               className="shrink-0 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400 cursor-not-allowed"
+              title="Fitur Auto-Fill akan segera hadir"
             >
-              Submit Sekarang
+              Submit Application
             </button>
           )}
         </div>
@@ -199,31 +197,6 @@ export const UniversityDetail = ({ tracker, onSelectFunding }: Props) => {
         </div>
       )}
 
-      {/* Notes / deadline warning */}
-      {(summary.is_deadline_near || summary.is_overdue) && (
-        <div className={`rounded-2xl border p-4 ${summary.is_overdue ? "border-red-200 bg-red-50" : "border-orange-200 bg-orange-50"}`}>
-          <p className={`text-xs font-semibold uppercase tracking-widest mb-1 ${summary.is_overdue ? "text-red-400" : "text-orange-400"}`}>
-            {summary.is_overdue ? "Lewat Deadline" : "Deadline Mendekat"}
-          </p>
-          <p className={`text-sm ${summary.is_overdue ? "text-red-600" : "text-orange-600"}`}>
-            {summary.is_overdue
-              ? `Deadline untuk ${program.university_name} sudah terlewat. Segera hubungi universitas.`
-              : `Deadline untuk ${program.university_name} semakin dekat. Pastikan semua dokumen sudah diunggah.`}
-          </p>
-        </div>
-      )}
-
-      {!summary.is_deadline_near && !summary.is_overdue && (
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-          <p className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-1">
-            Catatan
-          </p>
-          <p className="text-sm text-blue-600">
-            Pastikan semua dokumen sudah diunggah sebelum mendaftar ke{" "}
-            <span className="font-semibold">{program.university_name}</span>. Periksa tenggat waktu secara berkala.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

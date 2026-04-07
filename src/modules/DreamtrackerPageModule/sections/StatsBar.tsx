@@ -18,7 +18,7 @@ export const StatsBar = ({ summary }: Props) => {
     },
     {
       label: "Belum Lengkap",
-      value: summary?.in_progress_count ?? 0,
+      value: summary?.incomplete_count ?? 0,
       icon: Clock,
       iconBg: "bg-orange-50",
       iconColor: "text-orange-400",

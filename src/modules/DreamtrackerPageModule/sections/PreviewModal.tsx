@@ -15,7 +15,7 @@ function isImageUrl(url: string) {
 }
 
 export const PreviewModal = ({ req, onClose, onReupload }: Props) => {
-  const url = req.document_url!;
+  const url = req.document!.public_url;
   const showAsImage = isImageUrl(url);
 
   return (
@@ -33,7 +33,7 @@ export const PreviewModal = ({ req, onClose, onReupload }: Props) => {
               Pratinjau Dokumen
             </p>
             <h2 className="text-lg font-bold text-gray-900">
-              {req.label || req.requirement_label}
+              {req.requirement_label}
             </h2>
           </div>
           <button

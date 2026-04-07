@@ -21,9 +21,9 @@ export const API_CONFIG = {
     DREAM_TRACKERS: {
       BASE: "/dream-trackers",
       SUMMARY: "/dream-trackers/summary",
+      GROUPED: "/dream-trackers/grouped",
       BY_ID: (id: string) => `/dream-trackers/${id}`,
-      DOCUMENT_BY_ID: (id: string) => `/dream-trackers/documents/${id}`,
-      SUBMIT_REQUIREMENT: (id: string) => `/dream-trackers/requirements/${id}/submit`,
+      UPLOAD_DOCUMENT: (id: string) => `/dream-trackers/requirements/${id}/document`,
     },
     // Recommendations endpoints
     RECOMMENDATIONS: {

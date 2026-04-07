@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { DreamFunding, DreamTrackerItem } from "@/lib/api-types";
+import type { DreamTrackerGroupedResponse } from "@/lib/api-types";
 import type { ActiveView } from "../types";
 
 type SidebarProps = {
-  trackers: DreamTrackerItem[];
+  grouped: DreamTrackerGroupedResponse;
   activeView: ActiveView;
-  onSelectUniversity: (tracker: DreamTrackerItem) => void;
-  onSelectFunding: (funding: DreamFunding, tracker: DreamTrackerItem) => void;
+  onSelectUniversity: (trackerId: string) => void;
+  onSelectFunding: (fundingId: string, trackerId: string) => void;
 };
 
 export const Sidebar = ({
-  trackers,
+  grouped,
   activeView,
   onSelectUniversity,
   onSelectFunding,
@@ -21,73 +21,24 @@ export const Sidebar = ({
   const [uniOpen, setUniOpen] = useState(true);
   const [scholarOpen, setScholarOpen] = useState(true);
 
-  // Deduplicate universities — one entry per unique university name
-  const universities = Array.from(
-    new Map(trackers.map((t) => [t.program.university_name, t])).values()
-  );
+  const activeTrackerId = activeView?.tracker.dream_tracker_id ?? null;
+  const activeFundingId = activeView?.type === "funding" ? activeView.fundingId : null;
 
-  // All unique fundings across all trackers
-  const allFundings = Array.from(
-    new Map(
-      trackers.flatMap((t) =>
-        t.fundings.map((f) => [f.funding_id, { funding: f, tracker: t }])
-      )
-    ).values()
-  );
+  function isTrackerActive(trackerId: string): boolean {
+    return activeTrackerId === trackerId && activeView?.type === "university";
+  }
 
-  // Relationship maps for cross-highlight
-  const uniToFundingIds = new Map<string, Set<string>>();
-  const fundingToUniNames = new Map<string, Set<string>>();
-  trackers.forEach((t) => {
-    const uniName = t.program.university_name;
-    if (!uniToFundingIds.has(uniName)) uniToFundingIds.set(uniName, new Set());
-    t.fundings.forEach((f) => {
-      uniToFundingIds.get(uniName)!.add(f.funding_id);
-      if (!fundingToUniNames.has(f.funding_id)) fundingToUniNames.set(f.funding_id, new Set());
-      fundingToUniNames.get(f.funding_id)!.add(uniName);
+  function isFundingItemActive(fundingId: string, trackerId: string): boolean {
+    return activeFundingId === fundingId && activeTrackerId === trackerId;
+  }
+
+  // Find which funding_name a tracker belongs to (for university sub-items)
+  const trackerFundingName = new Map<string, string>();
+  grouped.fundings.forEach((f) => {
+    f.items.forEach((item) => {
+      trackerFundingName.set(item.dream_tracker_id, f.funding_name);
     });
   });
-
-  // Derive active IDs from activeView
-  const activeUniName =
-    activeView?.type === "university"
-      ? activeView.tracker.program.university_name
-      : activeView?.type === "funding"
-      ? activeView.tracker.program.university_name  // still highlight related uni subtly
-      : null;
-
-  const activeFundingId =
-    activeView?.type === "funding" ? activeView.funding.funding_id : null;
-
-  function getUniStyle(uniName: string) {
-    // Exact active university
-    if (activeView?.type === "university" && activeUniName === uniName) {
-      return "bg-[#f58a1f] text-white";
-    }
-    // Related university when a funding is active
-    if (activeView?.type === "funding" && activeFundingId) {
-      const linked = fundingToUniNames.get(activeFundingId);
-      if (linked?.has(uniName)) {
-        return "bg-orange-50 text-orange-600 hover:bg-orange-100";
-      }
-    }
-    return "text-gray-600 hover:bg-orange-50 hover:text-orange-600";
-  }
-
-  function getFundingStyle(fundingId: string) {
-    // Exact active funding
-    if (activeView?.type === "funding" && activeFundingId === fundingId) {
-      return "bg-[#f58a1f] text-white";
-    }
-    // Related funding when a university is active
-    if (activeView?.type === "university" && activeUniName) {
-      const linked = uniToFundingIds.get(activeUniName);
-      if (linked?.has(fundingId)) {
-        return "bg-orange-50 text-orange-600 hover:bg-orange-100";
-      }
-    }
-    return "text-gray-600 hover:bg-orange-50 hover:text-orange-600";
-  }
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
@@ -107,20 +58,42 @@ export const Sidebar = ({
       </button>
 
       {uniOpen && (
-        <ul className="mb-1 space-y-0.5">
-          {universities.length === 0 && (
+        <ul className="mb-1 space-y-1">
+          {grouped.universities.length === 0 && (
             <li className="px-3 py-2 text-sm text-gray-400">Belum ada tracker</li>
           )}
-          {universities.map((tracker) => (
-            <li key={tracker.dream_tracker_id}>
-              <button
-                onClick={() => onSelectUniversity(tracker)}
-                className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors duration-150 ${getUniStyle(
-                  tracker.program.university_name
-                )}`}
-              >
-                {tracker.program.university_name}
-              </button>
+          {grouped.universities.map((university) => (
+            <li key={university.university_id}>
+              {/* University group label */}
+              <p className="px-3 py-1 text-xs font-semibold text-gray-500 truncate">
+                {university.university_name}
+              </p>
+              {/* Sub-items: one per tracker (funding pair) */}
+              <ul className="space-y-0.5 ml-2">
+                {university.items.map((item) => {
+                  const fundingLabel = trackerFundingName.get(item.dream_tracker_id);
+                  const active = isTrackerActive(item.dream_tracker_id);
+                  return (
+                    <li key={item.dream_tracker_id}>
+                      <button
+                        onClick={() => onSelectUniversity(item.dream_tracker_id)}
+                        className={`w-full rounded-lg px-3 py-1.5 text-left transition-colors duration-150 ${
+                          active
+                            ? "bg-[#f58a1f] text-white"
+                            : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
+                        }`}
+                      >
+                        <span className="block text-xs font-medium truncate">
+                          {fundingLabel ?? item.program_name}
+                        </span>
+                        <span className={`block text-[10px] truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
+                          {item.completion_percentage}% selesai
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </li>
           ))}
         </ul>
@@ -144,20 +117,41 @@ export const Sidebar = ({
       </button>
 
       {scholarOpen && (
-        <ul className="space-y-0.5">
-          {allFundings.length === 0 && (
+        <ul className="space-y-1">
+          {grouped.fundings.length === 0 && (
             <li className="px-3 py-2 text-sm text-gray-400">Belum ada beasiswa</li>
           )}
-          {allFundings.map(({ funding, tracker }) => (
+          {grouped.fundings.map((funding) => (
             <li key={funding.funding_id}>
-              <button
-                onClick={() => onSelectFunding(funding, tracker)}
-                className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors duration-150 ${getFundingStyle(
-                  funding.funding_id
-                )}`}
-              >
-                {funding.nama_beasiswa}
-              </button>
+              {/* Funding group label */}
+              <p className="px-3 py-1 text-xs font-semibold text-gray-500 truncate">
+                {funding.funding_name}
+              </p>
+              {/* Sub-items: one per tracker (university pair) */}
+              <ul className="space-y-0.5 ml-2">
+                {funding.items.map((item) => {
+                  const active = isFundingItemActive(funding.funding_id, item.dream_tracker_id);
+                  return (
+                    <li key={item.dream_tracker_id}>
+                      <button
+                        onClick={() => onSelectFunding(funding.funding_id, item.dream_tracker_id)}
+                        className={`w-full rounded-lg px-3 py-1.5 text-left transition-colors duration-150 ${
+                          active
+                            ? "bg-[#f58a1f] text-white"
+                            : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
+                        }`}
+                      >
+                        <span className="block text-xs font-medium truncate">
+                          {item.university_name}
+                        </span>
+                        <span className={`block text-[10px] truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
+                          {item.completion_percentage}% selesai
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </li>
           ))}
         </ul>
