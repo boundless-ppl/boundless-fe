@@ -2,7 +2,7 @@ import type { LoginPayload, RegisterPayload, UserData } from "@/features/auth/ty
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/features/auth/constants/auth.constants";
 import { isAccessTokenExpired } from "@/features/auth/utils/access-token";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
 function toText(value: unknown) {
   return typeof value === "string" ? value : "";
