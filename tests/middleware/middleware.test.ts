@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { ACCESS_TOKEN_COOKIE } from "@/features/auth/constants/auth.constants";
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 
 function createToken(expiresAtUnixSeconds: number) {
   const payload = Buffer.from(
@@ -16,11 +16,11 @@ function createToken(expiresAtUnixSeconds: number) {
   return `${payload}.signature`;
 }
 
-describe("middleware", () => {
+describe("proxy", () => {
   it("redirects guests away from protected routes", () => {
     const request = new NextRequest("https://example.com/dashboard");
 
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response?.status).toBe(307);
     expect(response?.headers.get("location")).toContain("/login?next=%2Fdashboard");
@@ -29,7 +29,7 @@ describe("middleware", () => {
   it("redirects guests away from /profile", () => {
     const request = new NextRequest("https://example.com/profile");
 
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response?.status).toBe(307);
     expect(response?.headers.get("location")).toContain("/login?next=%2Fprofile");
@@ -39,7 +39,7 @@ describe("middleware", () => {
     const request = new NextRequest("https://example.com/globalmatch");
     request.cookies.set(ACCESS_TOKEN_COOKIE, createToken(Math.floor(Date.now() / 1000) - 60));
 
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response?.status).toBe(307);
     expect(response?.headers.get("location")).toContain("/login?next=%2Fglobalmatch");
@@ -49,7 +49,7 @@ describe("middleware", () => {
     const request = new NextRequest("https://example.com/dashboard");
     request.cookies.set(ACCESS_TOKEN_COOKIE, createToken(Math.floor(Date.now() / 1000) + 3600));
 
-    const response = middleware(request);
+    const response = proxy(request);
 
     expect(response?.status).toBe(200);
   });
