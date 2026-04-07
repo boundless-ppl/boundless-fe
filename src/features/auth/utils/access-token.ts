@@ -7,7 +7,7 @@ type AccessTokenClaims = {
 };
 
 function decodeBase64Url(value: string) {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
   const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
   return atob(padded);
 }
@@ -37,7 +37,7 @@ export function parseAccessToken(token: string): AccessTokenClaims | null {
 
 export function isAccessTokenExpired(token: string) {
   const claims = parseAccessToken(token);
-  if (!claims || claims.tokenType !== "access") return true;
+  if (claims?.tokenType !== "access") return true;
 
   return claims.expiresAt.getTime() <= Date.now();
 }

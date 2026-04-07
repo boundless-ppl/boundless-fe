@@ -7,6 +7,7 @@ export function useUserData() {
 
   return {
     isAuthenticated,
+    fullName: user?.nama_lengkap || "",
     email: user?.email || "",
     userId: user?.userId || "",
     role: user?.role || "user",

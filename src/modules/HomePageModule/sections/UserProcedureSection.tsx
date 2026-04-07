@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FEATURE_STEPS } from '../constant';
 
@@ -51,8 +51,9 @@ export const UserProcedureSection = () => {
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="space-y-3 md:space-y-4">
             {FEATURE_STEPS.map((step, index) => (
-              <div
+              <button
                 key={step.title}
+                type="button"
                 onClick={() => handleStepClick(index)}
                 className={`relative p-4 md:p-6 rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 ease-out border ${
                   activeStep === index
@@ -70,7 +71,7 @@ export const UserProcedureSection = () => {
                 )}
                 
                 <div className="flex items-start gap-3 md:gap-4">
-                  <div className={`${step.bgColor} text-white w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center font-bold text-xs md:text-sm flex-shrink-0 shadow-sm transition-transform duration-300 ${
+                  <div className={`${step.bgColor} text-white w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center font-bold text-xs md:text-sm shrink-0 shadow-sm transition-transform duration-300 ${
                     activeStep === index ? 'scale-110' : ''
                   }`}>
                     {index + 1}
@@ -97,7 +98,7 @@ export const UserProcedureSection = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -129,13 +130,14 @@ export const UserProcedureSection = () => {
               <div className="flex justify-center mt-4 md:mt-6 gap-2 md:gap-3">
                 {FEATURE_STEPS.map((step, index) => (
                   <button
-                    key={index}
+                    key={step.title}
                     onClick={() => handleStepClick(index)}
                     className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                       activeStep === index 
                         ? `${step.bgColor} scale-125 shadow-sm` 
                         : 'bg-gray-300 hover:bg-gray-400'
                     }`}
+                    aria-label={`Go to ${step.title}`}
                   />
                 ))}
               </div>
