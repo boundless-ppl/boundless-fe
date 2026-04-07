@@ -35,7 +35,7 @@ export function Navbar({ className, ...props }: React.HTMLAttributes<HTMLElement
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
     { href: "/globalmatch", label: "Globalmatch", loggedIn: true },
     { label: "Beasiswa", loggedIn: true, comingSoon: true },
-    { label: "Dreamtracker", loggedIn: true, comingSoon: true },
+    { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true },
   ]
 
   return (

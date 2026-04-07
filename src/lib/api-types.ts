@@ -193,10 +193,11 @@ export interface SubmissionDetails {
 // ============================================
 
 export type DreamTrackerStatus = "ACTIVE" | "COMPLETED" | "ARCHIVED";
-export type DreamRequirementStatus = "NOT_UPLOADED" | "UPLOADED" | "VERIFIED" | "REJECTED";
+export type DreamRequirementStatus = "NOT_UPLOADED" | "UPLOADED" | "REVIEWING" | "VERIFIED" | "REJECTED" | "REUSED";
 export type MilestoneStatus = "NOT_STARTED" | "DONE" | "MISSED";
-export type FundingType = "SCHOLARSHIP" | "SELF_FUNDED" | "ASSISTANTSHIP" | "LOAN" | "SPONSORSHIP";
 export type FundingStatus = "AVAILABLE" | "SELECTED";
+export type ReviewSource = "NEW_UPLOAD" | "REUSED_EXISTING" | "SKIPPED_ALREADY_VERIFIED";
+export type ReviewStatus = "NOT_STARTED" | "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "SKIPPED";
 
 export interface DreamTrackerSummaryData {
   completion_percentage: number;
@@ -205,12 +206,6 @@ export interface DreamTrackerSummaryData {
   next_deadline_at: string | null;
   is_deadline_near: boolean;
   is_overdue: boolean;
-}
-
-export interface DreamTrackerProgress {
-  percentage: number;
-  completed_documents: number;
-  total_documents: number;
 }
 
 export interface DreamTrackerProgram {
@@ -223,56 +218,54 @@ export interface DreamTrackerProgram {
   admission_deadline: string;
 }
 
+export interface DreamRequirementDocument {
+  document_id: string;
+  document_type: string;
+  original_filename: string;
+  public_url: string;
+  uploaded_at: string;
+}
+
+export interface DreamRequirementReview {
+  source: ReviewSource;
+  status: ReviewStatus;
+  is_reused: boolean;
+  is_already_verified: boolean;
+  ai_message: string | null;
+  last_processed_at: string | null;
+}
+
 export interface DreamRequirement {
   dream_req_status_id: string;
-  document_id: string | null;
   req_catalog_id: string;
   requirement_key: string;
   requirement_label: string;
   category: string;
-  description: string;
   status: DreamRequirementStatus;
-  notes: string | null;
-  ai_status: string | null;
-  ai_messages: string[];
-  label: string;
-  is_required: boolean;
   status_label: string;
   status_variant: string;
-  message: string | null;
-  action_label: string;
   can_upload: boolean;
   needs_reupload: boolean;
-  created_at: string;
+  document: DreamRequirementDocument | null;
+  review: DreamRequirementReview;
 }
 
 export interface DreamMilestone {
   dream_milestone_id: string;
   title: string;
-  description: string;
-  deadline_date: string;
-  is_required: boolean;
   status: MilestoneStatus;
-  created_at: string;
-  updated_at: string;
+  deadline_date: string;
 }
 
 export interface DreamFunding {
   funding_id: string;
   nama_beasiswa: string;
-  deskripsi: string;
   provider: string;
-  tipe_pembiayaan: FundingType;
-  website: string;
   status: FundingStatus;
 }
 
 export interface DreamTrackerItem {
   dream_tracker_id: string;
-  user_id: string;
-  program_id: string;
-  admission_id: string | null;
-  funding_id: string | null;
   title: string;
   subtitle: string;
   status: DreamTrackerStatus;
@@ -280,11 +273,7 @@ export interface DreamTrackerItem {
   status_variant: string;
   created_at: string;
   updated_at: string;
-  source_type: string;
-  req_submission_id: string | null;
-  source_rec_result_id: string | null;
   deadline_at: string | null;
-  progress: DreamTrackerProgress;
   summary: DreamTrackerSummaryData;
   program: DreamTrackerProgram;
   requirements: DreamRequirement[];
@@ -292,15 +281,53 @@ export interface DreamTrackerItem {
   fundings: DreamFunding[];
 }
 
-export interface DreamTrackerListResponse {
-  items: DreamTrackerItem[];
-}
-
 export interface DreamTrackerDashboardSummary {
   total_applications: number;
-  in_progress_count: number;
+  incomplete_count: number;
   completed_count: number;
   deadline_near_count: number;
+}
+
+// Grouped endpoint types
+export interface DreamTrackerGroupedUniversityItem {
+  dream_tracker_id: string;
+  title: string;
+  program_name: string;
+  admission_name: string;
+  status: DreamTrackerStatus;
+  status_label: string;
+  completion_percentage: number;
+  is_selected: boolean;
+}
+
+export interface DreamTrackerGroupedUniversity {
+  university_id: string;
+  university_name: string;
+  items: DreamTrackerGroupedUniversityItem[];
+}
+
+export interface DreamTrackerGroupedFundingItem {
+  dream_tracker_id: string;
+  title: string;
+  program_name: string;
+  university_name: string;
+  status: DreamTrackerStatus;
+  status_label: string;
+  completion_percentage: number;
+  is_selected: boolean;
+}
+
+export interface DreamTrackerGroupedFunding {
+  funding_id: string;
+  funding_name: string;
+  items: DreamTrackerGroupedFundingItem[];
+}
+
+export interface DreamTrackerGroupedResponse {
+  default_selected_dream_tracker_id: string;
+  universities: DreamTrackerGroupedUniversity[];
+  fundings: DreamTrackerGroupedFunding[];
+  default_detail?: DreamTrackerItem;
 }
 
 export interface CreateDreamTrackerRequest {
@@ -320,19 +347,17 @@ export interface CreateDreamTrackerResponse {
 }
 
 export interface SubmitRequirementRequest {
-  document_id: string;
+  document_type: string;
+  reuse_if_exists?: boolean;
 }
 
 export interface SubmitRequirementResponse {
   dream_req_status_id: string;
-  document_id: string;
   status: DreamRequirementStatus;
-  ai_status: string;
-  ai_messages: string[];
   status_label: string;
   status_variant: string;
-  message: string;
-  meta?: Record<string, unknown>;
+  document: DreamRequirementDocument | null;
+  review: DreamRequirementReview;
 }
 
 // ============================================
