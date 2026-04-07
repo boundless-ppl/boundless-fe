@@ -1,5 +1,8 @@
 import { z } from "zod";
+import { validatePaymentProofFile } from "@/lib/file-validation";
 import { paymentPlanValues } from "../types/payment-form.types";
+
+const MAX_PAYMENT_PROOF_SIZE = 350 * 1024;
 
 export const paymentFormSchema = z
   .object({
@@ -12,6 +15,20 @@ export const paymentFormSchema = z
         code: "custom",
         path: ["receiptFile"],
         message: "Upload bukti transfer terlebih dahulu.",
+      });
+      return;
+    }
+
+    const validation = validatePaymentProofFile(
+      values.receiptFile,
+      MAX_PAYMENT_PROOF_SIZE
+    );
+
+    if (!validation.isValid) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["receiptFile"],
+        message: validation.error ?? "Format atau ukuran file tidak valid.",
       });
     }
   });

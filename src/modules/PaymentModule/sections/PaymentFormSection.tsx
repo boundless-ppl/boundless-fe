@@ -26,7 +26,7 @@ import {
   UploadCard,
 } from "../components/PaymentFormCards";
 
-const MAX_RECEIPT_SIZE = 5 * 1024 * 1024;
+const MAX_RECEIPT_SIZE = 350 * 1024;
 const MOBILE_BREAKPOINT_QUERY = "(max-width: 1023px)";
 
 const subscribeToMobileLayout = (onStoreChange: () => void) => {

@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
 import { getSubscriptionPackages } from "@/features/payment/services/payment.service";
 import { mapPlanPricesFromPackages } from "@/features/payment/utils/package-mapper";
+import { getSavingsLabel } from "@/features/payment/utils/savings";
 import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../constant";
 
 const formatIdr = (value: number) =>
@@ -54,16 +55,27 @@ export default function PricingTableSection() {
   }, []);
 
   const pricingPlans = useMemo(
-    () =>
-      PRICING_PLANS.map((plan) => {
+    () => {
+      const baseMonthlyPrice =
+        planPriceById["1month"] ??
+        PRICING_PLANS.find((plan) => plan.paymentPlanId === "1month")?.priceAmount ??
+        0;
+
+      return PRICING_PLANS.map((plan) => {
         const priceAmount = planPriceById[plan.paymentPlanId] ?? plan.priceAmount;
         return {
           ...plan,
           priceAmount,
           formattedPrice: formatIdr(priceAmount),
           subtextParts: getPriceSubtext(plan.durationMonths, priceAmount),
+          savingsLabel: getSavingsLabel(
+            priceAmount,
+            plan.durationMonths,
+            baseMonthlyPrice
+          ),
         };
-      }),
+      });
+    },
     [planPriceById]
   );
 
@@ -156,9 +168,9 @@ export default function PricingTableSection() {
 
                     <div>
                       <p className="text-[#FA8613] text-sm font-semibold tracking-wide uppercase">{plan.name}</p>
-                      {plan.discount && (
+                      {plan.savingsLabel && (
                         <span className="inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full">
-                          {plan.discount}
+                          {plan.savingsLabel}
                         </span>
                       )}
                     </div>

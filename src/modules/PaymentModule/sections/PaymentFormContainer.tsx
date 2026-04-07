@@ -7,6 +7,10 @@ import {
   getSubscriptionPackages,
   uploadPaymentProof,
 } from "@/features/payment/services/payment.service";
+import {
+  mapPlanPricesFromPackages,
+  resolvePackageByPlanId,
+} from "@/features/payment/utils/package-mapper";
 import { PaymentFormSection } from "./PaymentFormSection";
 import {
   type PlanSelectedPayload,
@@ -15,33 +19,6 @@ import {
   type ReceiptSubmittedPayload,
 } from "@/features/payment/types/payment-form.types";
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
-
-const PLAN_DURATION_MONTHS: Record<PaymentPlanId, number> = {
-  "1month": 1,
-  "3month": 3,
-  "1year": 12,
-};
-
-function resolvePackageByPlanId(
-  planId: PaymentPlanId,
-  packages: SubscriptionPackage[]
-): SubscriptionPackage | null {
-  const targetDuration = PLAN_DURATION_MONTHS[planId];
-  const exact = packages.find((pkg) => pkg.duration_months === targetDuration);
-  if (exact) {
-    return exact;
-  }
-
-  if (planId === "1year") {
-    return (
-      packages.find((pkg) => pkg.duration_months >= 12) ??
-      [...packages].sort((a, b) => b.duration_months - a.duration_months)[0] ??
-      null
-    );
-  }
-
-  return null;
-}
 
 export const PaymentFormContainer = () => {
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
@@ -85,6 +62,11 @@ export const PaymentFormContainer = () => {
       "1year": resolvePackageByPlanId("1year", packages),
     } satisfies Record<PaymentPlanId, SubscriptionPackage | null>;
   }, [packages]);
+
+  const planPriceById = useMemo(
+    () => mapPlanPricesFromPackages(packages),
+    [packages]
+  );
 
   const handlePlanSelected = ({ planId, price }: PlanSelectedPayload) => {
     const selectedPackage = packageByPlan[planId];
@@ -175,6 +157,7 @@ export const PaymentFormContainer = () => {
         onReceiptSubmitted={handleReceiptSubmitted}
         isPackageLoading={isPackageLoading}
         packageLoadError={packageLoadError}
+        planPriceById={planPriceById}
       />
     </Suspense>
   );

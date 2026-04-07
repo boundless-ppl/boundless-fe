@@ -14,15 +14,23 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   type PlanSelectorCardProps,
+  type PaymentPlanId,
   type QrisCardProps,
   type SummaryCardProps,
   type UploadCardProps,
 } from "@/features/payment/types/payment-form.types";
+import { getSavingsLabel } from "@/features/payment/utils/savings";
 import {
   PAYMENT_BENEFITS,
   PAYMENT_INSTRUCTIONS,
   PAYMENT_PLANS,
 } from "../constant";
+
+const PLAN_DURATION_MONTHS: Record<PaymentPlanId, number> = {
+  "1month": 1,
+  "3month": 3,
+  "1year": 12,
+};
 
 const planCardVariants = cva(
   "relative block w-full cursor-pointer rounded-xl border bg-white px-4 py-3 text-left transition-colors",
@@ -52,6 +60,11 @@ export const PlanSelectorCard = ({
   onPlanSelect,
   planPriceById,
 }: PlanSelectorCardProps) => {
+  const baseMonthlyPrice =
+    planPriceById?.["1month"] ??
+    PAYMENT_PLANS.find((plan) => plan.id === "1month")?.price ??
+    0;
+
   return (
     <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
       <fieldset>
@@ -64,6 +77,11 @@ export const PlanSelectorCard = ({
               {PAYMENT_PLANS.map((plan) => {
                 const isSelected = selectedPlanId === plan.id;
                 const planPrice = planPriceById?.[plan.id] ?? plan.price;
+                const savingsLabel = getSavingsLabel(
+                  planPrice,
+                  PLAN_DURATION_MONTHS[plan.id],
+                  baseMonthlyPrice
+                );
                 const inputId = `plan-${plan.id}`;
 
                 return (
@@ -104,8 +122,8 @@ export const PlanSelectorCard = ({
                           <p className="text-[30px] leading-none font-bold text-[#1f1f1f]">
                             {formatIdr(planPrice)}
                           </p>
-                          {plan.savingsLabel ? (
-                            <span className="text-xs text-[#f58a1f]">{plan.savingsLabel}</span>
+                          {savingsLabel ? (
+                            <span className="text-xs text-[#f58a1f]">{savingsLabel}</span>
                           ) : null}
                         </div>
                       </div>
@@ -173,7 +191,7 @@ export const UploadCard = ({
   return (
     <section ref={uploadSectionRef} className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
       <h3 className="text-base font-semibold text-[#1d1d1d]">Upload Bukti Transfer</h3>
-      <p className="mt-2 text-sm text-[#8f8f8f]">Upload bukti pembayaran (PDF/JPG/PNG, max 5MB)</p>
+      <p className="mt-2 text-sm text-[#8f8f8f]">Upload bukti pembayaran (IMG/PDF, maks 350KB)</p>
 
       <FormField
         control={control}
