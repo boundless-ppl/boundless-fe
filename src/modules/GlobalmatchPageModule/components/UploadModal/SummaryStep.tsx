@@ -12,6 +12,11 @@ export interface SummaryStepProps {
 
 export function SummaryStep({ files, preferences, onEdit, onSubmit }: Readonly<SummaryStepProps>) {
   const formatList = (list: string[]) => (list.length > 0 ? list.join(", ") : "-");
+  const educationLabel = preferences.educationLevel === "master" ? "S2/Master" : preferences.educationLevel;
+  const fieldOfStudyValue = [
+    ...preferences.fields,
+    ...(preferences.customField.trim() ? [preferences.customField.trim()] : []),
+  ];
 
   return (
     <div className="animate-in fade-in zoom-in-95 px-8 py-8 font-sans duration-300">
@@ -47,10 +52,9 @@ export function SummaryStep({ files, preferences, onEdit, onSubmit }: Readonly<S
           <h3 className="text-[16px] font-bold text-[#2b2b2b]">Preferensi</h3>
           
           <div className="grid grid-cols-1 gap-4 text-[14px] md:grid-cols-2">
-            <p><span className="font-semibold text-[#2b2b2b]">Benua:</span> <span className="text-[#6B6B6B]">{formatList(preferences.regions)}</span></p>
             <p><span className="font-semibold text-[#2b2b2b]">Negara:</span> <span className="text-[#6B6B6B]">{formatList(preferences.countries)}</span></p>
-            <p><span className="font-semibold text-[#2b2b2b]">Bidang studi:</span> <span className="text-[#6B6B6B]">{formatList(preferences.fields)}</span></p>
-            <p><span className="font-semibold text-[#2b2b2b]">Jenjang:</span> <span className="text-[#6B6B6B] uppercase">{preferences.educationLevel}</span></p>
+            <p><span className="font-semibold text-[#2b2b2b]">Bidang studi:</span> <span className="text-[#6B6B6B]">{formatList(fieldOfStudyValue)}</span></p>
+            <p><span className="font-semibold text-[#2b2b2b]">Jenjang:</span> <span className="text-[#6B6B6B]">{educationLabel}</span></p>
             <p><span className="font-semibold text-[#2b2b2b]">Bahasa:</span> <span className="text-[#6B6B6B]">{formatList(preferences.languages)}</span></p>
             <p><span className="font-semibold text-[#2b2b2b]">Budget:</span> <span className="text-[#6B6B6B] uppercase">{preferences.budget}</span></p>
             <p><span className="font-semibold text-[#2b2b2b]">Tipe beasiswa:</span> <span className="text-[#6B6B6B]">{formatList(preferences.scholarships)}</span></p>

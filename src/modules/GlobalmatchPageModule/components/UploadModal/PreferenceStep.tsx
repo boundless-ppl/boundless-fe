@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { PreferenceData } from "./types";
 import { 
-  REGIONS, 
   COUNTRIES, 
   FIELDS_OF_STUDY, 
-  EDUCATION_LEVELS, 
   LANGUAGES, 
   BUDGET_PREFERENCES, 
   SCHOLARSHIP_TYPES, 
@@ -18,11 +16,10 @@ interface PreferenceStepProps {
   onSubmit: (data: PreferenceData) => void;
 }
 
-export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProps>) {
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const [educationLevel, setEducationLevel] = useState<string>("");
+  const [customField, setCustomField] = useState<string>("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [budgetPreference, setBudgetPreference] = useState<string>("");
   const [scholarshipTypes, setScholarshipTypes] = useState<string[]>([]);
@@ -40,10 +37,10 @@ export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProp
 
   const handleFormSubmit = () => {
     onSubmit({
-      regions: selectedRegions,
       countries: selectedCountries,
       fields: selectedFields,
-      educationLevel,
+      customField,
+      educationLevel: "master",
       languages: selectedLanguages,
       budget: budgetPreference,
       scholarships: scholarshipTypes,
@@ -62,18 +59,9 @@ export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProp
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <legend className="text-[13px] font-medium text-[#2b2b2b]">Dimana pilihan wilayah Anda?</legend>
-          <div id={getSectionId("regions")} className="flex flex-wrap gap-2">
-            {REGIONS.map(r => (
-              <Pill key={r} label={r} active={selectedRegions.includes(r)} onClick={() => toggleMulti(r, selectedRegions, setSelectedRegions)} />
-            ))}
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <legend className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</legend>
-          <div id={getSectionId("countries")} className="flex flex-wrap gap-2">
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <label className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</label>
+          <div className="flex flex-wrap gap-2">
             {COUNTRIES.map(c => (
               <Pill key={c} label={c} active={selectedCountries.includes(c)} onClick={() => toggleMulti(c, selectedCountries, setSelectedCountries)} />
             ))}
@@ -87,14 +75,18 @@ export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProp
               <Pill key={f} label={f} active={selectedFields.includes(f)} onClick={() => toggleMulti(f, selectedFields, setSelectedFields)} />
             ))}
           </div>
-        </fieldset>
+          <textarea
+            className="min-h-[76px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            placeholder="Tambahkan bidang studi lainnya (opsional)"
+            value={customField}
+            onChange={(e) => setCustomField(e.target.value)}
+          />
+        </div>
 
-        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <legend className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan <span className="text-red-500">*</span></legend>
-          <div id={getSectionId("education-level")} className="flex flex-wrap gap-2">
-            {EDUCATION_LEVELS.map(lvl => (
-              <Pill key={lvl.value} label={lvl.label} active={educationLevel === lvl.value} onClick={() => setEducationLevel(lvl.value)} />
-            ))}
+        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <label className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</label>
+          <div className="flex flex-wrap gap-2">
+            <Pill label="S2/Master" active onClick={() => {}} />
           </div>
         </fieldset>
 
@@ -160,7 +152,6 @@ export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProp
         </Button>
         <Button 
           className="flex-1 rounded-xl bg-[#f58a1f] py-6 text-white hover:bg-[#dd7611]" 
-          disabled={!educationLevel}
           onClick={handleFormSubmit}
         >
           Lanjut ke Ringkasan

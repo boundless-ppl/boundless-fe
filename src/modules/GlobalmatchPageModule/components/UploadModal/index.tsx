@@ -43,10 +43,19 @@ export function UploadModal({ open, onOpenChange }: Readonly<{ open: boolean; on
     setError(null);
 
     try {
+      const mergedAdditionalPreference = [
+        preferences.customField.trim()
+          ? `Bidang studi tambahan: ${preferences.customField.trim()}`
+          : "",
+        preferences.additional.trim(),
+      ]
+        .filter(Boolean)
+        .join("\n");
+
       const requestData: RecommendationFormData = {
         cv_file: files.cv?.file,
         transcript_file: files.transcript?.file,
-        continents: preferences.regions,
+        continents: [],
         countries: preferences.countries,
         fields_of_study: preferences.fields,
         degree_level: preferences.educationLevel,
@@ -54,7 +63,7 @@ export function UploadModal({ open, onOpenChange }: Readonly<{ open: boolean; on
         budget_preferences: preferences.budget ? [preferences.budget] : [],
         scholarship_types: preferences.scholarships,
         start_periods: preferences.startPeriod ? [preferences.startPeriod] : [],
-        additional_preference: preferences.additional || "",
+        additional_preference: mergedAdditionalPreference,
       };
 
       const response = await submitRecommendation(requestData);
