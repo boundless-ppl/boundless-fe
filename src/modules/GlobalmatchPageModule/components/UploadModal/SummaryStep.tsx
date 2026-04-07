@@ -10,7 +10,7 @@ export interface SummaryStepProps {
   readonly onSubmit: () => void;
 }
 
-export function SummaryStep({ files, preferences, onEdit, onSubmit }: SummaryStepProps) {
+export function SummaryStep({ files, preferences, onEdit, onSubmit }: Readonly<SummaryStepProps>) {
   const formatList = (list: string[]) => (list.length > 0 ? list.join(", ") : "-");
   const educationLabel = preferences.educationLevel === "master" ? "S2/Master" : preferences.educationLevel;
   const fieldOfStudyValue = [
@@ -21,7 +21,7 @@ export function SummaryStep({ files, preferences, onEdit, onSubmit }: SummarySte
   return (
     <div className="animate-in fade-in zoom-in-95 px-8 py-8 font-sans duration-300">
       <div className="mb-8 text-center">
-        <h2 className="mb-3 text-[28px] font-bold text-[#0a0a0a] md:text-[32px]">
+        <h2 className="mb-3 text-2xl font-bold text-[#0a0a0a] md:text-[32px]">
           Tinjau Submission Anda
         </h2>
         <p className="text-[#9b9b9b] text-[14px]">
@@ -35,13 +35,13 @@ export function SummaryStep({ files, preferences, onEdit, onSubmit }: SummarySte
           <div className="space-y-2">
             {files.cv && (
               <div className="flex items-center gap-2 text-[#6B6B6B] text-[14px]">
-                <FileText size={18} className="text-[#FA8613]" />
+                <FileText size={36} className="text-[#FA8613] md:w-6" />
                 <span>CV: {files.cv.name}</span>
               </div>
             )}
             {files.transcript && (
               <div className="flex items-center gap-2 text-[#6B6B6B] text-[14px]">
-                <FileText size={18} className="text-[#FA8613]" />
+                <FileText size={36} className="text-[#FA8613] md:w-6" />
                 <span>Transkrip: {files.transcript.name}</span>
               </div>
             )}
@@ -63,16 +63,16 @@ export function SummaryStep({ files, preferences, onEdit, onSubmit }: SummarySte
         </div>
       </div>
 
-      <div className="flex gap-3 mt-8">
+      <div className="flex gap-1 md:gap-3 mt-8">
         <Button 
           variant="outline" 
-          className="flex-1 rounded-xl border-[#E8E8E8] py-6 font-semibold text-[#6B6B6B]" 
+          className="max-md:text-xs flex-1 rounded-xl border-[#E8E8E8] py-6 font-semibold text-[#6B6B6B]" 
           onClick={onEdit}
         >
           Edit Preferensi
         </Button>
         <Button 
-          className="flex-1 rounded-xl bg-[#f58a1f] py-6 font-semibold text-white transition-all shadow-md hover:bg-[#dd7611]"
+          className="max-md:text-xs flex-1 rounded-xl bg-[#f58a1f] py-6 font-semibold text-white transition-all shadow-md hover:bg-[#dd7611] whitespace-normal text-center wrap-break-word"
           onClick={onSubmit}
         >
           Submit untuk Rekomendasi

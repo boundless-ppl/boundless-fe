@@ -1,5 +1,4 @@
-import React from 'react'
-import { PrivacyPolicy } from './section/PrivacyPolicy'
+import { PrivacyPolicy } from './sections/PrivacyPolicy'
 
 export const LegalPageModule = () => {
   return (

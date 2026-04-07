@@ -19,12 +19,12 @@ interface City {
 function FeaturePlaceholder({
   title,
   description,
-}: {
+}: Readonly<{
   title: string;
   description: string;
-}) {
+}>) {
   return (
-    <div className="flex h-full min-h-[320px] items-center justify-center rounded-3xl border border-[#eadfce] bg-white p-8">
+    <div className="flex h-full min-h-80 items-center justify-center rounded-3xl border border-[#eadfce] bg-white p-8">
       <div className="max-w-md text-center">
         <h3 className="text-xl font-semibold text-[#2b2b2b]">{title}</h3>
         <p className="mt-3 text-sm leading-7 text-[#6b7280]">{description}</p>
@@ -85,7 +85,7 @@ export default function ResizableLayout() {
         className="min-h-full border rounded-lg"
       >
         <ResizablePanel defaultSize={60} minSize={30}>
-          <div className="flex h-full min-h-[480px] items-center justify-center rounded-l-lg bg-[#fcfaf7] p-8">
+          <div className="flex h-full min-h-120 items-center justify-center rounded-l-lg bg-[#fcfaf7] p-8">
             <div className="max-w-md text-center">
               <h2 className="text-2xl font-semibold text-[#2b2b2b]">Peta interaktif</h2>
               <p className="mt-3 text-sm leading-7 text-[#6b7280]">
@@ -117,13 +117,14 @@ export default function ResizableLayout() {
               </div>
                     <div className="flex justify-start rotate-90 -translate-x-1/2 ml-6 gap-1 absolute top-1/4">
                   {FEATURE_BUTTONS.map((button) => (
-                    <div
+                    <button
                       key={button.id}
+                      type="button"
                       onClick={() => handleButtonClick(button.id)}
                       className={cn(
                         "flex items-center justify-center px-3 py-2 text-sm cursor-pointer transition-colors duration-200 rounded-md",
                         {
-                          "bg-[#FFF3E6] text-muted-foreground border-gray-400 border-1 shadow-[4px_0_0_rgba(0,0,0,0.1)]": activeFeature === button.id,
+                          "bg-[#FFF3E6] text-muted-foreground border-gray-400 border shadow-[4px_0_0_rgba(0,0,0,0.1)]": activeFeature === button.id,
                           "hover:bg-muted text-muted-foreground hover:text-foreground": activeFeature !== button.id,
                         }
                       )}
@@ -140,7 +141,7 @@ export default function ResizableLayout() {
                         null
                       )}
                       <span className="ml-1">{button.label}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

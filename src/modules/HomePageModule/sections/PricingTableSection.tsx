@@ -75,7 +75,7 @@ export default function PricingTableSection() {
   
   return (
     <section className="bg-white py-16 md:py-24 px-4">
-      <div className="max-w-[1052px] mx-auto">
+      <div className="max-w-263 mx-auto">
         
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
@@ -100,13 +100,13 @@ export default function PricingTableSection() {
         </div>
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10 md:mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-5 mb-10 md:mb-14">
           {FEATURES_NEW.map((f) => (
             <Card 
               key={f.title} 
               className="rounded-2xl border border-[#eee] bg-[#faf8f5] shadow-none"
             >
-              <CardContent className="p-5 md:p-6">
+              <CardContent className="px-5 md:px-6">
                 <div className="flex items-start justify-between mb-3">
                   {f.status === 'live' && (
                     <Badge className="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium border border-green-200">
@@ -200,7 +200,6 @@ export default function PricingTableSection() {
             </p>
           </>
         ) : (
-          <>
             <div className="rounded-3xl border border-[#e8ddd0] bg-[#fffaf5] p-6 md:p-10">
               <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
                 {/* Left side */}
@@ -209,14 +208,14 @@ export default function PricingTableSection() {
                     Akses Peluncuran
                   </p>
 
-                  <h3 className="text-3xl md:text-[38px] font-bold leading-snug text-[#2B2B2B]">
-                    Semua fitur aktif bisa dicoba gratis selama periode peluncuran.
+                  <h3 className="text-2xl md:text-[38px] font-bold leading-snug text-[#2B2B2B]">
+                    Semua fitur aktif bisa dicoba gratis selama periode peluncuran
                   </h3>
-                  <p className="mt-4 max-w-md text-base leading-7 text-[#777]">
+                  <p className="mt-4 max-w-md text-sm md:text-base leading-7 text-[#777]">
                     Gunakan Boundless sekarang untuk mencoba GlobalMatch AI dan fondasi workflow studi abroad kami tanpa biaya, sambil kami menyiapkan struktur pricing final.
                   </p>
 
-                  <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                  <div className="mt-8 grid gap-1 md:gap-3 sm:grid-cols-3">
                     {launchHighlights.map((item) => (
                       <div
                         key={item}
@@ -272,7 +271,6 @@ export default function PricingTableSection() {
               </div>
             </div>
 
-          </>
         )}
       </div>
     </section>

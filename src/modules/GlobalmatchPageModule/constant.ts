@@ -11,14 +11,10 @@ export const COUNTRIES = [
   "United States",
   "United Kingdom",
   "Germany",
-  "Netherlands",
-  "Switzerland",
-  "Sweden",
-  "Denmark",
   "Singapore",
-  "South Korea",
   "Japan",
   "Australia",
+  "Malaysia",
   "Canada",
 ];
 
@@ -34,9 +30,9 @@ export const FIELDS_OF_STUDY = [
 ];
 
 export const EDUCATION_LEVELS = [
-  { label: "S1/Bachelor", value: "bachelor" },
+  // { label: "S1/Bachelor", value: "bachelor" },
   { label: "S2/Master", value: "master" },
-  { label: "S3/PhD", value: "phd" },
+  // { label: "S3/PhD", value: "phd" },
 ];
 
 export const LANGUAGES = [

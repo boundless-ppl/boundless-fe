@@ -2,22 +2,22 @@ import { z } from "zod";
 
 export const registerFormSchema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters."),
-    email: z.email("Please enter a valid email."),
+    name: z.string().min(2, "Nama harus terdiri dari minimal 2 karakter."),
+    email: z.email("Silakan masukkan email yang valid."),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters.")
-      .regex(/[A-Z]/, "Password must include an uppercase letter.")
-      .regex(/[a-z]/, "Password must include a lowercase letter.")
-      .regex(/\d/, "Password must include a number.")
-      .regex(/[!@#$%^&*(),.?\":{}|<>]/, "Password must include a special character."),
+      .min(8, "Kata sandi harus terdiri dari minimal 8 karakter.")
+      .regex(/[A-Z]/, "Kata sandi harus mengandung huruf kapital.")
+      .regex(/[a-z]/, "Kata sandi harus mengandung huruf kecil.")
+      .regex(/\d/, "Kata sandi harus mengandung angka.")
+      .regex(/[!@#$%^&*(),.?":{}|<>]/, "Kata sandi harus mengandung karakter khusus."),
     confirmPassword: z.string(),
     acceptedPrivacyPolicy: z.boolean().refine((value) => value, {
-      message: "You must accept the privacy policy.",
+      message: "Anda harus menyetujui kebijakan privasi.",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
+    message: "Konfirmasi kata sandi tidak cocok.",
     path: ["confirmPassword"],
   });
 

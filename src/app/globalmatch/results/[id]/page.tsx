@@ -190,7 +190,7 @@ export default function GlobalmatchResultsPage() {
                   Kembali ke Beranda
                 </Button>
                 <Button
-                  onClick={() => window.location.reload()}
+                  onClick={() => globalThis.location.reload()}
                   className="rounded-2xl bg-[#fa8613] hover:bg-[#e07612]"
                 >
                   Coba Lagi

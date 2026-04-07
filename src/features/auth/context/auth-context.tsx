@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
+  getMe,
   loginRequest,
   logoutRequest,
   registerRequest,
@@ -30,7 +31,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [bootstrappedAuth] = useState(() => readAuthFromCookies());
   const [user, setUser] = useState<UserData | null>(bootstrappedAuth?.user ?? null);
   const [tokens, setTokens] = useState<AuthTokens | null>(bootstrappedAuth?.tokens ?? null);
@@ -48,39 +49,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     if (isAccessTokenExpired(tokens.accessToken)) {
-      const timeout = window.setTimeout(clearAuthState, 0);
-      return () => window.clearTimeout(timeout);
+      const timeout = globalThis.setTimeout(clearAuthState, 0);
+      return () => globalThis.clearTimeout(timeout);
     }
 
     const claims = parseAccessToken(tokens.accessToken);
     if (!claims) {
-      const timeout = window.setTimeout(clearAuthState, 0);
-      return () => window.clearTimeout(timeout);
+      const timeout = globalThis.setTimeout(clearAuthState, 0);
+      return () => globalThis.clearTimeout(timeout);
     }
 
-    const timeout = window.setTimeout(() => {
+    const timeout = globalThis.setTimeout(() => {
       clearAuthState();
     }, Math.max(claims.expiresAt.getTime() - Date.now(), 0));
 
-    return () => window.clearTimeout(timeout);
+    return () => globalThis.clearTimeout(timeout);
   }, [tokens]);
 
-  const updateAuthState = (nextTokens: AuthTokens, partialUser: Partial<UserData>) => {
-    const hydratedUser: UserData = {
-      userId: partialUser.userId ?? user?.userId ?? "",
-      nama_lengkap: partialUser.nama_lengkap ?? user?.nama_lengkap ?? "",
-      email: partialUser.email ?? user?.email ?? "",
-      role: partialUser.role ?? user?.role ?? "student",
-    };
-
+  const updateAuthState = (nextTokens: AuthTokens, nextUser: UserData) => {
     setTokens(nextTokens);
-    setUser(hydratedUser);
-    saveAuthToCookies(nextTokens, hydratedUser);
+    setUser(nextUser);
+    saveAuthToCookies(nextTokens, nextUser);
   };
 
   const login = async (payload: LoginPayload) => {
-    const response = await loginRequest(payload);
-    updateAuthState(response.tokens, response.user);
+    const tokens = await loginRequest(payload);
+
+    try {
+      const user = await getMe(tokens.accessToken);
+      updateAuthState(tokens, user);
+    } catch {
+      clearAuthCookies();
+      throw new Error("Session expired");
+    }
   };
 
   const register = async (payload: RegisterPayload) => {
@@ -107,16 +108,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // existing memoization could not be preserved
   const value: AuthContextValue = {
-    user,
-    tokens,
-    isAuthenticated: !!tokens?.accessToken,
-    isLoggedIn: !!tokens?.accessToken,
-    isLoading,
-    login,
-    register,
-    logout,
-    setUserData,
+      user,
+      tokens,
+      isAuthenticated: !!tokens?.accessToken,
+      isLoggedIn: !!tokens?.accessToken,
+      isLoading,
+      login,
+      register,
+      logout,
+      setUserData
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

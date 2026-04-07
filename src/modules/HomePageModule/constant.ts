@@ -10,22 +10,22 @@ export const FEATURE_FLAGS = {
 export const FEATURES = [
     {
       title: "Scholarship Hub",
-      description: "View, filter, and access a complete list of Master's degree scholarships from a single, trustworthy source.",
+      description: "Lihat, saring, dan akses daftar lengkap beasiswa S2 dari satu sumber yang terpercaya.",
       icon: GraduationCap
     },
     {
       title: "Globalmatch AI", 
-      description: "Get AI-powered personalized recommendations of universities and topics tailored to your academic profile.",
+      description: "Dapatkan rekomendasi universitas dan bidang studi yang dipersonalisasi berdasarkan profil akademik Anda dengan dukungan AI.",
       icon: Sparkles
     },
     {
       title: "Dreamtracker",
-      description: "Track all your scholarship applications, deadlines, and progress in one organized dashboard.",
+      description: "Kelola seluruh pendaftaran beasiswa, tenggat waktu, dan progres Anda dalam satu dashboard yang terorganisir.",
       icon: Target
     },
     {
       title: "Auto-Fill",
-      description: "Save time by automatically populating application forms with your stored profile data.",
+      description: "Hemat waktu dengan mengisi formulir pendaftaran secara otomatis menggunakan data profil yang telah tersimpan.",
       icon: Zap
     }
   ];

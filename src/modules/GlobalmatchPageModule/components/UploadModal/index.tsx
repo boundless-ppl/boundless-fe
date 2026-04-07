@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DocumentStep } from "./DocumentStep";
@@ -93,7 +93,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     onOpenChange(false);
     setTimeout(() => {
       setStep("upload");
@@ -101,18 +101,25 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       setPreferences(null);
       setError(null);
     }, 300);
-  };
+  }, [onOpenChange]);
+
+  useEffect(() => {
+    const handler = () => handleClose();
+
+    window.addEventListener("dialog-close", handler);
+    return () => window.removeEventListener("dialog-close", handler);
+  }, [handleClose]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[calc(100vw-2rem)] rounded-[28px] border border-[#eadfce] p-0 font-sans shadow-[0_28px_80px_rgba(31,41,55,0.16)] sm:max-w-[calc(100vw-3rem)] xl:max-w-345 2xl:max-w-380">
-        <DialogHeader className="sticky top-0 z-10 border-b border-[#ebe2d5] bg-white px-8 py-5">
+      <DialogContent className="w-full max-h-[80%] max-w-[calc(100vw-2rem)] rounded-[28px] border border-[#eadfce] p-0 font-sans shadow-[0_28px_80px_rgba(31,41,55,0.16)] sm:max-w-[calc(100vw-3rem)] xl:max-w-345 2xl:max-w-380">
+        <DialogHeader className="sticky top-0 z-10 border-b border-[#ebe2d5] bg-white px-8 py-3 md:py-5 rounded-t-[28px]">
           <DialogTitle className="text-center text-[18px] font-semibold text-[#2b2b2b] md:text-left">
             Globalmatch
           </DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[calc(100vh-3rem)] overflow-y-auto bg-[#fcfaf7]">
+        <div className="max-h-[calc(100vh-3rem)] overflow-y-auto">
           {isLoading && (
             <div className="px-8 py-16 flex flex-col items-center justify-center space-y-4">
               <Loader2 className="w-12 h-12 text-[#fa8613] animate-spin" />
