@@ -5,9 +5,8 @@ import type {
   CreateDreamTrackerRequest,
   CreateDreamTrackerResponse,
   DreamTrackerDashboardSummary,
+  DreamTrackerGroupedResponse,
   DreamTrackerItem,
-  DreamTrackerListResponse,
-  SubmitRequirementRequest,
   SubmitRequirementResponse,
 } from "@/lib/api-types";
 
@@ -49,6 +48,13 @@ function buildAuthHeaders(): HeadersInit {
     : { "Content-Type": "application/json" };
 }
 
+function buildAuthHeadersMultipart(): HeadersInit {
+  const tokens = getAuthToken();
+  return tokens?.accessToken
+    ? { Authorization: `Bearer ${tokens.accessToken}` }
+    : {};
+}
+
 export async function getDreamTrackerSummary(): Promise<DreamTrackerDashboardSummary> {
   const response = await fetch(`${API_BASE_URL}${API_CONFIG.ENDPOINTS.DREAM_TRACKERS.SUMMARY}`, {
     method: "GET",
@@ -57,12 +63,19 @@ export async function getDreamTrackerSummary(): Promise<DreamTrackerDashboardSum
   return handleResponse<DreamTrackerDashboardSummary>(response);
 }
 
-export async function getDreamTrackers(): Promise<DreamTrackerListResponse> {
-  const response = await fetch(`${API_BASE_URL}${API_CONFIG.ENDPOINTS.DREAM_TRACKERS.BASE}`, {
-    method: "GET",
-    headers: buildAuthHeaders(),
-  });
-  return handleResponse<DreamTrackerListResponse>(response);
+export async function getDreamTrackersGrouped(params?: {
+  include_default_detail?: boolean;
+  selected_dream_tracker_id?: string;
+}): Promise<DreamTrackerGroupedResponse> {
+  const query = new URLSearchParams();
+  if (params?.include_default_detail) query.set("include_default_detail", "true");
+  if (params?.selected_dream_tracker_id) query.set("selected_dream_tracker_id", params.selected_dream_tracker_id);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  const response = await fetch(
+    `${API_BASE_URL}${API_CONFIG.ENDPOINTS.DREAM_TRACKERS.GROUPED}${qs}`,
+    { method: "GET", headers: buildAuthHeaders() }
+  );
+  return handleResponse<DreamTrackerGroupedResponse>(response);
 }
 
 export async function getDreamTrackerById(id: string): Promise<DreamTrackerItem> {
@@ -84,16 +97,23 @@ export async function createDreamTracker(
   return handleResponse<CreateDreamTrackerResponse>(response);
 }
 
-export async function submitRequirement(
+export async function uploadRequirementDocument(
   requirementStatusId: string,
-  data: SubmitRequirementRequest
+  file: File,
+  documentType: string,
+  reuseIfExists = true
 ): Promise<SubmitRequirementResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("document_type", documentType);
+  formData.append("reuse_if_exists", String(reuseIfExists));
+
   const response = await fetch(
-    `${API_BASE_URL}${API_CONFIG.ENDPOINTS.DREAM_TRACKERS.SUBMIT_REQUIREMENT(requirementStatusId)}`,
+    `${API_BASE_URL}${API_CONFIG.ENDPOINTS.DREAM_TRACKERS.UPLOAD_DOCUMENT(requirementStatusId)}`,
     {
       method: "POST",
-      headers: buildAuthHeaders(),
-      body: JSON.stringify(data),
+      headers: buildAuthHeadersMultipart(),
+      body: formData,
     }
   );
   return handleResponse<SubmitRequirementResponse>(response);
