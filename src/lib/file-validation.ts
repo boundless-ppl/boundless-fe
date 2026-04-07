@@ -1,21 +1,15 @@
-/**
- * File Validation Utilities
- * Reusable validation functions for file uploads
- */
-
 export interface FileValidationResult {
   isValid: boolean;
   error?: string;
 }
 
-// Validation constants
 export const FILE_VALIDATION = {
-  MAX_SIZE: 10 * 1024 * 1024, // 10MB in bytes
+  MAX_SIZE: 350 * 1024, // 350KB
   ALLOWED_TYPES: {
     DOCUMENT: [
       "application/pdf",
-      "application/msword", // .doc
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+      // "application/msword", // .doc
+      // "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
     ],
     IMAGE: [
       "image/jpeg",
@@ -25,14 +19,11 @@ export const FILE_VALIDATION = {
     ],
   },
   ALLOWED_EXTENSIONS: {
-    DOCUMENT: [".pdf", ".doc", ".docx"],
+    DOCUMENT: [".pdf"],
     IMAGE: [".jpg", ".jpeg", ".png", ".webp"],
   },
 } as const;
 
-/**
- * Format file size to human-readable string
- */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 Bytes";
   
@@ -40,12 +31,9 @@ export function formatFileSize(bytes: number): string {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-/**
- * Validate file size
- */
 export function validateFileSize(
   file: File,
   maxSize: number = FILE_VALIDATION.MAX_SIZE
@@ -60,9 +48,6 @@ export function validateFileSize(
   return { isValid: true };
 }
 
-/**
- * Validate file type/extension
- */
 export function validateFileType(
   file: File,
   allowedTypes: readonly string[],
@@ -82,7 +67,6 @@ export function validateFileType(
   }
   
   // Check MIME type (additional validation)
-  // Note: Some browsers might not set the correct MIME type, so we rely more on extension
   if (file.type !== "" && !allowedTypes.includes(file.type)) {
     const extensions = allowedExtensions.join(", ").toUpperCase();
     return {
@@ -94,20 +78,15 @@ export function validateFileType(
   return { isValid: true };
 }
 
-/**
- * Validate document file (PDF, DOC, DOCX)
- */
 export function validateDocumentFile(
   file: File,
   maxSize: number = FILE_VALIDATION.MAX_SIZE
 ): FileValidationResult {
-  // Validate size
   const sizeValidation = validateFileSize(file, maxSize);
   if (!sizeValidation.isValid) {
     return sizeValidation;
   }
   
-  // Validate type
   const typeValidation = validateFileType(
     file,
     FILE_VALIDATION.ALLOWED_TYPES.DOCUMENT,
@@ -120,20 +99,15 @@ export function validateDocumentFile(
   return { isValid: true };
 }
 
-/**
- * Validate image file
- */
 export function validateImageFile(
   file: File,
   maxSize: number = FILE_VALIDATION.MAX_SIZE
 ): FileValidationResult {
-  // Validate size
   const sizeValidation = validateFileSize(file, maxSize);
   if (!sizeValidation.isValid) {
     return sizeValidation;
   }
-  
-  // Validate type
+
   const typeValidation = validateFileType(
     file,
     FILE_VALIDATION.ALLOWED_TYPES.IMAGE,
@@ -146,25 +120,16 @@ export function validateImageFile(
   return { isValid: true };
 }
 
-/**
- * Get file extension
- */
 export function getFileExtension(fileName: string): string {
   const parts = fileName.split(".");
-  return parts.length > 1 ? `.${parts[parts.length - 1].toLowerCase()}` : "";
+  return parts.length > 1 ? `.${parts.at(-1)?.toLowerCase()}` : "";
 }
 
-/**
- * Check if file is a document
- */
 export function isDocumentFile(file: File): boolean {
   const extension = getFileExtension(file.name);
   return (FILE_VALIDATION.ALLOWED_EXTENSIONS.DOCUMENT as readonly string[]).includes(extension);
 }
 
-/**
- * Check if file is an image
- */
 export function isImageFile(file: File): boolean {
   const extension = getFileExtension(file.name);
   return (FILE_VALIDATION.ALLOWED_EXTENSIONS.IMAGE as readonly string[]).includes(extension);

@@ -20,7 +20,27 @@ interface ResultStepProps {
   onClose: () => void;
 }
 
-function RecommendationCard({ program }: { program: ProgramRecommendation }) {
+function listKey(value: string, index: number) {
+  return `${value}-${index}`;
+}
+
+function scholarshipKey(scholarshipName: string, index: number) {
+  return `${scholarshipName}-${index}`;
+}
+
+function getDifficultyLabel(difficulty: ProgramRecommendation["admission_difficulty"]) {
+  if (difficulty === "low") return "Mudah";
+  if (difficulty === "moderate") return "Sedang";
+  return "Kompetitif";
+}
+
+function getSelectivityBadgeClass(selectivity: "high" | "moderate" | "low") {
+  if (selectivity === "high") return "bg-red-100 text-red-700";
+  if (selectivity === "moderate") return "bg-yellow-100 text-yellow-700";
+  return "bg-green-100 text-green-700";
+}
+
+function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendation }>) {
   const [showDetails, setShowDetails] = useState(false);
 
   // Determine match badge color based on fit score
@@ -51,7 +71,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 {program.fit_score}% Match
               </Badge>
               <Badge className={`${getDifficultyBadge(program.admission_difficulty)} border-none px-3 py-1 text-[12px] font-semibold`}>
-                {program.admission_difficulty === "low" ? "Mudah" : program.admission_difficulty === "moderate" ? "Sedang" : "Kompetitif"}
+                {getDifficultyLabel(program.admission_difficulty)}
               </Badge>
             </div>
             
@@ -116,13 +136,13 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
           </div>
           <ul className="space-y-2">
             {program.match_evidence.slice(0, 3).map((evidence, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-[13px] text-[#666]">
+              <li key={listKey(evidence, idx)} className="flex items-start gap-2 text-[13px] text-[#666]">
                 <span className="text-[#fa8613] mt-0.5">•</span>
                 <span>{evidence}</span>
               </li>
             ))}
             {program.preference_reasoning.slice(0, 2).map((reason, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-[13px] text-[#666]">
+              <li key={listKey(reason, idx)} className="flex items-start gap-2 text-[13px] text-[#666]">
                 <span className="text-[#fa8613] mt-0.5">•</span>
                 <span>{reason}</span>
               </li>
@@ -140,7 +160,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
               </span>
             </div>
             {program.scholarship_recommendations.slice(0, 2).map((scholarship, idx) => (
-              <div key={idx} className="text-[12px] text-yellow-800 mb-1">
+              <div key={scholarshipKey(scholarship.scholarship_name, idx)} className="text-[12px] text-yellow-800 mb-1">
                 <span className="font-medium">{scholarship.scholarship_name}:</span> {scholarship.coverage_summary}
               </div>
             ))}
@@ -175,7 +195,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 {Object.entries(program.score_breakdown).map(([key, value]) => (
                   <div key={key}>
                     <div className="flex justify-between text-[12px] mb-1">
-                      <span className="text-[#666] capitalize">{key.replace(/_/g, " ")}</span>
+                      <span className="text-[#666] capitalize">{key.replaceAll("_", " ")}</span>
                       <span className="font-semibold text-[#2b2b2b]">{value}%</span>
                     </div>
                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -195,7 +215,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 <h4 className="text-[14px] font-semibold text-[#2b2b2b] mb-2">Pros</h4>
                 <ul className="space-y-1">
                   {program.pros.map((pro, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-[13px] text-green-700">
+                    <li key={listKey(pro, idx)} className="flex items-start gap-2 text-[13px] text-green-700">
                       <span className="mt-0.5">✓</span>
                       <span>{pro}</span>
                     </li>
@@ -207,7 +227,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                   <h4 className="text-[14px] font-semibold text-[#2b2b2b] mb-2">Cons</h4>
                   <ul className="space-y-1">
                     {program.cons.map((con, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-[13px] text-orange-700">
+                      <li key={listKey(con, idx)} className="flex items-start gap-2 text-[13px] text-orange-700">
                         <span className="mt-0.5">⚠</span>
                         <span>{con}</span>
                       </li>
@@ -223,16 +243,12 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
                 <h4 className="text-[14px] font-semibold text-[#2b2b2b] mb-2">All Scholarships</h4>
                 <div className="space-y-2">
                   {program.scholarship_recommendations.map((scholarship, idx) => (
-                    <div key={idx} className="bg-yellow-50 rounded-lg p-3 border border-yellow-100">
+                    <div key={scholarshipKey(scholarship.scholarship_name, idx)} className="bg-yellow-50 rounded-lg p-3 border border-yellow-100">
                       <div className="flex items-start justify-between mb-1">
                         <span className="text-[13px] font-semibold text-[#2b2b2b]">
                           {scholarship.scholarship_name}
                         </span>
-                        <Badge className={`text-[11px] ${
-                          scholarship.selectivity === "high" ? "bg-red-100 text-red-700" :
-                          scholarship.selectivity === "moderate" ? "bg-yellow-100 text-yellow-700" :
-                          "bg-green-100 text-green-700"
-                        } border-none`}>
+                        <Badge className={`text-[11px] ${getSelectivityBadgeClass(scholarship.selectivity)} border-none`}>
                           {scholarship.selectivity}
                         </Badge>
                       </div>
@@ -268,7 +284,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
         </Button>
         <Button
           className="flex-1 rounded-xl bg-[#2b2b2b] text-white hover:bg-[#1a1a1a]"
-          onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(program.university_name + " " + program.program_name)}`, "_blank")}
+          onClick={() => globalThis.window.open(`https://www.google.com/search?q=${encodeURIComponent(program.university_name + " " + program.program_name)}`, "_blank")}
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           Kunjungi Website
@@ -278,7 +294,7 @@ function RecommendationCard({ program }: { program: ProgramRecommendation }) {
   );
 }
 
-export function ResultStep({ result, onClose }: ResultStepProps) {
+export function ResultStep({ result, onClose }: Readonly<ResultStepProps>) {
   const { student_profile_summary, top_recommendations, application_strategy, final_notes } = result;
 
   return (
@@ -372,7 +388,7 @@ export function ResultStep({ result, onClose }: ResultStepProps) {
           </h3>
           <ul className="space-y-2 text-[13px] text-[#666]">
             {final_notes.map((note, idx) => (
-              <li key={idx} className="flex items-start gap-2">
+              <li key={listKey(note, idx)} className="flex items-start gap-2">
                 <span className="text-blue-600 mt-0.5 shrink-0">•</span>
                 <span>{note}</span>
               </li>

@@ -11,6 +11,10 @@ export interface ApiErrorResponse {
   error: string;
 }
 
+export type SubmissionStatus = "draft" | "processing" | "completed" | "failed";
+export type FitLevel = "low" | "moderate" | "high";
+export type AdmissionDifficulty = "low" | "moderate" | "high";
+
 // ============================================
 // Auth Types
 // ============================================
@@ -80,7 +84,7 @@ export interface LegacySubmissionRequest {
 
 export interface LegacySubmissionResponse {
   submission_id: string;
-  status: "draft" | "processing" | "completed" | "failed";
+  status: SubmissionStatus;
   result_set_id: string;
 }
 
@@ -107,7 +111,7 @@ export interface ScoreBreakdown {
 export interface ScholarshipRecommendation {
   scholarship_name: string;
   coverage_summary: string;
-  selectivity: "low" | "moderate" | "high";
+  selectivity: FitLevel;
   eligibility_hint: string;
 }
 
@@ -119,8 +123,8 @@ export interface ProgramRecommendation {
   fit_score: number;
   admission_chance_score: number;
   overall_recommendation_score: number;
-  fit_level: "low" | "moderate" | "high";
-  admission_difficulty: "low" | "moderate" | "high";
+  fit_level: FitLevel;
+  admission_difficulty: AdmissionDifficulty;
   score_breakdown: ScoreBreakdown;
   overview: string;
   why_this_university: string;
@@ -152,7 +156,7 @@ export interface RecommendationResult {
 
 export interface ProfileSubmissionResponse {
   submission_id: string;
-  status: "completed" | "processing" | "failed";
+  status: Exclude<SubmissionStatus, "draft">;
   result_set_id: string;
   result: RecommendationResult;
 }
@@ -167,7 +171,7 @@ export interface SimplifiedProgramResult {
   program_name: string;
   country: string;
   fit_score: number;
-  fit_level: "low" | "moderate" | "high";
+  fit_level: FitLevel;
   overview: string;
   why_this_university: string;
   why_this_program: string;
@@ -185,7 +189,7 @@ export interface LatestResult {
 
 export interface SubmissionDetails {
   submission_id: string;
-  status: "draft" | "processing" | "completed" | "failed";
+  status: SubmissionStatus;
   created_at: string;
   submitted_at: string;
   documents: DocumentUpload[];

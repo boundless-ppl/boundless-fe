@@ -14,7 +14,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Boundless",
-  description: "Membuka jalan menuju pendidikan global",
+  description: "Membantu Anda menembus batas untuk meraih beasiswa S2 ke luar negeri melalui informasi terpercaya, panduan terstruktur, dan persiapan yang tepat.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/logo.png",

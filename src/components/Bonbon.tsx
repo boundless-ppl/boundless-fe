@@ -15,14 +15,14 @@ const AnimatedTooltip = () => {
   useEffect(() => {
     const updatePosition = () => {
       setPosition({
-        x: window.innerWidth - 80,
-        y: window.innerHeight - 80
+        x: globalThis.innerWidth - 80,
+        y: globalThis.innerHeight - 80
       });
     };
 
     updatePosition();
-    window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
+    globalThis.addEventListener('resize', updatePosition);
+    return () => globalThis.removeEventListener('resize', updatePosition);
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -34,15 +34,6 @@ const AnimatedTooltip = () => {
       y: e.clientY - position.y
     };
     e.preventDefault();
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y
-      });
-    }
   };
 
   const handleMouseUp = () => {
@@ -82,11 +73,18 @@ const AnimatedTooltip = () => {
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      const handleMouseMove = (e: MouseEvent) => {
+        setPosition({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y
+        });
+      };
+
+      globalThis.addEventListener('mousemove', handleMouseMove);
+      globalThis.addEventListener('mouseup', handleMouseUp);
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        globalThis.removeEventListener('mousemove', handleMouseMove);
+        globalThis.removeEventListener('mouseup', handleMouseUp);
       };
     }
   }, [isDragging]);
@@ -112,7 +110,9 @@ const AnimatedTooltip = () => {
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
+            <button
+              type="button"
+              aria-label="Open Bonbon helper"
               className="absolute pointer-events-auto cursor-move select-none"
               style={{ 
                 left: `${position.x}px`, 
@@ -153,7 +153,7 @@ const AnimatedTooltip = () => {
                   priority
                 />
               </div>
-            </div>
+            </button>
           </TooltipTrigger>
           
           <TooltipContent 

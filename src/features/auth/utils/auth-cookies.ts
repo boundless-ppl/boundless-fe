@@ -26,7 +26,7 @@ function setCookie(name: string, value: string, maxAge = COOKIE_MAX_AGE_SECONDS)
     return;
   }
 
-  const secureSuffix = window.location.protocol === "https:" ? "; Secure" : "";
+  const secureSuffix = globalThis.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureSuffix}`;
 }
 
