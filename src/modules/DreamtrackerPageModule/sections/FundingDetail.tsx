@@ -4,59 +4,25 @@ import { useState } from "react";
 import {
   ArrowLeft,
   BookOpen,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
   ChevronUp,
   ExternalLink,
-  FileText,
-  XCircle,
   AlertCircle,
+  FileText,
 } from "lucide-react";
 import type {
   DreamFunding,
-  DreamRequirement,
-  DreamRequirementStatus,
   DreamTrackerItem,
-  FundingType,
   MilestoneStatus,
 } from "@/lib/api-types";
+import { RequirementCard } from "./RequirementCard";
 
 type Props = {
   funding: DreamFunding;
   tracker: DreamTrackerItem;
   onBack: () => void;
 };
-
-const FUNDING_TYPE_LABEL: Record<FundingType, string> = {
-  SCHOLARSHIP: "Beasiswa",
-  SELF_FUNDED: "Mandiri",
-  ASSISTANTSHIP: "Assistantship",
-  LOAN: "Pinjaman",
-  SPONSORSHIP: "Sponsorship",
-};
-
-const FUNDING_TYPE_STYLE: Record<FundingType, string> = {
-  SCHOLARSHIP: "bg-green-50 text-green-600 border-green-100",
-  SELF_FUNDED: "bg-gray-50 text-gray-500 border-gray-200",
-  ASSISTANTSHIP: "bg-blue-50 text-blue-600 border-blue-100",
-  LOAN: "bg-yellow-50 text-yellow-600 border-yellow-100",
-  SPONSORSHIP: "bg-purple-50 text-purple-600 border-purple-100",
-};
-
-function reqStatusIcon(status: DreamRequirementStatus) {
-  if (status === "VERIFIED") return <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />;
-  if (status === "UPLOADED") return <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0" />;
-  if (status === "REJECTED") return <XCircle className="h-4 w-4 text-red-400 shrink-0" />;
-  return <FileText className="h-4 w-4 text-gray-300 shrink-0" />;
-}
-
-function reqStatusBg(status: DreamRequirementStatus) {
-  if (status === "VERIFIED") return "bg-green-50 border-green-100";
-  if (status === "UPLOADED") return "bg-blue-50 border-blue-100";
-  if (status === "REJECTED") return "bg-red-50 border-red-100";
-  return "bg-gray-50 border-gray-100";
-}
 
 function milestoneStyle(status: MilestoneStatus) {
   if (status === "DONE")
@@ -66,18 +32,15 @@ function milestoneStyle(status: MilestoneStatus) {
   return { circle: "bg-white border-gray-200 text-gray-400", label: "text-gray-400" };
 }
 
-function reqNote(req: DreamRequirement): string | null {
-  if (req.notes) return req.notes;
-  if (req.message) return req.message;
-  if (req.status_label) return req.status_label;
-  return null;
-}
-
 export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
   const [showAllDocs, setShowAllDocs] = useState(false);
 
   const { requirements, milestones, summary } = tracker;
-  const visibleReqs = showAllDocs ? requirements : requirements.slice(0, 2);
+  const fundingReqs = requirements.some((r) => r.source_type)
+    ? requirements.filter((r) => r.source_type === "FUNDING")
+    : requirements;
+  const completedFundingReqs = fundingReqs.filter((r) => r.status === "VERIFIED" || r.status === "UPLOADED").length;
+  const visibleReqs = showAllDocs ? fundingReqs : fundingReqs.slice(0, 2);
 
   return (
     <div className="space-y-4">
@@ -100,25 +63,15 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
             <h1 className="text-2xl font-bold text-gray-900">{funding.nama_beasiswa}</h1>
             <p className="text-sm text-gray-500 mt-0.5">{funding.provider}</p>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${FUNDING_TYPE_STYLE[funding.tipe_pembiayaan]}`}
+            {funding.website && (
+              <a
+                href={funding.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm text-[#f58a1f] hover:underline"
               >
-                {FUNDING_TYPE_LABEL[funding.tipe_pembiayaan]}
-              </span>
-              <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                  funding.status === "SELECTED"
-                    ? "bg-orange-50 text-orange-600 border-orange-100"
-                    : "bg-gray-50 text-gray-500 border-gray-200"
-                }`}
-              >
-                {funding.status === "SELECTED" ? "Dipilih" : "Tersedia"}
-              </span>
-            </div>
-
-            {funding.deskripsi && (
-              <p className="mt-3 text-sm text-gray-500 leading-relaxed">{funding.deskripsi}</p>
+                Lihat Info Beasiswa <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             )}
           </div>
 
@@ -126,17 +79,6 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
             <BookOpen className="h-6 w-6 text-green-500" />
           </div>
         </div>
-
-        {funding.website && (
-          <a
-            href={funding.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-1.5 text-sm text-[#f58a1f] hover:underline"
-          >
-            Lihat Info Beasiswa <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        )}
       </div>
 
       {/* Timeline */}
@@ -190,39 +132,21 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
             Dokumen yang Diperlukan
           </p>
           <span className="text-xs font-medium text-gray-400">
-            {summary.completed_requirements} of {summary.total_requirements}
+            {completedFundingReqs} dari {fundingReqs.length}
           </span>
         </div>
 
-        {requirements.length === 0 ? (
+        {fundingReqs.length === 0 ? (
           <p className="text-sm text-gray-400 py-2">Tidak ada dokumen yang diperlukan.</p>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {visibleReqs.map((req) => (
-                <div
-                  key={req.dream_req_status_id}
-                  className={`flex items-center gap-3 rounded-xl border p-3.5 transition-all ${reqStatusBg(req.status)}`}
-                >
-                  {reqStatusIcon(req.status)}
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">
-                      {req.label || req.requirement_label}
-                    </p>
-                    {reqNote(req) && (
-                      <p className="text-xs text-gray-400 truncate">{reqNote(req)}</p>
-                    )}
-                  </div>
-                  {req.can_upload && (
-                    <button className="ml-auto shrink-0 rounded-lg bg-white border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 hover:border-orange-300 hover:text-[#f58a1f] transition-colors">
-                      {req.action_label}
-                    </button>
-                  )}
-                </div>
+                <RequirementCard key={req.dream_req_status_id} req={req} />
               ))}
             </div>
 
-            {requirements.length > 2 && (
+            {fundingReqs.length > 2 && (
               <button
                 onClick={() => setShowAllDocs((v) => !v)}
                 className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 py-2 text-sm font-medium text-orange-500 transition-colors hover:bg-orange-100 hover:border-orange-300"
@@ -230,7 +154,7 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
                 {showAllDocs ? (
                   <>Sembunyikan <ChevronUp className="h-3.5 w-3.5" /></>
                 ) : (
-                  <>Lihat Semua Dokumen ({requirements.length}) <ChevronDown className="h-3.5 w-3.5" /></>
+                  <>Lihat Semua Dokumen ({fundingReqs.length}) <ChevronDown className="h-3.5 w-3.5" /></>
                 )}
               </button>
             )}
@@ -238,17 +162,19 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
         )}
       </div>
 
-      {/* Submit to scholarship */}
+      {/* Submit Beasiswa */}
       <div className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-50">
-              <BookOpen className="h-4 w-4 text-green-500" />
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-50">
+              <FileText className="h-4 w-4 text-purple-500" />
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">Submit Beasiswa</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                Daftarkan beasiswa {funding.nama_beasiswa} melalui portal resminya.
+                Kamu bisa unduh{" "}
+                <span className="font-medium text-gray-500">Auto-Fill Extension</span>{" "}
+                (Chrome) untuk mengisi form otomatis menggunakan data yang sudah kamu input di Boundless.
               </p>
             </div>
           </div>
@@ -257,16 +183,16 @@ export const FundingDetail = ({ funding, tracker, onBack }: Props) => {
               href={funding.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 rounded-xl bg-gradient-to-b from-[#4CAF7C] to-[#388E5E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity text-center"
+              className="shrink-0 rounded-xl bg-gradient-to-b from-[#6A6FD4] to-[#4A4FB8] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity text-center"
             >
-              Daftar Sekarang
+              Submit Sekarang
             </a>
           ) : (
             <button
               disabled
               className="shrink-0 rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400 cursor-not-allowed"
             >
-              Daftar Sekarang
+              Submit Sekarang
             </button>
           )}
         </div>

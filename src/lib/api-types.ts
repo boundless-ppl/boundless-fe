@@ -223,9 +223,12 @@ export interface DreamTrackerProgram {
   admission_deadline: string;
 }
 
+export type RequirementSourceType = "ADMISSION" | "FUNDING";
+
 export interface DreamRequirement {
   dream_req_status_id: string;
   document_id: string | null;
+  document_url: string | null;
   req_catalog_id: string;
   requirement_key: string;
   requirement_label: string;
@@ -243,6 +246,7 @@ export interface DreamRequirement {
   action_label: string;
   can_upload: boolean;
   needs_reupload: boolean;
+  source_type?: RequirementSourceType;
   created_at: string;
 }
 
