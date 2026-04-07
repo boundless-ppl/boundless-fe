@@ -24,6 +24,6 @@ export const config = {
     "/dashboard/:path*",
     "/globalmatch/:path*",
     "/payment/:path*",
-    "/profile/:path*",
+    "/profile/:path*", "/dreamtracker/:path*",
   ],
 };

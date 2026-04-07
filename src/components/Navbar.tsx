@@ -70,8 +70,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
     { href: "/", label: "Beranda", loggedIn: false },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
     { href: "/globalmatch", label: "Globalmatch AI", loggedIn: true },
-    // { label: "Beasiswa", loggedIn: true, comingSoon: true },
-    // { label: "Dreamtracker", loggedIn: true, comingSoon: true },
+    { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true },
   ]
 
   const getNameInitials = (fullName?: string, email?: string) => {

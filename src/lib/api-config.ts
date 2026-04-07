@@ -17,6 +17,14 @@ export const API_CONFIG = {
       BASE: "/universities",
       BY_ID: (id: string) => `/universities/${id}`,
     },
+    // Dream Tracker endpoints
+    DREAM_TRACKERS: {
+      BASE: "/dream-trackers",
+      SUMMARY: "/dream-trackers/summary",
+      GROUPED: "/dream-trackers/grouped",
+      BY_ID: (id: string) => `/dream-trackers/${id}`,
+      UPLOAD_DOCUMENT: (id: string) => `/dream-trackers/requirements/${id}/document`,
+    },
     // Recommendations endpoints
     RECOMMENDATIONS: {
       DOCUMENTS: "/recommendations/documents",
