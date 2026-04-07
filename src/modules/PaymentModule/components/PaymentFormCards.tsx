@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { cva } from "class-variance-authority";
 import { Check, Circle, Upload } from "lucide-react";
 
@@ -158,20 +157,24 @@ export const BenefitsCard = () => {
 export const QrisCard = ({ total }: QrisCardProps) => {
   return (
     <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-[#1d1d1d]">Scan QRIS untuk Pembayaran</h3>
+      <h3 className="text-base font-semibold text-[#1d1d1d]">Transfer Bank BCA</h3>
       <p className="mt-2 text-sm text-[#8f8f8f]">
-        Gunakan aplikasi mobile banking Anda untuk scan kode QRIS di bawah ini
+        Lakukan transfer ke rekening berikut, lalu upload bukti pembayaran.
       </p>
 
-      <div className="mt-4 flex flex-col items-center rounded-xl border border-[#f1d8c3] bg-white p-4">
-        <Image
-          src="/SCHOLARSHIP_MATCHER.jpg"
-          alt="QRIS pembayaran"
-          width={176}
-          height={176}
-          className="h-44 w-44 rounded-md object-cover"
-        />
-        <p className="mt-3 text-sm text-[#9a9a9a]">Total Pembayaran:</p>
+      <div className="mt-4 rounded-xl border border-[#f1d8c3] bg-white p-4">
+        <div className="rounded-lg border border-[#fbe3cc] bg-[#fff8f1] px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-[#9a9a9a]">Bank</p>
+          <p className="text-base font-semibold text-[#1f1f1f]">BCA</p>
+
+          <p className="mt-3 text-xs uppercase tracking-wide text-[#9a9a9a]">Atas Nama</p>
+          <p className="text-base font-semibold text-[#1f1f1f]">Grace Karina</p>
+
+          <p className="mt-3 text-xs uppercase tracking-wide text-[#9a9a9a]">Nomor Rekening</p>
+          <p className="text-xl font-bold tracking-wide text-[#1f1f1f]">6610978370</p>
+        </div>
+
+        <p className="mt-4 text-sm text-[#9a9a9a]">Total Pembayaran:</p>
         <p className="text-3xl font-semibold text-[#1f1f1f]">{formatIdr(total)}</p>
       </div>
     </section>

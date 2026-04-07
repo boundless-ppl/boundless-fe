@@ -39,8 +39,8 @@ export const PAYMENT_BENEFITS = [
 
 export const PAYMENT_INSTRUCTIONS = [
   "Buka aplikasi mobile banking Anda",
-  "Pilih menu QRIS atau Bayar dengan QR",
-  "Scan kode QR di samping",
+  "Pilih menu transfer ke Bank BCA",
+  "Masukkan nomor rekening 6610978370 (a/n Grace Karina)",
   "Pastikan jumlah sesuai",
   "Selesaikan pembayaran",
   "Screenshot/foto bukti transfer",
