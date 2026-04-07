@@ -6,11 +6,18 @@ sonarqube:
   image: sonarsource/sonar-scanner-cli:latest
   variables:
     SONAR_USER_HOME: "$CI_PROJECT_DIR/.sonar"
+    SONAR_HOST_URL: "${SONAR_HOST_URL:-https://sonarcloud.io}"
   script:
-    - sonar-scanner \
-        -Dsonar.organization=boundless \
-        -Dsonar.projectKey=boundless_boundless-fe \
-        -Dsonar.host.url=https://sonarcloud.io
+    - |
+      if [ -z "$SONAR_TOKEN" ] || [ -z "$SONAR_PROJECT_KEY" ]; then
+        echo "Skipping Sonar scan: SONAR_TOKEN or SONAR_PROJECT_KEY is not configured."
+        exit 0
+      fi
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
+        -Dsonar.host.url="$SONAR_HOST_URL" \
+        ${SONAR_ORGANIZATION:+-Dsonar.organization="$SONAR_ORGANIZATION"}
   only:
     - main
     - merge_requests
