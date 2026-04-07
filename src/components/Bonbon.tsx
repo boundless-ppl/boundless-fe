@@ -36,15 +36,6 @@ const AnimatedTooltip = () => {
     e.preventDefault();
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y
-      });
-    }
-  };
-
   const handleMouseUp = () => {
     setIsDragging(false);
     setTimeout(() => {
@@ -82,6 +73,13 @@ const AnimatedTooltip = () => {
 
   useEffect(() => {
     if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => {
+        setPosition({
+          x: e.clientX - dragStart.current.x,
+          y: e.clientY - dragStart.current.y
+        });
+      };
+
       globalThis.addEventListener('mousemove', handleMouseMove);
       globalThis.addEventListener('mouseup', handleMouseUp);
       return () => {

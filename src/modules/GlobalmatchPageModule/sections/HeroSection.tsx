@@ -17,7 +17,7 @@ export const HeroSection = () => {
           <CardContent className="p-7 md:p-8">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="mt-2 text-[26px] font-semibold text-[#1f2937]">
+                <h2 className="mt-2 text-[26px] font-semibold text-[#1f2937] text-center">
                   Upload CV atau transkrip Anda
                 </h2>
               </div>

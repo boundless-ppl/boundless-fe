@@ -30,6 +30,8 @@ export const RegisterFormSection = () => {
 
   const form = useForm<RegisterFormSchema>({
     resolver: zodResolver(registerFormSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: {
       name: "",
       email: "",
@@ -61,17 +63,17 @@ export const RegisterFormSection = () => {
   };
 
   return (
-    <div className="bg-[#f7efe4] px-4 py-6 sm:px-6 sm:py-8">
+    <div className="bg-[#f7efe4] px-4 py-8 md:px-8 lg:px-16 min-h-[90vh] flex items-center justify-center">
       <Image
         src="/dunia.png"
         alt="World map"
         width={900}
         height={450}
-        className="pointer-events-none absolute bottom-0 left-1/2 w-full max-w-4xl -translate-x-1/2 opacity-[0.05]"
+        className="pointer-events-none absolute bottom-10 w-full opacity-[0.36]"
       />
-
-      <div className="relative mx-auto flex w-full max-w-5xl justify-center">
-        <div className="w-full max-w-4xl rounded-[28px] border border-[#eadfce] bg-white/96 p-5 shadow-[0_18px_40px_rgba(31,31,31,0.06)] backdrop-blur sm:p-6">
+      
+      <div className="relative flex w-full justify-center">
+        <div className="w-full max-w-4xl rounded-2xl md:rounded-[28px] border border-[#eadfce] bg-white/96 p-5 shadow-[0_18px_40px_rgba(31,31,31,0.06)] backdrop-blur sm:p-6">
           <div className="mb-5 text-center">
             <Image
               src="/boundless.png"
@@ -80,11 +82,11 @@ export const RegisterFormSection = () => {
               height={64}
               className="mx-auto h-auto w-32 sm:w-36"
             />
-            <h1 className="mt-4 text-[1.8rem] font-bold tracking-tight text-[#1f2937] sm:text-[2rem]">
-              Create your account
+            <h1 className="mt-4 text-2xl md:text-[1.8rem] font-bold tracking-tight text-[#1f2937] sm:text-[2rem]">
+              Buat Akun Anda
             </h1>
             <p className="mt-1.5 text-sm leading-6 text-[#6b7280]">
-              Start with a simple account setup.
+              Mulai dengan proses pendaftaran yang sederhana.
             </p>
           </div>
 
@@ -96,41 +98,13 @@ export const RegisterFormSection = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-[#374151]">Full name</FormLabel>
+                      <FormLabel className="text-sm font-medium text-[#374151]">Nama Lengkap</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Jane Doe"
                           className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                           {...field}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-[#374151]">Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Create a password"
-                            className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
-                            onClick={() => setShowPassword((value) => !value)}
-                          >
-                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                          </button>
-                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -158,15 +132,43 @@ export const RegisterFormSection = () => {
 
                 <FormField
                   control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-[#374151]">Kata Sandi</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Masukkan kata sandi Anda"
+                            className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
+                            onClick={() => setShowPassword((value) => !value)}
+                          >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-[#374151]">Confirm password</FormLabel>
+                      <FormLabel className="text-sm font-medium text-[#374151]">Konfirmasi Kata Sandi</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Repeat your password"
+                            placeholder="Konfirmasi kata sandi Anda"
                             className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                             {...field}
                           />
@@ -200,9 +202,9 @@ export const RegisterFormSection = () => {
                             className="mt-1 h-4 w-4 rounded border-[#d1d5db] text-[#111827] focus:ring-[#111827]"
                           />
                           <span>
-                            I agree to the privacy policy and terms for using Boundless.{" "}
+                            Saya menyetujui kebijakan privasi dan ketentuan penggunaan Boundless.{" "}
                             <Link href="/legal" className="font-medium text-[#1f2937] underline underline-offset-2">
-                              Read here
+                              Baca selengkapnya
                             </Link>
                           </span>
                         </label>
@@ -216,9 +218,9 @@ export const RegisterFormSection = () => {
                   <div className="flex items-start gap-3">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#1f2937]" />
                     <div>
-                      <p className="font-medium text-[#1f2937]">Password requirements</p>
+                      <p className="font-medium text-[#1f2937]">Persyaratan Kata Sandi</p>
                       <p className="mt-1 leading-6">
-                        Minimum 8 characters, including uppercase, lowercase, number, and special character.
+                        Minimal 8 karakter, terdiri dari huruf besar, huruf kecil, angka, dan karakter khusus.
                       </p>
                     </div>
                   </div>
@@ -238,14 +240,14 @@ export const RegisterFormSection = () => {
               >
                 <span className="inline-flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  {form.formState.isSubmitting ? "Creating account..." : "Create account"}
+                  {form.formState.isSubmitting ? "Membuat akun..." : "Buat Akun"}
                 </span>
               </Button>
 
               <p className="text-center text-sm text-[#6b7280]">
-                Already have an account?{" "}
+                Sudah memiliki akun?{" "}
                 <Link href="/login" className="font-semibold text-[#f58a1f] hover:text-[#dd7611]">
-                  Log in
+                  Masuk
                 </Link>
               </p>
             </form>

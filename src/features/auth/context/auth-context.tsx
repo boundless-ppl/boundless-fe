@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
+  getMe,
   loginRequest,
   logoutRequest,
   registerRequest,
@@ -65,22 +66,22 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     return () => globalThis.clearTimeout(timeout);
   }, [tokens]);
 
-  const updateAuthState = (nextTokens: AuthTokens, partialUser: Partial<UserData>) => {
-    const hydratedUser: UserData = {
-      userId: partialUser.userId ?? user?.userId ?? "",
-      nama_lengkap: partialUser.nama_lengkap ?? user?.nama_lengkap ?? "",
-      email: partialUser.email ?? user?.email ?? "",
-      role: partialUser.role ?? user?.role ?? "student",
-    };
-
+  const updateAuthState = (nextTokens: AuthTokens, nextUser: UserData) => {
     setTokens(nextTokens);
-    setUser(hydratedUser);
-    saveAuthToCookies(nextTokens, hydratedUser);
+    setUser(nextUser);
+    saveAuthToCookies(nextTokens, nextUser);
   };
 
   const login = async (payload: LoginPayload) => {
-    const response = await loginRequest(payload);
-    updateAuthState(response.tokens, response.user);
+    const tokens = await loginRequest(payload);
+
+    try {
+      const user = await getMe(tokens.accessToken);
+      updateAuthState(tokens, user);
+    } catch {
+      clearAuthCookies();
+      throw new Error("Session expired");
+    }
   };
 
   const register = async (payload: RegisterPayload) => {
@@ -107,8 +108,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
   };
 
-  const value: AuthContextValue = useMemo(
-    () => ({
+  // existing memoization could not be preserved
+  const value: AuthContextValue = {
       user,
       tokens,
       isAuthenticated: !!tokens?.accessToken,
@@ -117,10 +118,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       login,
       register,
       logout,
-      setUserData,
-    }),
-    [user, tokens, isLoading]
-  );
+      setUserData
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

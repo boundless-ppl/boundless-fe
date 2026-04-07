@@ -142,7 +142,7 @@ function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendati
             <p className="mt-1 text-sm text-slate-500">{program.country}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:w-[360px]">
+          <div className="grid grid-cols-2 gap-3 lg:w-90">
             <SummaryMetric
               icon={<Target className="h-5 w-5" />}
               label="Overall"

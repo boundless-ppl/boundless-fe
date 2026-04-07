@@ -73,15 +73,8 @@ describe("auth.service", () => {
         password: "secret",
       })
     ).resolves.toEqual({
-      tokens: {
-        accessToken: createToken("token-id|access|user-1|admin|2000000000"),
-        refreshToken: "refresh-token",
-      },
-      user: {
-        userId: "user-1",
-        email: "grace@example.com",
-        role: "admin",
-      },
+      accessToken: createToken("token-id|access|user-1|admin|2000000000"),
+      refreshToken: "refresh-token",
     });
   });
 
@@ -100,15 +93,8 @@ describe("auth.service", () => {
         password: "secret",
       })
     ).resolves.toEqual({
-      tokens: {
-        accessToken: "not-a-valid-token",
-        refreshToken: "refresh-token",
-      },
-      user: {
-        userId: "",
-        email: "grace@example.com",
-        role: "user",
-      },
+      accessToken: "not-a-valid-token",
+      refreshToken: "refresh-token",
     });
   });
 

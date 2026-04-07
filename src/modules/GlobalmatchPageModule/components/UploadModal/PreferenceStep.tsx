@@ -90,7 +90,7 @@ export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProp
         </fieldset>
 
         <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <legend className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</legend>
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan <span className="text-red-500">*</span></legend>
           <div id={getSectionId("education-level")} className="flex flex-wrap gap-2">
             {EDUCATION_LEVELS.map(lvl => (
               <Pill key={lvl.value} label={lvl.label} active={educationLevel === lvl.value} onClick={() => setEducationLevel(lvl.value)} />
@@ -146,7 +146,7 @@ export function PreferenceStep({ onBack, onSubmit }: Readonly<PreferenceStepProp
           <label htmlFor="additional-preferences" className="text-[13px] font-medium text-[#2b2b2b]">Preferensi tambahan (Opsional)</label>
           <textarea 
             id="additional-preferences"
-            className="min-h-[92px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            className="min-h-23 w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
             placeholder="Contoh: Saya mencari universitas yang dekat dengan pusat industri teknologi..."
             value={additionalPreferences}
             onChange={(e) => setAdditionalPreferences(e.target.value)}

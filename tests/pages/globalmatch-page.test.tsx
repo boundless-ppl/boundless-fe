@@ -1,4 +1,3 @@
-import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const { replaceMock, useAuthMock, useEffectMock } = vi.hoisted(() => ({
@@ -39,7 +38,7 @@ describe("/globalmatch page", () => {
     });
   });
 
-  it("renders the redirect placeholder and sends guests to login", async () => {
+  it("renders the module for guests", async () => {
     useAuthMock.mockReturnValue({
       isAuthenticated: false,
       isLoading: false,
@@ -49,11 +48,11 @@ describe("/globalmatch page", () => {
 
     const html = renderToStaticMarkup(<GlobalmatchPage />);
 
-    expect(html).toContain("Mengalihkan ke halaman masuk");
-    expect(replaceMock).toHaveBeenCalledWith("/login");
+    expect(html).toContain("globalmatch page module");
+    expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  it("keeps showing the placeholder while auth state is loading", async () => {
+  it("renders the module while auth state is loading", async () => {
     useAuthMock.mockReturnValue({
       isAuthenticated: false,
       isLoading: true,
@@ -63,7 +62,7 @@ describe("/globalmatch page", () => {
 
     const html = renderToStaticMarkup(<GlobalmatchPage />);
 
-    expect(html).toContain("Mengalihkan ke halaman masuk");
+    expect(html).toContain("globalmatch page module");
     expect(replaceMock).not.toHaveBeenCalled();
   });
 

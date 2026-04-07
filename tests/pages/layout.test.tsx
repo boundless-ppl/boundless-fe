@@ -37,7 +37,9 @@ describe("app layout", () => {
     );
 
     expect(metadata.title).toBe("Boundless");
-    expect(metadata.description).toBe("Membuka jalan menuju pendidikan global");
+    expect(metadata.description).toBe(
+      "Membantu Anda menembus batas untuk meraih beasiswa S2 ke luar negeri melalui informasi terpercaya, panduan terstruktur, dan persiapan yang tepat."
+    );
     expect(icons.icon).toBe("/favicon.ico");
     expect(icons.shortcut).toBe("/logo.png");
     expect(html).toContain('lang="id"');
