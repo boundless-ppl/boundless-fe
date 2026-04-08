@@ -49,13 +49,13 @@ export const PreviewModal = ({ req, onClose, onReupload }: Props) => {
           {showAsImage ? (
             <img
               src={url}
-              alt={req.label || req.requirement_label}
+              alt={req.requirement_label}
               className="w-full h-auto rounded-xl object-contain"
             />
           ) : (
             <iframe
               src={url}
-              title={req.label || req.requirement_label}
+              title={req.requirement_label}
               className="h-96 w-full rounded-xl border border-gray-100"
             />
           )}

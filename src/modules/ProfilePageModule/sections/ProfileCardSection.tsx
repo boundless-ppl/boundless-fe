@@ -29,8 +29,24 @@ function toTitleCasePerWord(value: string) {
     .join(" ");
 }
 
+function formatDateTime(value: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
 export const ProfileCardSection = () => {
-  const { isAuthenticated, fullName, email, role } = useUserData();
+  const { isAuthenticated, fullName, email, role, isPremium, premiumStartAt, premiumEndAt } = useUserData();
   const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
 
   useEffect(() => {
@@ -66,6 +82,22 @@ export const ProfileCardSection = () => {
 
     if (isAuthenticated) {
       void checkPendingPayment();
+
+      const intervalId = globalThis.setInterval(() => {
+        void checkPendingPayment();
+      }, 30_000);
+
+      const handleFocus = () => {
+        void checkPendingPayment();
+      };
+
+      globalThis.window.addEventListener("focus", handleFocus);
+
+      return () => {
+        isActive = false;
+        globalThis.clearInterval(intervalId);
+        globalThis.window.removeEventListener("focus", handleFocus);
+      };
     }
 
     return () => {
@@ -99,6 +131,11 @@ export const ProfileCardSection = () => {
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#1f2937] md:text-[1.8rem]">
                 {displayNameTitleCase}
               </h1>
+              {isPremium && (
+                <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-3 py-1 text-xs font-semibold text-[#4479B2]">
+                  Premium Aktif
+                </p>
+              )}
               <p className="mt-2 text-sm leading-6 text-[#6b7280]">
                 Berikut adalah data akun Anda yang tersimpan di sistem Boundless.
               </p>
@@ -125,6 +162,18 @@ export const ProfileCardSection = () => {
                 <ShieldCheck className="h-4 w-4 text-[#f58a1f]" />
                 {role}
               </p>
+            </div>
+
+            <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-4 md:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">Status Langganan</p>
+              <p className="mt-2 text-base font-semibold text-[#1f2937]">
+                {isPremium ? "Premium Aktif" : "Belum Premium"}
+              </p>
+              {isPremium && (
+                <p className="mt-1 text-sm text-[#6b7280]">
+                  Aktif: {formatDateTime(premiumStartAt)} - Berakhir: {formatDateTime(premiumEndAt)}
+                </p>
+              )}
             </div>
 
           </div>

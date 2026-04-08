@@ -78,6 +78,9 @@ export async function getMe(accessToken: string): Promise<UserData> {
     nama_lengkap: data.nama_lengkap,
     email: data.email,
     role: data.role,
+    isPremium: Boolean(data.is_premium),
+    premiumStartAt: toText(data.premium_start_at) || null,
+    premiumEndAt: toText(data.premium_end_at) || null,
   };
 }
 

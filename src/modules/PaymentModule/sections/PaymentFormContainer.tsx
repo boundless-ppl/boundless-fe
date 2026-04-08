@@ -18,8 +18,11 @@ import {
   savePendingPayment,
   type PendingPaymentRecord,
 } from "@/features/payment/utils/pending-payment";
+import { useAuth } from "@/lib/auth-context";
+import { useUserData } from "@/hooks/useUserData";
 import { PaymentFormSection } from "./PaymentFormSection";
 import { PaymentProcessingNotice } from "../components/PaymentProcessingNotice";
+import { PremiumActiveNotice } from "../components/PremiumActiveNotice";
 import {
   type PlanSelectedPayload,
   type PaymentPlanId,
@@ -29,6 +32,8 @@ import {
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
 
 export const PaymentFormContainer = () => {
+  const { refreshUser } = useAuth();
+  const { isPremium, premiumStartAt, premiumEndAt } = useUserData();
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
   const [packageLoadError, setPackageLoadError] = useState<string | null>(null);
@@ -62,6 +67,9 @@ export const PaymentFormContainer = () => {
       if (result.data?.status === "success" || result.data?.status === "failed") {
         clearPendingPayment();
         setPendingPayment(null);
+        if (result.data.status === "success") {
+          await refreshUser();
+        }
         setIsCheckingPending(false);
         return;
       }
@@ -73,10 +81,22 @@ export const PaymentFormContainer = () => {
 
     void checkPendingPayment();
 
+    const intervalId = globalThis.setInterval(() => {
+      void checkPendingPayment();
+    }, 30_000);
+
+    const handleFocus = () => {
+      void checkPendingPayment();
+    };
+
+    globalThis.window.addEventListener("focus", handleFocus);
+
     return () => {
       isActive = false;
+      globalThis.clearInterval(intervalId);
+      globalThis.window.removeEventListener("focus", handleFocus);
     };
-  }, []);
+  }, [refreshUser]);
 
   useEffect(() => {
     let isActive = true;
@@ -224,6 +244,15 @@ export const PaymentFormContainer = () => {
       <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f]">
         Mengecek status pembayaran Anda...
       </div>
+    );
+  }
+
+  if (isPremium) {
+    return (
+      <PremiumActiveNotice
+        premiumStartAt={premiumStartAt}
+        premiumEndAt={premiumEndAt}
+      />
     );
   }
 

@@ -3,6 +3,9 @@ export type UserData = {
   nama_lengkap: string;
   email: string;
   role: string;
+  isPremium?: boolean;
+  premiumStartAt?: string | null;
+  premiumEndAt?: string | null;
 };
 
 export type AuthTokens = {

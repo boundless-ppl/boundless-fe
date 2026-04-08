@@ -20,7 +20,7 @@ function formatSubmittedAt(value: string) {
 export function PaymentProcessingNotice({
   transactionId,
   submittedAt,
-}: PaymentProcessingNoticeProps) {
+}: Readonly<PaymentProcessingNoticeProps>) {
   return (
     <section className="rounded-2xl border border-[#f6d2ab] bg-[#fff8f1] p-6 shadow-sm">
       <div className="flex items-start gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
   getMe,
@@ -26,6 +26,7 @@ type AuthContextValue = {
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   setUserData: (nextUser: UserData) => void;
 };
 
@@ -108,6 +109,55 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
   };
 
+  const refreshUser = useCallback(async () => {
+    if (!tokens?.accessToken) {
+      return;
+    }
+
+    try {
+      const latestUser = await getMe(tokens.accessToken);
+      setUser(latestUser);
+      saveAuthToCookies(tokens, latestUser);
+    } catch {
+      if (isAccessTokenExpired(tokens.accessToken)) {
+        setUser(null);
+        setTokens(null);
+        clearAuthCookies();
+      }
+    }
+  }, [tokens]);
+
+  useEffect(() => {
+    if (!tokens?.accessToken) {
+      return;
+    }
+
+    void refreshUser();
+
+    const intervalId = globalThis.setInterval(() => {
+      void refreshUser();
+    }, 60_000);
+
+    const handleFocus = () => {
+      void refreshUser();
+    };
+
+    const handleVisibilityChange = () => {
+      if (globalThis.document.visibilityState === "visible") {
+        void refreshUser();
+      }
+    };
+
+    globalThis.window.addEventListener("focus", handleFocus);
+    globalThis.document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      globalThis.clearInterval(intervalId);
+      globalThis.window.removeEventListener("focus", handleFocus);
+      globalThis.document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [tokens?.accessToken, refreshUser]);
+
   // existing memoization could not be preserved
   const value: AuthContextValue = {
       user,
@@ -118,6 +168,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       login,
       register,
       logout,
+        refreshUser,
       setUserData
   };
 

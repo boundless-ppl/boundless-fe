@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { StatsBar } from "./sections/StatsBar";
 import { Sidebar } from "./sections/Sidebar";
 import { UniversityDetail } from "./sections/UniversityDetail";
 import { FundingDetail } from "./sections/FundingDetail";
+import { useUserData } from "@/hooks/useUserData";
 import {
   getDreamTrackerSummary,
   getDreamTrackersGrouped,
@@ -18,7 +20,6 @@ import {
 import type {
   DreamTrackerDashboardSummary,
   DreamTrackerGroupedResponse,
-  DreamTrackerItem,
 } from "@/lib/api-types";
 import type { ActiveView } from "./types";
 
@@ -30,6 +31,7 @@ const fetchGrouped = USE_MOCK ? getMockGrouped : getDreamTrackersGrouped;
 const fetchTrackerById = USE_MOCK ? getMockTrackerById : getDreamTrackerById;
 
 export const DreamtrackerPageModule = () => {
+  const { isPremium } = useUserData();
   const [summary, setSummary] = useState<DreamTrackerDashboardSummary | null>(null);
   const [grouped, setGrouped] = useState<DreamTrackerGroupedResponse | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
@@ -97,6 +99,28 @@ export const DreamtrackerPageModule = () => {
     } catch {
       // keep current view
     }
+  }
+
+  if (!isPremium) {
+    return (
+      <main className="min-h-screen bg-[#faf8f4] px-4 py-10 md:px-8 lg:px-16">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-[#eadfce] bg-white p-8 text-center shadow-[0_18px_40px_rgba(31,31,31,0.06)]">
+          <h1 className="text-2xl font-semibold text-[#1f2937]">
+            Dreamtracker hanya untuk pengguna premium
+          </h1>
+          <p className="mt-3 text-sm leading-7 text-[#6b7280]">
+            Upgrade ke premium untuk membuka fitur Dreamtracker dan memantau progress
+            aplikasi Anda secara lengkap.
+          </p>
+          <Link
+            href="/payment"
+            className="mt-6 inline-flex rounded-2xl bg-[#f58a1f] px-6 py-3 text-sm font-semibold text-white hover:bg-[#dd7611]"
+          >
+            Subscribe Now
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (

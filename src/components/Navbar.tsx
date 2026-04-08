@@ -19,6 +19,7 @@ type NavLink = {
   href?: string
   label: string
   loggedIn: boolean
+  requiresPremium?: boolean
   comingSoon?: boolean
 }
 
@@ -32,6 +33,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   const [isProfileMenuOpen, setIsProfileMenuOpen] = React.useState(false)
   const [isLoggingOut, setIsLoggingOut] = React.useState(false)
   const profileMenuRef = React.useRef<HTMLDivElement | null>(null)
+  const isPremiumUser = Boolean(user?.isPremium)
 
   const isProtectedPath = ["/dashboard", "/globalmatch", "/payment", "/profile"].some(
     (protectedPath) => pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)
@@ -70,7 +72,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
     { href: "/", label: "Beranda", loggedIn: false },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
     { href: "/globalmatch", label: "Globalmatch AI", loggedIn: true },
-    { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true },
+    { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true, requiresPremium: true },
   ]
 
   const getNameInitials = (fullName?: string, email?: string) => {
@@ -102,7 +104,13 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
     }
   }, [])
   
-  const canShowLink = (link: NavLink) => !link.loggedIn || (isMounted && isAuthenticated)
+  const canShowLink = (link: NavLink) => {
+    if (link.requiresPremium && !(isMounted && isAuthenticated && isPremiumUser)) {
+      return false
+    }
+
+    return !link.loggedIn || (isMounted && isAuthenticated)
+  }
   const renderNavItem = (link: NavLink) => {
     if (!canShowLink(link)) {
       return null
@@ -160,6 +168,15 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
         </div>
 
         <div className="flex w-1/3 justify-end items-center gap-2">
+          {isMounted && isAuthenticated && !isPremiumUser && (
+            <Link
+              href="/payment"
+              className="md:hidden rounded-md bg-[#f58a1f] px-3 py-2 text-xs font-bold text-white"
+            >
+              Subscribe
+            </Link>
+          )}
+
           <button
             className="md:hidden flex flex-col justify-center items-center w-8 h-8 relative"
             onClick={() => setIsOpen(!isOpen)}
@@ -193,39 +210,59 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
                 )}
 
                 {isMounted && isAuthenticated && (
-                  <div className="relative" ref={profileMenuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f58a1f] text-sm font-bold text-white shadow-[0_8px_18px_rgba(245,138,31,0.35)] transition hover:bg-[#dd7611]"
-                      aria-label="Buka menu akun"
-                    >
-                      {getNameInitials(user?.nama_lengkap, user?.email)}
-                    </button>
-
-                    {isProfileMenuOpen && (
-                      <div className="absolute right-0 top-12 z-20 w-60 rounded-2xl border border-[#eadfce] bg-white p-4 shadow-[0_16px_35px_rgba(31,31,31,0.12)]">
-                        <p className="text-sm text-[#6b7280]">
-                          Hi, <span className="font-semibold text-[#1f2937]">{user?.email || "Pengguna"}</span>
-                        </p>
-
-                        <Button asChild variant="outline" className="mt-3 w-full">
-                          <Link href="/profile" onClick={() => setIsProfileMenuOpen(false)}>
-                            Profile
-                          </Link>
-                        </Button>
-
-                        <Button
-                          onClick={handleLogout}
-                          variant="destructive"
-                          className="mt-3 w-full"
-                          disabled={isLoggingOut}
-                        >
-                          {isLoggingOut ? "Keluar..." : "Keluar"}
-                        </Button>
-                      </div>
+                  <>
+                    {!isPremiumUser && (
+                      <Button asChild className="rounded-xl bg-[#f58a1f] px-4 text-white hover:bg-[#dd7611]">
+                        <Link href="/payment">Subscribe Now</Link>
+                      </Button>
                     )}
-                  </div>
+
+                    <div className="relative" ref={profileMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f58a1f] text-sm font-bold text-white shadow-[0_8px_18px_rgba(245,138,31,0.35)] transition hover:bg-[#dd7611]"
+                        aria-label="Buka menu akun"
+                      >
+                        {getNameInitials(user?.nama_lengkap, user?.email)}
+                      </button>
+
+                      {isPremiumUser && (
+                        <span className="absolute -right-2 -top-2 rounded-full bg-[#4479B2] px-2 py-0.5 text-[10px] font-semibold text-white">
+                          PRO
+                        </span>
+                      )}
+
+                      {isProfileMenuOpen && (
+                        <div className="absolute right-0 top-12 z-20 w-60 rounded-2xl border border-[#eadfce] bg-white p-4 shadow-[0_16px_35px_rgba(31,31,31,0.12)]">
+                          <p className="text-sm text-[#6b7280]">
+                            Hi, <span className="font-semibold text-[#1f2937]">{user?.email || "Pengguna"}</span>
+                          </p>
+
+                          {isPremiumUser && (
+                            <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-2 py-0.5 text-xs font-semibold text-[#4479B2]">
+                              Premium Aktif
+                            </p>
+                          )}
+
+                          <Button asChild variant="outline" className="mt-3 w-full">
+                            <Link href="/profile" onClick={() => setIsProfileMenuOpen(false)}>
+                              Profile
+                            </Link>
+                          </Button>
+
+                          <Button
+                            onClick={handleLogout}
+                            variant="destructive"
+                            className="mt-3 w-full"
+                            disabled={isLoggingOut}
+                          >
+                            {isLoggingOut ? "Keluar..." : "Keluar"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </>
             )}
@@ -276,6 +313,14 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
               </Link>
             )}
 
+            {isMounted && isAuthenticated && !isPremiumUser && (
+              <Link href="/payment" onClick={() => setIsOpen(false)}>
+                <button className="w-full rounded-md bg-[#f58a1f] px-3 py-2 font-bold text-white">
+                  Subscribe Now
+                </button>
+              </Link>
+            )}
+
             <div className="border-t pt-4">
               {(!isMounted || !isAuthenticated) && (
                 <Link href="/register" onClick={() => setIsOpen(false)}>
@@ -287,6 +332,11 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
 
               {isMounted && isAuthenticated && (
                 <div className="flex flex-col gap-2">
+                  {isPremiumUser && (
+                    <span className="w-fit rounded-full bg-[#edf4ff] px-2 py-0.5 text-xs font-semibold text-[#4479B2]">
+                      Premium Aktif
+                    </span>
+                  )}
                   {user?.email && (
                     <span className="text-sm text-foreground/60">
                       {user.email}
