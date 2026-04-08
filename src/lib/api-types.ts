@@ -108,6 +108,8 @@ export interface ScholarshipRecommendation {
   coverage_summary: string;
   selectivity: FitLevel;
   eligibility_hint: string;
+  funding_id?: string;
+  admission_id?: string;
 }
 
 export interface ProgramRecommendation {
@@ -115,6 +117,9 @@ export interface ProgramRecommendation {
   university_name: string;
   program_name: string;
   country: string;
+  program_id?: string;
+  admission_id?: string;
+  source_rec_result_id?: string;
   fit_score: number;
   admission_chance_score: number;
   overall_recommendation_score: number;
@@ -162,6 +167,9 @@ export interface ProfileSubmissionResponse {
 
 export interface SimplifiedProgramResult {
   rank_no: number;
+  program_id?: string;
+  admission_id?: string;
+  source_rec_result_id?: string;
   university_name: string;
   program_name: string;
   country: string;
@@ -197,7 +205,14 @@ export interface SubmissionDetails {
 // ============================================
 
 export type DreamTrackerStatus = "ACTIVE" | "COMPLETED" | "ARCHIVED";
-export type DreamRequirementStatus = "NOT_UPLOADED" | "UPLOADED" | "REVIEWING" | "VERIFIED" | "REJECTED" | "REUSED";
+export type DreamRequirementStatus =
+  | "NOT_UPLOADED"
+  | "UPLOADED"
+  | "REVIEWING"
+  | "VERIFIED"
+  | "VERIFIED_WITH_WARNING"
+  | "REJECTED"
+  | "REUSED";
 export type MilestoneStatus = "NOT_STARTED" | "DONE" | "MISSED";
 export type FundingStatus = "AVAILABLE" | "SELECTED";
 export type ReviewSource = "NEW_UPLOAD" | "REUSED_EXISTING" | "SKIPPED_ALREADY_VERIFIED";
@@ -227,6 +242,7 @@ export interface DreamRequirementDocument {
   document_type: string;
   original_filename: string;
   public_url: string;
+  mime_type?: string;
   uploaded_at: string;
 }
 
@@ -338,7 +354,7 @@ export interface CreateDreamTrackerRequest {
   program_id: string;
   admission_id?: string | null;
   funding_id?: string | null;
-  title: string;
+  title?: string;
   status?: string;
   source_type: string;
   req_submission_id?: string | null;

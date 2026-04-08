@@ -7,7 +7,11 @@ import { DocumentStep } from "./DocumentStep";
 import { PreferenceStep } from "./PreferenceStep";
 import { SummaryStep } from "./SummaryStep";
 import { PreferenceData, ModalStep, SelectedFiles } from "./types";
-import { submitRecommendation, ApiError } from "@/features/globalmatch/services/recommendation.service";
+import {
+  submitRecommendation,
+  ApiError,
+  getRecommendationErrorMessage,
+} from "@/features/globalmatch/services/recommendation.service";
 import type { RecommendationFormData } from "@/lib/api-types";
 import { Loader2 } from "lucide-react";
 
@@ -82,7 +86,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       router.push(`/globalmatch/results/${response.submission_id}`);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(`Error ${err.statusCode}: ${err.message}`);
+        setError(getRecommendationErrorMessage(err));
       } else if (err instanceof Error) {
         setError(err.message);
       } else {

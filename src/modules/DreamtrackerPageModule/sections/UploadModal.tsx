@@ -11,12 +11,65 @@ type Props = {
   onSuccess: (response: SubmitRequirementResponse) => void;
 };
 
+function canonicalRequirementDocumentType(req: DreamRequirement): string {
+  const raw = (req.document?.document_type ?? req.requirement_key ?? "").trim();
+  const upper = raw.toUpperCase();
+  if ([
+    "TRANSCRIPT",
+    "PASSPORT",
+    "KTP",
+    "KK",
+    "DIPLOMA",
+    "DUOLINGO_CERT",
+    "RECOMMENDATION_LETTER",
+    "OFFER_LETTER",
+    "SCHOLARSHIP_LETTER",
+    "BANK_STATEMENT",
+    "SPONSORSHIP_LETTER",
+    "VISA_LETTER",
+  ].includes(upper)) {
+    return upper;
+  }
+
+  const normalized = raw.toLowerCase();
+  if (normalized.includes("transcript") || normalized.includes("transkrip")) return "TRANSCRIPT";
+  if (normalized.includes("passport") || normalized.includes("paspor")) return "PASSPORT";
+  if (normalized === "ktp" || normalized.includes("identitas")) return "KTP";
+  if (normalized === "kk" || normalized.includes("kartu keluarga") || normalized.includes("family card")) return "KK";
+  if (normalized.includes("ijazah") || normalized.includes("diploma")) return "DIPLOMA";
+  if (normalized.includes("duolingo")) return "DUOLINGO_CERT";
+  if (
+    normalized.includes("surat rekomendasi") ||
+    normalized.includes("recommendation") ||
+    normalized.includes("reference letter") ||
+    normalized.includes("letter of recommendation") ||
+    normalized.includes("lor")
+  ) return "RECOMMENDATION_LETTER";
+  if (normalized.includes("offer letter") || normalized.includes("acceptance letter")) return "OFFER_LETTER";
+  if (normalized.includes("scholarship") || normalized.includes("award letter")) return "SCHOLARSHIP_LETTER";
+  if (normalized.includes("bank statement") || normalized.includes("rekening koran")) return "BANK_STATEMENT";
+  if (normalized.includes("sponsorship")) return "SPONSORSHIP_LETTER";
+  if (normalized.includes("visa")) return "VISA_LETTER";
+  return upper || raw;
+}
+
 export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const aiMessage = req.review?.ai_message?.toLowerCase() ?? "";
+  const isReverify =
+    req.status === "REJECTED" ||
+    req.status === "VERIFIED" ||
+    req.status === "VERIFIED_WITH_WARNING" ||
+    req.status === "REUSED" ||
+    req.status_variant.toUpperCase() === "WARNING" ||
+    req.needs_reupload ||
+    aiMessage.includes("tidak dapat memverifikasi") ||
+    aiMessage.includes("kurang jelas") ||
+    aiMessage.includes("coba unggah kembali");
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
@@ -35,16 +88,16 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
     setIsLoading(true);
     setError(null);
     try {
-      const documentType = req.document?.document_type ?? req.requirement_key;
+      const documentType = canonicalRequirementDocumentType(req);
       const response = await uploadRequirementDocument(
         req.dream_req_status_id,
         file,
         documentType,
-        true
+        !isReverify
       );
       onSuccess(response);
       onClose();
-    } catch (err) {
+    } catch {
       setError("Gagal mengunggah dokumen. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
@@ -61,7 +114,7 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
         <div className="flex items-start justify-between p-6 pb-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-              {req.needs_reupload ? "Unggah Ulang Dokumen" : "Unggah Dokumen"}
+              {isReverify ? "Verifikasi Ulang Dokumen" : "Verifikasi Dokumen"}
             </p>
             <h2 className="text-lg font-bold text-gray-900">
               {req.requirement_label}
@@ -95,7 +148,7 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
             <p className="text-sm font-medium text-gray-500">
               {isDragging ? "Lepaskan file di sini" : "Klik atau seret file ke sini"}
             </p>
-            <p className="text-xs text-gray-300">PDF, JPG, PNG (maks. 10MB)</p>
+            <p className="text-xs text-gray-300">PDF, JPG, JPEG, PNG (maks. 10MB)</p>
           </div>
           <input
             ref={inputRef}
@@ -141,10 +194,10 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Mengunggah...
+                Memverifikasi...
               </>
             ) : (
-              "Unggah"
+              isReverify ? "Verifikasi Ulang" : "Verifikasi"
             )}
           </button>
         </div>

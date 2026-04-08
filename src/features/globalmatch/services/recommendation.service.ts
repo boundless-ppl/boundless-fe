@@ -25,6 +25,37 @@ export class ApiError extends Error {
   }
 }
 
+export function getRecommendationErrorMessage(error: ApiError): string {
+  const rawMessage = `${error.message} ${error.response?.error ?? ""}`.toLowerCase();
+
+  if (error.statusCode === 401) {
+    return "Sesi kamu sudah habis. Login ulang lalu coba lagi.";
+  }
+
+  if (
+    rawMessage.includes("high demand") ||
+    rawMessage.includes("temporarily unavailable") ||
+    rawMessage.includes("gemini api http error: 503") ||
+    rawMessage.includes("\"status\": \"unavailable\"")
+  ) {
+    return "AI sedang sibuk karena traffic tinggi. Coba lagi dalam 1-2 menit.";
+  }
+
+  if (
+    rawMessage.includes("context deadline exceeded") ||
+    rawMessage.includes("client.timeout exceeded") ||
+    rawMessage.includes("timed out")
+  ) {
+    return "Proses analisis memakan waktu lebih lama dari biasanya. Coba kirim lagi sebentar.";
+  }
+
+  if (error.statusCode >= 500) {
+    return "Layanan rekomendasi sedang bermasalah. Coba lagi beberapa saat.";
+  }
+
+  return `Error ${error.statusCode}: ${error.message}`;
+}
+
 function buildRecommendationFormData(data: RecommendationFormData): FormData {
   const formData = new FormData();
 

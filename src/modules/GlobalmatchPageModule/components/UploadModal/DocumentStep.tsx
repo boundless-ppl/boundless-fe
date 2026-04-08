@@ -100,7 +100,7 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
             Anda dapat mengunggah CV, transkrip, atau keduanya. Sistem akan menyesuaikan analisis berdasarkan dokumen yang tersedia.
           </DialogDescription>
           <div className="text-sm text-orange-600 pb-4">
-            Minimal satu dokumen harus diunggah. Total ukuran gabungan CV dan transkrip maksimal 350 KB.
+            Minimal satu dokumen harus diunggah. Format yang didukung: PDF, JPG, JPEG, PNG. Total ukuran gabungan CV dan transkrip maksimal 350 KB.
           </div>
         </div>
       </div>
@@ -114,7 +114,7 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
             type="file" 
             id="cv-up" 
             className="hidden" 
-            accept="application/pdf"
+            accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
             onChange={(e) => handleFileUpload(e, "cv")} 
           />
           
@@ -140,7 +140,7 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
                 <Upload className="text-[#fa8613] w-6 h-6" />
               </div>
               <p className="text-center text-[14px] font-medium">Klik untuk upload CV</p>
-              <p className="mt-1 text-center text-[12px] text-[#9b9b9b]">Gunakan versi CV yang paling terbaru.</p>
+              <p className="mt-1 text-center text-[12px] text-[#9b9b9b]">Gunakan versi CV yang paling terbaru dan terbaca jelas.</p>
             </label>
           )}
           
@@ -160,7 +160,7 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
             type="file" 
             id="ts-up" 
             className="hidden" 
-            accept="application/pdf"
+            accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
             onChange={(e) => handleFileUpload(e, "ts")} 
           />
           
@@ -186,7 +186,7 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
                 <FileText className="text-[#fa8613] w-6 h-6" />
               </div>
               <p className="text-center text-[14px] font-medium">Klik untuk upload transkrip</p>
-              <p className="mt-1 text-center text-[12px] text-[#9b9b9b]">Gunakan versi yang paling lengkap dan jelas.</p>
+              <p className="mt-1 text-center text-[12px] text-[#9b9b9b]">Gunakan versi yang paling lengkap, penuh, dan jelas.</p>
             </label>
           )}
 
