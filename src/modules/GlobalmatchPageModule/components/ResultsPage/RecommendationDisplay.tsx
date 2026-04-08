@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { createDreamTracker } from "@/features/dreamtracker/services/dreamtracker.service";
 import {
   Award,
   CheckCircle2,
@@ -9,12 +11,18 @@ import {
   ExternalLink,
   Globe,
   GraduationCap,
+  Loader2,
   MapPin,
+  Plus,
   ShieldCheck,
   Sparkles,
   Target,
 } from "lucide-react";
 import type { ProfileSubmissionResponse, ProgramRecommendation } from "@/lib/api-types";
+import {
+  getProgramTrackingData,
+  getScholarshipTrackingData,
+} from "./recommendation-dreamtracker";
 
 interface RecommendationDisplayProps {
   result: ProfileSubmissionResponse;
@@ -89,6 +97,16 @@ function formatScoreLabel(key: string) {
   return labels[key] ?? key.replaceAll("_", " ");
 }
 
+type SaveState = {
+  type: "program" | "scholarship";
+  fundingId?: string;
+} | null;
+
+type SaveTarget = {
+  fundingId?: string;
+  admissionId?: string;
+};
+
 function SummaryMetric({
   icon,
   label,
@@ -109,14 +127,58 @@ function SummaryMetric({
   );
 }
 
-function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendation }>) {
+function RecommendationCard({
+  program,
+  submissionId,
+}: Readonly<{ program: ProgramRecommendation; submissionId: string }>) {
+  const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const matchEvidence = asStringList(program.match_evidence);
   const preferenceReasoning = asStringList(program.preference_reasoning);
   const scholarships = asScholarshipList(program.scholarship_recommendations);
   const pros = asStringList(program.pros);
   const cons = asStringList(program.cons);
   const fitTone = getFitTone(program.fit_score);
+  const { programId, admissionId, sourceRecResultId } = getProgramTrackingData(program);
+  const canSaveProgram = Boolean(programId);
+
+  async function handleSaveToDreamTracker(target?: SaveTarget) {
+    if (!programId) {
+      setSaveError("Program ini belum memiliki ID dari backend, jadi belum bisa disimpan ke Dreamtracker.");
+      return;
+    }
+
+    try {
+      setSaveError(null);
+      setSaveState(target?.fundingId ? { type: "scholarship", fundingId: target.fundingId } : { type: "program" });
+
+      const response = await createDreamTracker({
+        program_id: programId,
+        admission_id: target?.admissionId ?? admissionId ?? null,
+        funding_id: target?.fundingId ?? null,
+        source_type: "RECOMMENDATION",
+        req_submission_id: submissionId,
+        source_rec_result_id: sourceRecResultId ?? null,
+      });
+
+      const params = new URLSearchParams({
+        tracker: response.dream_tracker_id,
+        view: target?.fundingId ? "funding" : "university",
+      });
+
+      if (target?.fundingId) {
+        params.set("funding", target.fundingId);
+      }
+
+      router.push(`/dreamtracker?${params.toString()}`);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Gagal menyimpan ke Dreamtracker.");
+    } finally {
+      setSaveState(null);
+    }
+  }
 
   return (
     <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_45px_-30px_rgba(15,23,42,0.32)]">
@@ -252,8 +314,41 @@ function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendati
                 <div className="mt-4 space-y-3">
                   {scholarships.slice(0, 2).map((scholarship, idx) => (
                     <div key={scholarshipKey(scholarship, idx)} className="rounded-2xl border border-orange-100 bg-white/85 p-4">
-                      <p className="text-sm font-semibold text-slate-900">{scholarship.scholarship_name}</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{scholarship.coverage_summary}</p>
+                      {(() => {
+                        const scholarshipTracking = getScholarshipTrackingData(scholarship);
+
+                        return (
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{scholarship.scholarship_name}</p>
+                          <p className="mt-1 text-sm leading-6 text-slate-600">{scholarship.coverage_summary}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-2xl border-orange-200 bg-white text-orange-700 hover:bg-orange-50"
+                          disabled={!scholarshipTracking.fundingId || saveState?.fundingId === scholarshipTracking.fundingId}
+                          onClick={() => {
+                            if (scholarshipTracking.fundingId) {
+                              void handleSaveToDreamTracker(scholarshipTracking);
+                            }
+                          }}
+                        >
+                          {saveState?.fundingId === scholarshipTracking.fundingId ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Menyimpan...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Pilih beasiswa
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
@@ -263,6 +358,24 @@ function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendati
         </div>
 
         <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row">
+          <Button
+            type="button"
+            className="rounded-2xl bg-[#f58a1f] px-5 py-6 text-white hover:bg-[#df7b17] disabled:bg-[#f4b77c]"
+            disabled={!canSaveProgram || saveState?.type === "program"}
+            onClick={() => void handleSaveToDreamTracker()}
+          >
+            {saveState?.type === "program" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Simpan universitas
+              </>
+            )}
+          </Button>
           <Button
             variant="outline"
             className="rounded-2xl border-slate-200 px-5 py-6 text-slate-700 hover:bg-slate-50"
@@ -288,6 +401,10 @@ function RecommendationCard({ program }: Readonly<{ program: ProgramRecommendati
             Cari program resmi
           </Button>
         </div>
+
+        {saveError && (
+          <p className="mt-4 text-sm font-medium text-rose-600">{saveError}</p>
+        )}
 
         {showDetails && (
           <div className="mt-6 grid gap-6 rounded-[24px] border border-slate-200 bg-slate-50 p-5 sm:p-6">
@@ -524,7 +641,11 @@ export function RecommendationDisplay({ result }: Readonly<RecommendationDisplay
 
         <div className="space-y-6">
           {recommendations.map((program) => (
-            <RecommendationCard key={`${program.rank}-${program.university_name}-${program.program_name}`} program={program} />
+            <RecommendationCard
+              key={`${program.rank}-${program.university_name}-${program.program_name}`}
+              program={program}
+              submissionId={result.submission_id}
+            />
           ))}
         </div>
       </section>

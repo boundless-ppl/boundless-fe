@@ -34,6 +34,9 @@ function mapSubmissionDetailsToProfileResult(
       },
       top_recommendations: programs.map((program) => ({
         rank: program.rank_no,
+        program_id: program.program_id,
+        admission_id: program.admission_id,
+        source_rec_result_id: program.source_rec_result_id,
         university_name: program.university_name,
         program_name: program.program_name,
         country: program.country,
