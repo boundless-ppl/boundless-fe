@@ -8,8 +8,9 @@ export const FILE_VALIDATION = {
   ALLOWED_TYPES: {
     DOCUMENT: [
       "application/pdf",
-      // "application/msword", // .doc
-      // "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
     ],
     IMAGE: [
       "image/jpeg",
@@ -19,7 +20,7 @@ export const FILE_VALIDATION = {
     ],
   },
   ALLOWED_EXTENSIONS: {
-    DOCUMENT: [".pdf"],
+    DOCUMENT: [".pdf", ".jpg", ".jpeg", ".png"],
     IMAGE: [".jpg", ".jpeg", ".png", ".webp"],
   },
 } as const;

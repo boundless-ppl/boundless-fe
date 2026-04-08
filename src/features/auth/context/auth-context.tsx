@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
-  getMe,
   loginRequest,
   logoutRequest,
   registerRequest,
@@ -74,14 +73,19 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const login = async (payload: LoginPayload) => {
     const tokens = await loginRequest(payload);
+    const claims = parseAccessToken(tokens.accessToken);
 
-    try {
-      const user = await getMe(tokens.accessToken);
-      updateAuthState(tokens, user);
-    } catch {
+    if (!claims) {
       clearAuthCookies();
       throw new Error("Session expired");
     }
+
+    updateAuthState(tokens, {
+      userId: claims.userId,
+      nama_lengkap: "",
+      email: payload.email,
+      role: claims.role,
+    });
   };
 
   const register = async (payload: RegisterPayload) => {

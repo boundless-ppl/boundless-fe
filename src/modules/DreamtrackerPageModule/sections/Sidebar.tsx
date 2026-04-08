@@ -62,8 +62,8 @@ export const Sidebar = ({
           {grouped.universities.length === 0 && (
             <li className="px-3 py-2 text-sm text-gray-400">Belum ada tracker</li>
           )}
-          {grouped.universities.map((university) => (
-            <li key={university.university_id}>
+          {grouped.universities.map((university, index) => (
+            <li key={`${university.university_id || university.university_name || "university"}-${index}`}>
               {/* University group label */}
               <p className="px-3 py-1 text-xs font-semibold text-gray-500 truncate">
                 {university.university_name}
@@ -74,7 +74,7 @@ export const Sidebar = ({
                   const fundingLabel = trackerFundingName.get(item.dream_tracker_id);
                   const active = isTrackerActive(item.dream_tracker_id);
                   return (
-                    <li key={item.dream_tracker_id}>
+                    <li key={`${university.university_id}-${item.dream_tracker_id}`}>
                       <button
                         onClick={() => onSelectUniversity(item.dream_tracker_id)}
                         className={`w-full rounded-lg px-3 py-1.5 text-left transition-colors duration-150 ${
@@ -121,8 +121,8 @@ export const Sidebar = ({
           {grouped.fundings.length === 0 && (
             <li className="px-3 py-2 text-sm text-gray-400">Belum ada beasiswa</li>
           )}
-          {grouped.fundings.map((funding) => (
-            <li key={funding.funding_id}>
+          {grouped.fundings.map((funding, index) => (
+            <li key={`${funding.funding_id || funding.funding_name || "funding"}-${index}`}>
               {/* Funding group label */}
               <p className="px-3 py-1 text-xs font-semibold text-gray-500 truncate">
                 {funding.funding_name}
@@ -132,7 +132,7 @@ export const Sidebar = ({
                 {funding.items.map((item) => {
                   const active = isFundingItemActive(funding.funding_id, item.dream_tracker_id);
                   return (
-                    <li key={item.dream_tracker_id}>
+                    <li key={`${funding.funding_id}-${item.dream_tracker_id}`}>
                       <button
                         onClick={() => onSelectFunding(funding.funding_id, item.dream_tracker_id)}
                         className={`w-full rounded-lg px-3 py-1.5 text-left transition-colors duration-150 ${

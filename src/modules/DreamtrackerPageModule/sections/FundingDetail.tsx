@@ -38,7 +38,11 @@ export const FundingDetail = ({ fundingId, tracker, onBack, onUploadSuccess }: P
   const funding = tracker.fundings.find((f) => f.funding_id === fundingId);
 
   const completedReqs = requirements.filter(
-    (r) => r.status === "VERIFIED" || r.status === "UPLOADED" || r.status === "REUSED"
+    (r) =>
+      r.status === "VERIFIED" ||
+      r.status === "VERIFIED_WITH_WARNING" ||
+      r.status === "UPLOADED" ||
+      r.status === "REUSED"
   ).length;
   const visibleReqs = showAllDocs ? requirements : requirements.slice(0, 2);
 

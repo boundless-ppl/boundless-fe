@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { StatsBar } from "./sections/StatsBar";
 import { Sidebar } from "./sections/Sidebar";
 import { UniversityDetail } from "./sections/UniversityDetail";
@@ -10,26 +11,18 @@ import {
   getDreamTrackersGrouped,
   getDreamTrackerById,
 } from "@/features/dreamtracker/services/dreamtracker.service";
-import {
-  getMockSummary,
-  getMockGrouped,
-  getMockTrackerById,
-} from "./mock/dreamtracker.mock";
 import type {
   DreamTrackerDashboardSummary,
   DreamTrackerGroupedResponse,
-  DreamTrackerItem,
 } from "@/lib/api-types";
 import type { ActiveView } from "./types";
 
-// ✅ Ganti ke `false` kalau BE sudah siap
-const USE_MOCK = true;
-
-const fetchSummary = USE_MOCK ? getMockSummary : getDreamTrackerSummary;
-const fetchGrouped = USE_MOCK ? getMockGrouped : getDreamTrackersGrouped;
-const fetchTrackerById = USE_MOCK ? getMockTrackerById : getDreamTrackerById;
+const fetchSummary = getDreamTrackerSummary;
+const fetchGrouped = getDreamTrackersGrouped;
+const fetchTrackerById = getDreamTrackerById;
 
 export const DreamtrackerPageModule = () => {
+  const searchParams = useSearchParams();
   const [summary, setSummary] = useState<DreamTrackerDashboardSummary | null>(null);
   const [grouped, setGrouped] = useState<DreamTrackerGroupedResponse | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
@@ -38,10 +31,16 @@ export const DreamtrackerPageModule = () => {
   useEffect(() => {
     async function fetchInitialData() {
       setIsLoading(true);
+      const selectedTrackerId = searchParams.get("tracker");
+      const selectedFundingId = searchParams.get("funding");
+      const selectedView = searchParams.get("view");
 
       const [summaryResult, groupedResult] = await Promise.allSettled([
         fetchSummary(),
-        fetchGrouped({ include_default_detail: true }),
+        fetchGrouped({
+          include_default_detail: !selectedTrackerId,
+          selected_dream_tracker_id: selectedTrackerId ?? undefined,
+        }),
       ]);
 
       if (summaryResult.status === "fulfilled") setSummary(summaryResult.value);
@@ -49,14 +48,29 @@ export const DreamtrackerPageModule = () => {
         const g = groupedResult.value;
         setGrouped(g);
 
-        if (g.default_detail) {
-          setActiveView({ type: "university", tracker: g.default_detail });
-        } else if (g.default_selected_dream_tracker_id) {
+        if (selectedTrackerId) {
           try {
-            const detail = await fetchTrackerById(g.default_selected_dream_tracker_id);
-            setActiveView({ type: "university", tracker: detail });
+            const detail = await fetchTrackerById(selectedTrackerId);
+            if (selectedView === "funding" && selectedFundingId) {
+              setActiveView({ type: "funding", fundingId: selectedFundingId, tracker: detail });
+            } else {
+              setActiveView({ type: "university", tracker: detail });
+            }
           } catch {
-            // no default detail available
+            // fall back to backend defaults when the requested tracker is unavailable
+          }
+        }
+
+        if (!selectedTrackerId) {
+          if (g.default_detail) {
+            setActiveView({ type: "university", tracker: g.default_detail });
+          } else if (g.default_selected_dream_tracker_id) {
+            try {
+              const detail = await fetchTrackerById(g.default_selected_dream_tracker_id);
+              setActiveView({ type: "university", tracker: detail });
+            } catch {
+              // no default detail available
+            }
           }
         }
       }
@@ -65,7 +79,7 @@ export const DreamtrackerPageModule = () => {
     }
 
     fetchInitialData();
-  }, []);
+  }, [searchParams]);
 
   async function handleSelectUniversity(trackerId: string) {
     try {
