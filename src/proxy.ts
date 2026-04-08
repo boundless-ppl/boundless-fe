@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { ACCESS_TOKEN_COOKIE } from "@/features/auth/constants/auth.constants";
 import { isAccessTokenExpired } from "@/features/auth/utils/access-token";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
 
   if (!accessToken || isAccessTokenExpired(accessToken)) {
@@ -20,5 +20,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/globalmatch/:path*", "/profile/:path*", "/dreamtracker/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/globalmatch/:path*",
+    "/payment/:path*",
+    "/profile/:path*", "/dreamtracker/:path*",
+  ],
 };

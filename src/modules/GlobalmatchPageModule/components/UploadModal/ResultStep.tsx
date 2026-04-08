@@ -16,8 +16,8 @@ import {
 import type { RecommendationResult, ProgramRecommendation } from "@/lib/api-types";
 
 interface ResultStepProps {
-  result: RecommendationResult;
-  onClose: () => void;
+  readonly result: RecommendationResult;
+  readonly onClose: () => void;
 }
 
 function listKey(value: string, index: number) {

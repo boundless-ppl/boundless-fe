@@ -6,7 +6,7 @@ import { validateDocumentFile } from "@/lib/file-validation";
 import { FileData, SelectedFiles } from "./types";
 
 interface DocumentStepProps {
-  onNext: (files: SelectedFiles) => void;
+  readonly onNext: (files: SelectedFiles) => void;
 }
 
 type UploadKind = "cv" | "ts";
@@ -75,7 +75,7 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: UploadKind) => {
     const file = event.target.files?.[0];
-    
+
     if (file) {
       const validation = validateDocumentFile(file);
 
@@ -85,8 +85,8 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
         handleInvalidUpload(type, validation.error || "Invalid file");
       }
     }
-    
-    event.target.value = ""; 
+
+    event.target.value = "";
   };
 
   return (
@@ -127,7 +127,10 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
                 <p className="text-[#2b2b2b] text-xs md:text-[14px] font-medium truncate break-all">{cvFile.name}</p>
                 <p className="text-[#9b9b9b] text-[10px] md:text-[12px]">{cvFile.size} KB</p>
               </div>
-              <button onClick={() => setCvFile(null)} className="p-2 text-[#9b9b9b] hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors">
+              <button
+                onClick={() => applyUploadState("cv", { file: null, error: null })}
+                className="p-2 text-[#9b9b9b] hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -170,7 +173,10 @@ export function DocumentStep({ onNext }: Readonly<DocumentStepProps>) {
                 <p className="text-[#2b2b2b] text-xs md:text-[14px] font-medium truncate break-all">{tsFile.name}</p>
                 <p className="text-[#9b9b9b] text-[10px] md:text-[12px]">{tsFile.size} KB</p>
               </div>
-              <button onClick={() => setTsFile(null)} className="p-2 text-[#9b9b9b] hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors">
+              <button
+                onClick={() => applyUploadState("ts", { file: null, error: null })}
+                className="p-2 text-[#9b9b9b] hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>

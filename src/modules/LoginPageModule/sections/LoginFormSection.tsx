@@ -27,6 +27,8 @@ export const LoginFormSection = () => {
   const { login } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const nextPathParam = searchParams.get("next");
+  const safeNextPath = nextPathParam?.startsWith("/") ? nextPathParam : null;
 
   const form = useForm<LoginFormSchema>({
     resolver: zodResolver(loginFormSchema),
@@ -47,8 +49,7 @@ export const LoginFormSection = () => {
         password: data.password,
       });
 
-      const nextPath = searchParams.get("next");
-      router.push(nextPath?.startsWith("/") ? nextPath : "/dashboard");
+      router.push(safeNextPath ?? "/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setAuthError(err.message ?? "Login failed.");
@@ -153,7 +154,10 @@ export const LoginFormSection = () => {
 
               <p className="text-center text-sm text-[#6b7280]">
                 Belum memiliki akun?{" "}
-                <Link href="/register" className="font-semibold text-[#f58a1f] hover:text-[#dd7611]">
+                <Link
+                  href={safeNextPath ? `/register?next=${encodeURIComponent(safeNextPath)}` : "/register"}
+                  className="font-semibold text-[#f58a1f] hover:text-[#dd7611]"
+                >
                   Buat akun
                 </Link>
               </p>

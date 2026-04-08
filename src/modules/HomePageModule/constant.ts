@@ -1,9 +1,10 @@
 import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
+import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
 
 export type FeatureStatus = 'in-development' | 'coming-soon' | 'live';
 
 export const FEATURE_FLAGS = {
-  SHOW_PRICING: false,
+  SHOW_PRICING: true,
 };
 
 export const FEATURES = [
@@ -52,7 +53,7 @@ export const FEATURE_STEPS = [
     bgColor: "bg-emerald-600",
     accentColor: "border-emerald-500",
     illustration: "/DREAMTRACKER.jpg",
-    status: "coming-soon" as FeatureStatus
+    status: "live" as FeatureStatus
   },
   {
     title: "Auto-Fill",
@@ -74,7 +75,7 @@ export const FEATURES_NEW = [
   {
     title: "Dashboard Verifikasi Dokumen",
     description: "Unggah dan verifikasi semua dokumen pentingmu di satu tempat yang aman.",
-    status: "coming-soon" as FeatureStatus,
+    status: "live" as FeatureStatus,
     featureKey: "dreamtracker"
   },
   {
@@ -94,7 +95,10 @@ export const PLAN_FEATURES = [
 
 export const PRICING_PLANS = [
   {
+    paymentPlanId: "1month" as PaymentPlanId,
+    durationMonths: 1,
     name: "1 Bulan",
+    priceAmount: 79000,
     price: "Rp 79.000",
     subtext: "per bulan · Rp 79.000/bulan",
     buttonText: "Pilih Paket",
@@ -102,7 +106,10 @@ export const PRICING_PLANS = [
     checkColor: "#4479B2",
   },
   {
+    paymentPlanId: "3month" as PaymentPlanId,
+    durationMonths: 3,
     name: "3 Bulan",
+    priceAmount: 199000,
     price: "Rp 199.000",
     subtext: "per 3 bulan · Rp 66.333/bulan",
     buttonText: "Mulai Sekarang",
@@ -112,7 +119,10 @@ export const PRICING_PLANS = [
     checkColor: "#FA8613",
   },
   {
+    paymentPlanId: "1year" as PaymentPlanId,
+    durationMonths: 12,
     name: "1 Tahun",
+    priceAmount: 699000,
     price: "Rp 699.000",
     subtext: "per tahun · Rp 58.250/bulan",
     buttonText: "Pilih Paket",

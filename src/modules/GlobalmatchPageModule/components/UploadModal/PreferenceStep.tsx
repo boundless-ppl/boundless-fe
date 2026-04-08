@@ -12,8 +12,8 @@ import {
 } from "../../constant";
 
 interface PreferenceStepProps {
-  onBack: () => void;
-  onSubmit: (data: PreferenceData) => void;
+  readonly onBack: () => void;
+  readonly onSubmit: (data: PreferenceData) => void;
 }
 
 export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
@@ -59,14 +59,14 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Negara pilihan</legend>
           <div className="flex flex-wrap gap-2">
             {COUNTRIES.map(c => (
               <Pill key={c} label={c} active={selectedCountries.includes(c)} onClick={() => toggleMulti(c, selectedCountries, setSelectedCountries)} />
             ))}
           </div>
-        </div>
+        </fieldset>
 
         <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <legend className="text-[13px] font-medium text-[#2b2b2b]">Bidang studi</legend>
@@ -83,12 +83,12 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           />
         </fieldset>
 
-        <div className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
-          <label className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</label>
+        <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
+          <legend className="text-[13px] font-medium text-[#2b2b2b]">Jenjang pendidikan *</legend>
           <div className="flex flex-wrap gap-2">
             <Pill label="S2/Master" active onClick={() => {}} />
           </div>
-        </div>
+        </fieldset>
 
         <fieldset className="space-y-3 rounded-[22px] border border-[#ece4d8] bg-white p-5">
           <legend className="text-[13px] font-medium text-[#2b2b2b]">Bahasa pengantar</legend>

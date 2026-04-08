@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff, ShieldCheck, UserPlus } from "lucide-react";
 
@@ -23,10 +23,13 @@ import { registerFormSchema, type RegisterFormSchema } from "@/features/auth/sch
 
 export const RegisterFormSection = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const nextPathParam = searchParams.get("next");
+  const safeNextPath = nextPathParam?.startsWith("/") ? nextPathParam : null;
 
   const form = useForm<RegisterFormSchema>({
     resolver: zodResolver(registerFormSchema),
@@ -52,7 +55,9 @@ export const RegisterFormSection = () => {
         password: data.password,
       });
 
-      router.push("/login");
+      router.push(
+        safeNextPath ? `/login?next=${encodeURIComponent(safeNextPath)}` : "/login"
+      );
     } catch (err: unknown) {
       if (err instanceof Error) {
         setAuthError(err.message || "Registration failed.");
@@ -246,7 +251,10 @@ export const RegisterFormSection = () => {
 
               <p className="text-center text-sm text-[#6b7280]">
                 Sudah memiliki akun?{" "}
-                <Link href="/login" className="font-semibold text-[#f58a1f] hover:text-[#dd7611]">
+                <Link
+                  href={safeNextPath ? `/login?next=${encodeURIComponent(safeNextPath)}` : "/login"}
+                  className="font-semibold text-[#f58a1f] hover:text-[#dd7611]"
+                >
                   Masuk
                 </Link>
               </p>

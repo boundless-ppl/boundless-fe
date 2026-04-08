@@ -1,12 +1,84 @@
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Check, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
+import { getSubscriptionPackages } from "@/features/payment/services/payment.service";
+import { mapPlanPricesFromPackages } from "@/features/payment/utils/package-mapper";
+import { getSavingsLabel } from "@/features/payment/utils/savings";
 import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../constant";
+
+const formatIdr = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const getPriceSubtext = (durationMonths: number, totalPrice: number) => {
+  const periodLabel = durationMonths === 1 ? "per bulan" : durationMonths === 12 ? "per tahun" : `per ${durationMonths} bulan`;
+  const monthlyPrice = Math.round(totalPrice / durationMonths);
+  return {
+    left: `${periodLabel} ·`,
+    right: `${formatIdr(monthlyPrice)}/bulan`,
+  };
+};
 
 export default function PricingTableSection() {
   const isPricingActive = FEATURE_FLAGS.SHOW_PRICING;
+  const buildPaymentHref = (planId?: string) =>
+    planId ? `/payment?plan=${encodeURIComponent(planId)}` : "/payment";
+  const [planPriceById, setPlanPriceById] = useState<Partial<Record<PaymentPlanId, number>>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPackagePrices = async () => {
+      const result = await getSubscriptionPackages();
+      if (!isMounted || result.error || !result.data) {
+        return;
+      }
+
+      setPlanPriceById(mapPlanPricesFromPackages(result.data.packages));
+    };
+
+    void loadPackagePrices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const pricingPlans = useMemo(
+    () => {
+      const baseMonthlyPrice =
+        planPriceById["1month"] ??
+        PRICING_PLANS.find((plan) => plan.paymentPlanId === "1month")?.priceAmount ??
+        0;
+
+      return PRICING_PLANS.map((plan) => {
+        const priceAmount = planPriceById[plan.paymentPlanId] ?? plan.priceAmount;
+        return {
+          ...plan,
+          priceAmount,
+          formattedPrice: formatIdr(priceAmount),
+          subtextParts: getPriceSubtext(plan.durationMonths, priceAmount),
+          savingsLabel: getSavingsLabel(
+            priceAmount,
+            plan.durationMonths,
+            baseMonthlyPrice
+          ),
+        };
+      });
+    },
+    [planPriceById]
+  );
+
   const launchHighlights = [
     "Akses penuh ke fitur yang sudah live",
     "Tanpa kartu kredit atau komitmen langganan",
@@ -75,7 +147,7 @@ export default function PricingTableSection() {
           <>
             {/* Pricing Cards - Active */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-              {PRICING_PLANS.map((plan) => (
+              {pricingPlans.map((plan) => (
                 <Card
                   key={plan.name}
                   className={cn(
@@ -96,17 +168,17 @@ export default function PricingTableSection() {
 
                     <div>
                       <p className="text-[#FA8613] text-sm font-semibold tracking-wide uppercase">{plan.name}</p>
-                      {plan.discount && (
+                      {plan.savingsLabel && (
                         <span className="inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full">
-                          {plan.discount}
+                          {plan.savingsLabel}
                         </span>
                       )}
                     </div>
 
                     <div>
-                      <p className="text-[#2B2B2B] text-3xl font-bold">{plan.price}</p>
+                      <p className="text-[#2B2B2B] text-3xl font-bold">{plan.formattedPrice}</p>
                       <p className="text-sm text-[#999] mt-1">
-                        {plan.subtext.split('·')[0]}· <span className="text-[#666]">{plan.subtext.split('·')[1]}</span>
+                        {plan.subtextParts.left} <span className="text-[#666]">{plan.subtextParts.right}</span>
                       </p>
                     </div>
 
@@ -120,6 +192,7 @@ export default function PricingTableSection() {
                     </ul>
 
                     <Button
+                      asChild
                       className={cn(
                         "w-full py-5 rounded-xl text-sm font-semibold h-auto",
                         plan.highlight
@@ -127,7 +200,7 @@ export default function PricingTableSection() {
                           : "text-[#666] border border-[#ddd] bg-white hover:bg-gray-50"
                       )}
                     >
-                      {plan.buttonText}
+                      <Link href={buildPaymentHref(plan.paymentPlanId)}>{plan.buttonText}</Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -203,8 +276,8 @@ export default function PricingTableSection() {
                     </li>
                   </ul>
 
-                  <Button className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
-                    Coba Boundless Sekarang
+                  <Button asChild className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
+                    <Link href={buildPaymentHref()}>Coba Boundless Sekarang</Link>
                   </Button>
                 </div>
               </div>

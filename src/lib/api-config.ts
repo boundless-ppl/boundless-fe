@@ -34,6 +34,19 @@ export const API_CONFIG = {
       CV: "/recommendations/cv",
       PROFILE: "/recommendations/profile",
     },
+    // Subscription and payment endpoints
+    SUBSCRIPTIONS: {
+      PACKAGES: "/subscriptions/packages",
+    },
+    PAYMENTS: {
+      BASE: "/payments",
+      BY_ID: (id: string) => `/payments/${id}`,
+      PROOF: (id: string) => `/payments/${id}/proof`,
+    },
+    ADMIN_PAYMENTS: {
+      BASE: "/admin/payments",
+      STATUS: (id: string) => `/admin/payments/${id}/status`,
+    },
   },
   HEADERS: {
     CONTENT_TYPE_JSON: "application/json",

@@ -15,7 +15,12 @@ import {
 import type { RecommendationFormData } from "@/lib/api-types";
 import { Loader2 } from "lucide-react";
 
-export function UploadModal({ open, onOpenChange }: Readonly<{ open: boolean; onOpenChange: (o: boolean) => void }>) {
+interface UploadModalProps {
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+}
+
+export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const router = useRouter();
   const [step, setStep] = useState<ModalStep>("upload");
   const [files, setFiles] = useState<SelectedFiles | null>(null);
@@ -111,8 +116,8 @@ export function UploadModal({ open, onOpenChange }: Readonly<{ open: boolean; on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-h-[80%] max-w-[calc(100vw-2rem)] rounded-xl border border-[#eadfce] p-0 font-sans shadow-[0_28px_80px_rgba(31,41,55,0.16)] sm:max-w-[calc(100vw-3rem)] xl:max-w-345 2xl:max-w-380">
-        <DialogHeader className="sticky top-0 z-10 border-b border-[#ebe2d5] px-8 py-3 md:py-5 rounded-t-xl">
+      <DialogContent className="w-full max-h-[80%] max-w-[calc(100vw-2rem)] rounded-[28px] border border-[#eadfce] p-0 font-sans shadow-[0_28px_80px_rgba(31,41,55,0.16)] sm:max-w-[calc(100vw-3rem)] xl:max-w-345 2xl:max-w-380">
+        <DialogHeader className="sticky top-0 z-10 border-b border-[#ebe2d5] bg-white px-8 py-3 md:py-5 rounded-t-[28px]">
           <DialogTitle className="text-center text-[18px] font-semibold text-[#2b2b2b] md:text-left">
             Globalmatch
           </DialogTitle>
