@@ -167,6 +167,7 @@ export interface ProfileSubmissionResponse {
 
 export interface SimplifiedProgramResult {
   rank_no: number;
+  rec_result_id?: string;
   program_id?: string;
   admission_id?: string;
   source_rec_result_id?: string;
@@ -174,11 +175,18 @@ export interface SimplifiedProgramResult {
   program_name: string;
   country: string;
   fit_score: number;
+  admission_chance_score?: number;
+  overall_recommendation_score?: number;
   fit_level: FitLevel;
+  admission_difficulty?: AdmissionDifficulty;
+  score_breakdown?: ScoreBreakdown;
   overview: string;
   why_this_university: string;
   why_this_program: string;
   reason_summary: string;
+  preference_reasoning?: string[];
+  match_evidence?: string[];
+  scholarship_recommendations?: ScholarshipRecommendation[];
   pros: string[];
   cons: string[];
 }

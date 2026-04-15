@@ -29,13 +29,24 @@ const getPriceSubtext = (durationMonths: number, totalPrice: number) => {
   };
 };
 
-export default function PricingTableSection() {
+type Props = {
+  initialPrices?: Partial<Record<PaymentPlanId, number>>;
+};
+
+export default function PricingTableSection({ initialPrices }: Props) {
   const isPricingActive = FEATURE_FLAGS.SHOW_PRICING;
   const buildPaymentHref = (planId?: string) =>
     planId ? `/payment?plan=${encodeURIComponent(planId)}` : "/payment";
-  const [planPriceById, setPlanPriceById] = useState<Partial<Record<PaymentPlanId, number>>>({});
+  const [planPriceById, setPlanPriceById] = useState<Partial<Record<PaymentPlanId, number>>>(
+    initialPrices ?? {}
+  );
 
   useEffect(() => {
+    // Skip client-side fetch if prices were already provided by the server.
+    if (initialPrices && Object.keys(initialPrices).length > 0) {
+      return;
+    }
+
     let isMounted = true;
 
     const loadPackagePrices = async () => {
@@ -52,7 +63,7 @@ export default function PricingTableSection() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialPrices]);
 
   const pricingPlans = useMemo(
     () => {

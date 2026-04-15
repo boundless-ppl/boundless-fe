@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { StatsBar } from "./sections/StatsBar";
 import { Sidebar } from "./sections/Sidebar";
@@ -23,15 +24,23 @@ const fetchGrouped = getDreamTrackersGrouped;
 const fetchTrackerById = getDreamTrackerById;
 
 export const DreamtrackerPageModule = () => {
+  const { isPremium, isAuthenticated } = useUserData();
   const searchParams = useSearchParams();
   const [summary, setSummary] = useState<DreamTrackerDashboardSummary | null>(null);
   const [grouped, setGrouped] = useState<DreamTrackerGroupedResponse | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchInitialData() {
+      if (!isAuthenticated) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
+      setErrorMessage(null);
       const selectedTrackerId = searchParams.get("tracker");
       const selectedFundingId = searchParams.get("funding");
       const selectedView = searchParams.get("view");
@@ -44,7 +53,12 @@ export const DreamtrackerPageModule = () => {
         }),
       ]);
 
-      if (summaryResult.status === "fulfilled") setSummary(summaryResult.value);
+      if (summaryResult.status === "fulfilled") {
+        setSummary(summaryResult.value);
+      } else {
+        setErrorMessage("Gagal memuat ringkasan dream tracker. Coba refresh halaman.");
+      }
+
       if (groupedResult.status === "fulfilled") {
         const g = groupedResult.value;
         setGrouped(g);
@@ -80,7 +94,7 @@ export const DreamtrackerPageModule = () => {
     }
 
     fetchInitialData();
-  }, [searchParams]);
+  }, [isAuthenticated, searchParams]);
 
   async function handleSelectUniversity(trackerId: string) {
     try {
@@ -138,7 +152,14 @@ export const DreamtrackerPageModule = () => {
 
   return (
     <main className="min-h-screen bg-[#faf8f4]">
-      <StatsBar summary={summary} />
+      <StatsBar summary={summary} isLoading={isLoading} />
+      {errorMessage && (
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {isLoading ? (
