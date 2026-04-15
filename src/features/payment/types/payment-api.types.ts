@@ -12,6 +12,7 @@ export type SubscriptionPackage = {
   description: string;
   duration_months: number;
   price_amount: number;
+  normal_amount: number;
   benefits: string[];
 };
 
