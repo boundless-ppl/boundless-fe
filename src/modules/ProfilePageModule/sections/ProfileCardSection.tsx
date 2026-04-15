@@ -1,15 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Clock3, Mail, MessageCircleMore, ShieldCheck } from "lucide-react";
-
-import { getPaymentDetail } from "@/features/payment/services/payment.service";
-import {
-  clearPendingPayment,
-  readPendingPayment,
-  type PendingPaymentRecord,
-} from "@/features/payment/utils/pending-payment";
 import { useUserData } from "@/hooks/useUserData";
 
 function getAvatarInitials(fullName: string, email: string) {
@@ -46,65 +38,7 @@ function formatDateTime(value: string | null) {
 }
 
 export const ProfileCardSection = () => {
-  const { isAuthenticated, fullName, email, role, isPremium, premiumStartAt, premiumEndAt } = useUserData();
-  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
-
-  useEffect(() => {
-    let isActive = true;
-
-    const checkPendingPayment = async () => {
-      const record = readPendingPayment();
-      if (!record) {
-        if (isActive) {
-          setPendingPayment(null);
-        }
-        return;
-      }
-
-      const result = await getPaymentDetail(record.paymentId);
-      if (!isActive) {
-        return;
-      }
-
-      if (result.data?.status === "pending") {
-        setPendingPayment(record);
-        return;
-      }
-
-      if (result.data?.status === "success" || result.data?.status === "failed") {
-        clearPendingPayment();
-        setPendingPayment(null);
-        return;
-      }
-
-      setPendingPayment(record);
-    };
-
-    if (isAuthenticated) {
-      void checkPendingPayment();
-
-      const intervalId = globalThis.setInterval(() => {
-        void checkPendingPayment();
-      }, 30_000);
-
-      const handleFocus = () => {
-        void checkPendingPayment();
-      };
-
-      globalThis.window.addEventListener("focus", handleFocus);
-
-      return () => {
-        isActive = false;
-        globalThis.clearInterval(intervalId);
-        globalThis.window.removeEventListener("focus", handleFocus);
-      };
-    }
-
-    return () => {
-      isActive = false;
-    };
-  }, [isAuthenticated]);
-
+  const { isAuthenticated, fullName, email, role, isPremium, premiumStartAt, premiumEndAt, hasPendingPayment, transactionId } = useUserData();
   const displayName = fullName || "Pengguna Boundless";
   const displayNameTitleCase = toTitleCasePerWord(displayName);
   const avatarInitials = getAvatarInitials(fullName, email);
@@ -178,7 +112,7 @@ export const ProfileCardSection = () => {
 
           </div>
 
-          {pendingPayment && isAuthenticated && (
+          {hasPendingPayment && isAuthenticated && (
             <div className="mt-6 rounded-2xl border border-[#f6d2ab] bg-[#fff8f1] px-4 py-4">
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#1f2937]">
                 <Clock3 className="h-4 w-4 text-[#f58a1f]" />
@@ -188,7 +122,7 @@ export const ProfileCardSection = () => {
                 Bukti pembayaran sudah diterima. Verifikasi membutuhkan waktu hingga 24 jam.
               </p>
               <p className="mt-2 text-sm text-[#4b5563]">
-                ID transaksi: <span className="font-semibold text-[#1f2937]">{pendingPayment.transactionId}</span>
+                ID transaksi: <span className="font-semibold text-[#1f2937]">{transactionId}</span>
               </p>
               <p className="mt-2 inline-flex items-center gap-2 text-sm text-[#4b5563]">
                 <MessageCircleMore className="h-4 w-4 text-[#f58a1f]" />

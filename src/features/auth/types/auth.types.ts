@@ -4,6 +4,8 @@ export type UserData = {
   email: string;
   role: string;
   isPremium?: boolean;
+  hasPendingPayment?: boolean;
+  transactionId?: string | null;
   premiumStartAt?: string | null;
   premiumEndAt?: string | null;
 };

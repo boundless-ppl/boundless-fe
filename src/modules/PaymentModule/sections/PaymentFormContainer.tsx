@@ -4,7 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { trackEvent } from "@/lib/track-event";
 import {
   createPayment,
-  getPaymentDetail,
   getSubscriptionPackages,
   uploadPaymentProof,
 } from "@/features/payment/services/payment.service";
@@ -12,13 +11,6 @@ import {
   mapPlanPricesFromPackages,
   resolvePackageByPlanId,
 } from "@/features/payment/utils/package-mapper";
-import {
-  clearPendingPayment,
-  readPendingPayment,
-  savePendingPayment,
-  type PendingPaymentRecord,
-} from "@/features/payment/utils/pending-payment";
-import { useAuth } from "@/lib/auth-context";
 import { useUserData } from "@/hooks/useUserData";
 import { PaymentFormSection } from "./PaymentFormSection";
 import { PaymentProcessingNotice } from "../components/PaymentProcessingNotice";
@@ -34,71 +26,10 @@ import {
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
 
 export const PaymentFormContainer = () => {
-  const { refreshUser } = useAuth();
-  const { isPremium, premiumStartAt, premiumEndAt } = useUserData();
+  const { isPremium, premiumStartAt, premiumEndAt, hasPendingPayment, transactionId } = useUserData();
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
   const [packageLoadError, setPackageLoadError] = useState<string | null>(null);
-  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
-  const [isCheckingPending, setIsCheckingPending] = useState(true);
-
-  useEffect(() => {
-    let isActive = true;
-
-    const checkPendingPayment = async () => {
-      const record = readPendingPayment();
-      if (!record) {
-        if (isActive) {
-          setPendingPayment(null);
-          setIsCheckingPending(false);
-        }
-        return;
-      }
-
-      const result = await getPaymentDetail(record.paymentId);
-      if (!isActive) {
-        return;
-      }
-
-      if (result.data?.status === "pending") {
-        setPendingPayment(record);
-        setIsCheckingPending(false);
-        return;
-      }
-
-      if (result.data?.status === "success" || result.data?.status === "failed") {
-        clearPendingPayment();
-        setPendingPayment(null);
-        if (result.data.status === "success") {
-          await refreshUser();
-        }
-        setIsCheckingPending(false);
-        return;
-      }
-
-      // Keep pending state when status cannot be checked (network, auth, or transient errors).
-      setPendingPayment(record);
-      setIsCheckingPending(false);
-    };
-
-    void checkPendingPayment();
-
-    const intervalId = globalThis.setInterval(() => {
-      void checkPendingPayment();
-    }, 30_000);
-
-    const handleFocus = () => {
-      void checkPendingPayment();
-    };
-
-    globalThis.window.addEventListener("focus", handleFocus);
-
-    return () => {
-      isActive = false;
-      globalThis.clearInterval(intervalId);
-      globalThis.window.removeEventListener("focus", handleFocus);
-    };
-  }, [refreshUser]);
 
   useEffect(() => {
     let isActive = true;
@@ -264,22 +195,22 @@ export const PaymentFormContainer = () => {
     async (payload) => {
       const result = await handleReceiptSubmitted(payload);
       if (result.data?.paymentId && result.data?.transactionId) {
-        const record: PendingPaymentRecord = {
-          paymentId: result.data.paymentId,
-          transactionId: result.data.transactionId,
-          submittedAt: new Date().toISOString(),
-        };
-        savePendingPayment(record);
-        setPendingPayment(record);
+        // const record: PendingPaymentRecord = {
+        //   paymentId: result.data.paymentId,
+        //   transactionId: result.data.transactionId,
+        //   submittedAt: new Date().toISOString(),
+        // };
+        // savePendingPayment(record);
+        // setPendingPayment(record);
       }
 
       return result;
     };
 
-  if (isCheckingPending) {
+  if (isPackageLoading) {
     return (
-      <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f]">
-        Mengecek status pembayaran Anda...
+      <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f] text-center">
+        Menyiapkan data pembayaran...
       </div>
     );
   }
@@ -293,11 +224,10 @@ export const PaymentFormContainer = () => {
     );
   }
 
-  if (pendingPayment) {
+  if (hasPendingPayment) {
     return (
       <PaymentProcessingNotice
-        transactionId={pendingPayment.transactionId}
-        submittedAt={pendingPayment.submittedAt}
+        transactionId={transactionId ?? "-"}
       />
     );
   }

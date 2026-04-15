@@ -17,6 +17,8 @@ export function useUserData() {
     email: user?.email || "",
     userId: user?.userId || "",
     role: user?.role || "user",
+    hasPendingPayment: Boolean(user?.hasPendingPayment),
+    transactionId: user?.transactionId ?? null,
     isPremium: isPremiumActive,
     premiumStartAt: user?.premiumStartAt ?? null,
     premiumEndAt,
