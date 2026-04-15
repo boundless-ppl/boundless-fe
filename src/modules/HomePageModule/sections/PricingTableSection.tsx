@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, Clock3 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatIdr } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,13 +12,6 @@ import { getSubscriptionPackages } from "@/features/payment/services/payment.ser
 import { mapPlanPricesFromPackages } from "@/features/payment/utils/package-mapper";
 import { getSavingsLabel } from "@/features/payment/utils/savings";
 import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../constant";
-
-const formatIdr = (value: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(value);
 
 const getPriceSubtext = (durationMonths: number, totalPrice: number) => {
   const periodLabel = durationMonths === 1 ? "per bulan" : durationMonths === 12 ? "per tahun" : `per ${durationMonths} bulan`;
@@ -43,7 +36,6 @@ export default function PricingTableSection() {
       if (!isMounted || result.error || !result.data) {
         return;
       }
-
       setPlanPriceById(mapPlanPricesFromPackages(result.data.packages));
     };
 
