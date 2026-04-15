@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
+  getMe,
   loginRequest,
   logoutRequest,
   registerRequest,
@@ -136,7 +137,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       return;
     }
 
-    void refreshUser();
+    setTimeout(() => {
+      void refreshUser();
+    }, 0);
 
     const intervalId = globalThis.setInterval(() => {
       void refreshUser();
@@ -172,7 +175,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       login,
       register,
       logout,
-        refreshUser,
+      refreshUser,
       setUserData
   };
 

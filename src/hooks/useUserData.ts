@@ -8,7 +8,7 @@ export function useUserData() {
   const premiumEndDate = premiumEndAt ? new Date(premiumEndAt) : null
   const isPremiumActive = Boolean(
     user?.isPremium &&
-      (!premiumEndDate || Number.isNaN(premiumEndDate.getTime()) || premiumEndDate.getTime() > Date.now())
+      (!premiumEndDate || Number.isNaN(premiumEndDate.getTime()) || premiumEndDate.getTime())
   )
 
   return {
