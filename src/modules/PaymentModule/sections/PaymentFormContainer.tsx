@@ -24,6 +24,8 @@ import { PaymentFormSection } from "./PaymentFormSection";
 import { PaymentProcessingNotice } from "../components/PaymentProcessingNotice";
 import { PremiumActiveNotice } from "../components/PremiumActiveNotice";
 import {
+  type CreatePaymentPayload,
+  type CreatePaymentResult,
   type PlanSelectedPayload,
   type PaymentPlanId,
   type PaymentSubmissionResult,
@@ -132,7 +134,7 @@ export const PaymentFormContainer = () => {
     return {
       "1month": resolvePackageByPlanId("1month", packages),
       "3month": resolvePackageByPlanId("3month", packages),
-      "1year": resolvePackageByPlanId("1year", packages),
+      "6month": resolvePackageByPlanId("6month", packages),
     } satisfies Record<PaymentPlanId, SubscriptionPackage | null>;
   }, [packages]);
 
@@ -152,13 +154,11 @@ export const PaymentFormContainer = () => {
     });
   };
 
-  const handleReceiptSubmitted = async ({
+  const handleCreatePayment = async ({
     planId,
     amount,
     total,
-    fileName,
-    receiptFile,
-  }: ReceiptSubmittedPayload): Promise<PaymentSubmissionResult> => {
+  }: CreatePaymentPayload): Promise<CreatePaymentResult> => {
     if (isPackageLoading) {
       return {
         data: null,
@@ -192,7 +192,44 @@ export const PaymentFormContainer = () => {
       };
     }
 
-    const proofResult = await uploadPaymentProof(paymentResult.data.payment_id, receiptFile);
+    trackEvent("payment_created", {
+      plan_id: planId,
+      amount,
+      total,
+      payment_id: paymentResult.data.payment_id,
+      transaction_id: paymentResult.data.transaction_id,
+      subscription_id: selectedPackage.subscription_id,
+      package_key: selectedPackage.package_key,
+    });
+
+    return {
+      data: {
+        paymentId: paymentResult.data.payment_id,
+        transactionId: paymentResult.data.transaction_id,
+        status: paymentResult.data.status,
+      },
+      error: null,
+    };
+  };
+
+  const handleReceiptSubmitted = async ({
+    paymentId,
+    transactionId,
+    planId,
+    amount,
+    total,
+    fileName,
+    receiptFile,
+  }: ReceiptSubmittedPayload): Promise<PaymentSubmissionResult> => {
+    const selectedPackage = packageByPlan[planId];
+    if (!selectedPackage) {
+      return {
+        data: null,
+        error: "Paket tidak ditemukan. Silakan pilih paket lain.",
+      };
+    }
+
+    const proofResult = await uploadPaymentProof(paymentId, receiptFile);
     if (proofResult.error || !proofResult.data) {
       return {
         data: null,
@@ -205,8 +242,8 @@ export const PaymentFormContainer = () => {
       amount,
       total,
       file_name: fileName,
-      payment_id: paymentResult.data.payment_id,
-      transaction_id: paymentResult.data.transaction_id,
+      payment_id: paymentId,
+      transaction_id: transactionId,
       proof_document_id: proofResult.data.document_id,
       subscription_id: selectedPackage.subscription_id,
       package_key: selectedPackage.package_key,
@@ -214,9 +251,9 @@ export const PaymentFormContainer = () => {
 
     return {
       data: {
-        paymentId: paymentResult.data.payment_id,
-        transactionId: paymentResult.data.transaction_id,
-        status: paymentResult.data.status,
+        paymentId,
+        transactionId,
+        status: "pending",
         proofDocumentId: proofResult.data.document_id,
       },
       error: null,
@@ -269,6 +306,7 @@ export const PaymentFormContainer = () => {
     <Suspense fallback={<div />}>
       <PaymentFormSection
         onPlanSelected={handlePlanSelected}
+        onCreatePayment={handleCreatePayment}
         onReceiptSubmitted={handleReceiptSubmittedWithPendingState}
         isPackageLoading={isPackageLoading}
         packageLoadError={packageLoadError}
