@@ -45,7 +45,7 @@ export const LoginFormSection = () => {
 
     try {
       await login({
-        email: data.email,
+        email: data.email.trim().toLowerCase(),
         password: data.password,
       });
 

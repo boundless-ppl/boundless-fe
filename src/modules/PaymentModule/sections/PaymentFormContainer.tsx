@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { trackEvent } from "@/lib/track-event";
 import {
   createPayment,
@@ -32,7 +33,8 @@ import {
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
 
 export const PaymentFormContainer = () => {
-  const { refreshUser } = useAuth();
+  const router = useRouter();
+  const { refreshUser, isAuthenticated, isLoading } = useAuth();
   const { isPremium, premiumStartAt, premiumEndAt } = useUserData();
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
@@ -41,11 +43,23 @@ export const PaymentFormContainer = () => {
   const [isCheckingPending, setIsCheckingPending] = useState(true);
 
   useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setPendingPayment(null);
+      setIsCheckingPending(false);
+      router.replace(`/login?next=${encodeURIComponent("/payment")}`);
+      return;
+    }
+
     let isActive = true;
 
     const checkPendingPayment = async () => {
       const record = readPendingPayment();
       if (!record) {
+        await refreshUser();
         if (isActive) {
           setPendingPayment(null);
           setIsCheckingPending(false);
@@ -67,14 +81,11 @@ export const PaymentFormContainer = () => {
       if (result.data?.status === "success" || result.data?.status === "failed") {
         clearPendingPayment();
         setPendingPayment(null);
-        if (result.data.status === "success") {
-          await refreshUser();
-        }
+        await refreshUser();
         setIsCheckingPending(false);
         return;
       }
 
-      // Keep pending state when status cannot be checked (network, auth, or transient errors).
       setPendingPayment(record);
       setIsCheckingPending(false);
     };
@@ -96,7 +107,7 @@ export const PaymentFormContainer = () => {
       globalThis.clearInterval(intervalId);
       globalThis.window.removeEventListener("focus", handleFocus);
     };
-  }, [refreshUser]);
+  }, [isAuthenticated, isLoading, refreshUser, router]);
 
   useEffect(() => {
     let isActive = true;
@@ -239,7 +250,7 @@ export const PaymentFormContainer = () => {
       return result;
     };
 
-  if (isCheckingPending) {
+  if (isLoading || isCheckingPending) {
     return (
       <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f]">
         Mengecek status pembayaran Anda...
