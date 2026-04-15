@@ -69,15 +69,9 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <button
-            onClick={() => {
-              const event = new CustomEvent("dialog-close");
-              window.dispatchEvent(event);
-            }}
-            className="absolute top-4 right-4 z-50 opacity-70 hover:opacity-100"
-          >
+          <DialogPrimitive.Close className="absolute top-4 right-4 z-50 opacity-70 hover:opacity-100">
             <XIcon />
-          </button>
+          </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
     </DialogPortal>
