@@ -28,7 +28,7 @@ import {
 const PLAN_DURATION_MONTHS: Record<PaymentPlanId, number> = {
   "1month": 1,
   "3month": 3,
-  "1year": 12,
+  "6month": 6,
 };
 
 const planCardVariants = cva(

@@ -16,8 +16,8 @@ export const PAYMENT_PLANS = [
     savingsLabel: "Hemat 16%",
   },
   {
-    id: "1year",
-    label: "1 Tahun",
+    id: "6month",
+    label: "6 Bulan",
     badge: "Terbaik",
     price: 699000,
     savingsLabel: "Hemat 26%",
