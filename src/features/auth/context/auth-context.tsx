@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 import {
+  getMe,
   loginRequest,
   logoutRequest,
   registerRequest,
