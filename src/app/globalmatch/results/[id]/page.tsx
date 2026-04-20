@@ -14,6 +14,12 @@ function mapSubmissionDetailsToProfileResult(
 ): ProfileSubmissionResponse | null {
   const latestResult = details.latest_result;
   const programs = latestResult?.results;
+  const preferredCountries = Array.isArray(details.preferences)
+    ? details.preferences
+        .filter((preference) => preference.pref_key === "countries")
+        .map((preference) => preference.pref_value)
+        .filter(Boolean)
+    : [];
 
   if (!latestResult || !Array.isArray(programs) || programs.length === 0) {
     return null;
@@ -23,6 +29,7 @@ function mapSubmissionDetailsToProfileResult(
     submission_id: details.submission_id || submissionId,
     status: details.status === "completed" ? "completed" : "processing",
     result_set_id: latestResult.result_set_id,
+    preferred_countries: preferredCountries,
     result: {
       student_profile_summary: {
         academic_background: "Ringkasan profil akademik tidak tersedia pada hasil server ini.",
@@ -209,7 +216,10 @@ export default function GlobalmatchResultsPage() {
 
         {/* Success State - Display Results */}
         {result && !isLoading && !error && (
-          <RecommendationDisplay result={result} />
+          <RecommendationDisplay
+            result={result}
+            preferredCountries={result.preferred_countries ?? []}
+          />
         )}
       </div>
     </div>

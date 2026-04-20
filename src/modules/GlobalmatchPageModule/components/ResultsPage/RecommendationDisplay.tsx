@@ -26,6 +26,7 @@ import {
 
 interface RecommendationDisplayProps {
   result: ProfileSubmissionResponse;
+  preferredCountries?: string[];
 }
 
 function asStringList(value: unknown): string[] {
@@ -42,6 +43,13 @@ function keyedListItem(value: string, index: number) {
 
 function scholarshipKey(scholarship: ProgramRecommendation["scholarship_recommendations"][number], index: number) {
   return `${scholarship.scholarship_name}-${index}`;
+}
+
+function formatSelectivityLabel(selectivity: string) {
+  if (selectivity === "high") return "Kompetitif";
+  if (selectivity === "low") return "Lebih terbuka";
+  if (selectivity === "moderate") return "Selektivitas menengah";
+  return selectivity;
 }
 
 function openProgramSearch(program: ProgramRecommendation) {
@@ -97,6 +105,77 @@ function formatScoreLabel(key: string) {
   return labels[key] ?? key.replaceAll("_", " ");
 }
 
+function normalizeValue(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function splitRecommendationsByCountry(
+  recommendations: ProgramRecommendation[],
+  preferredCountries: string[]
+) {
+  const normalizedPreferredCountries = new Set(
+    preferredCountries.map(normalizeValue).filter(Boolean)
+  );
+
+  if (normalizedPreferredCountries.size === 0) {
+    return {
+      preferred: recommendations,
+      alternatives: [] as ProgramRecommendation[],
+    };
+  }
+
+  const preferred: ProgramRecommendation[] = [];
+  const alternatives: ProgramRecommendation[] = [];
+
+  for (const recommendation of recommendations) {
+    if (normalizedPreferredCountries.has(normalizeValue(recommendation.country))) {
+      preferred.push(recommendation);
+      continue;
+    }
+    alternatives.push(recommendation);
+  }
+
+  return { preferred, alternatives };
+}
+
+function RecommendationSection({
+  eyebrow,
+  title,
+  description,
+  programs,
+  submissionId,
+}: Readonly<{
+  eyebrow: string;
+  title: string;
+  description: string;
+  programs: ProgramRecommendation[];
+  submissionId: string;
+}>) {
+  if (programs.length === 0) {
+    return null;
+  }
+
+  return (
+    <section>
+      <div className="mb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</p>
+        <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+      </div>
+
+      <div className="space-y-6">
+        {programs.map((program) => (
+          <RecommendationCard
+            key={`${program.rank}-${program.university_name}-${program.program_name}`}
+            program={program}
+            submissionId={submissionId}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 type SaveState = {
   type: "program" | "scholarship";
   fundingId?: string;
@@ -105,6 +184,7 @@ type SaveState = {
 type SaveTarget = {
   fundingId?: string;
   admissionId?: string;
+  scholarshipName?: string;
 };
 
 function SummaryMetric({
@@ -158,6 +238,7 @@ function RecommendationCard({
         program_id: programId,
         admission_id: target?.admissionId ?? admissionId ?? null,
         funding_id: target?.fundingId ?? null,
+        scholarship_name: target?.scholarshipName ?? null,
         source_type: "RECOMMENDATION",
         req_submission_id: submissionId,
         source_rec_result_id: sourceRecResultId ?? null,
@@ -316,33 +397,64 @@ function RecommendationCard({
                     <div key={scholarshipKey(scholarship, idx)} className="rounded-2xl border border-orange-100 bg-white/85 p-4">
                       {(() => {
                         const scholarshipTracking = getScholarshipTrackingData(scholarship);
+                        const canSaveScholarship = Boolean(
+                          scholarshipTracking.fundingId || scholarshipTracking.scholarshipName
+                        );
+                        const isSavingScholarship =
+                          canSaveScholarship &&
+                          saveState?.type === "scholarship" &&
+                          saveState?.fundingId === scholarshipTracking.fundingId;
+                        const coverageSummary = scholarship.coverage_summary?.trim()
+                          ? scholarship.coverage_summary
+                          : "Ringkasan cakupan beasiswa belum tersedia.";
+                        const scholarshipActionHint = scholarshipTracking.fundingId
+                          ? "Simpan beasiswa ini ke Dreamtracker untuk lihat requirement yang perlu dipenuhi."
+                          : "Kami akan cocokkan beasiswa ini saat kamu simpan ke Dreamtracker.";
 
                         return (
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <p className="text-sm font-semibold text-slate-900">{scholarship.scholarship_name}</p>
-                          <p className="mt-1 text-sm leading-6 text-slate-600">{scholarship.coverage_summary}</p>
+                          <p className="mt-1 text-sm leading-6 text-slate-600">{coverageSummary}</p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {scholarship.selectivity ? (
+                              <Badge className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-[11px] font-medium text-orange-700">
+                                {formatSelectivityLabel(scholarship.selectivity)}
+                              </Badge>
+                            ) : null}
+                            {scholarship.eligibility_hint ? (
+                              <Badge className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                {scholarship.eligibility_hint}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <p className="mt-3 text-xs leading-5 text-slate-500">{scholarshipActionHint}</p>
                         </div>
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-2xl border-orange-200 bg-white text-orange-700 hover:bg-orange-50"
-                          disabled={!scholarshipTracking.fundingId || saveState?.fundingId === scholarshipTracking.fundingId}
+                          className={
+                            canSaveScholarship
+                              ? "rounded-2xl border-orange-200 bg-white text-orange-700 hover:bg-orange-50"
+                              : "rounded-2xl border-slate-200 bg-slate-100 text-slate-400 hover:bg-slate-100"
+                          }
+                          disabled={!canSaveScholarship || isSavingScholarship}
+                          title={!canSaveScholarship ? scholarshipActionHint : undefined}
                           onClick={() => {
-                            if (scholarshipTracking.fundingId) {
+                            if (canSaveScholarship) {
                               void handleSaveToDreamTracker(scholarshipTracking);
                             }
                           }}
                         >
-                          {saveState?.fundingId === scholarshipTracking.fundingId ? (
+                          {isSavingScholarship ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Menyimpan...
                             </>
                           ) : (
                             <>
-                              <Plus className="mr-2 h-4 w-4" />
-                              Pilih beasiswa
+                              {canSaveScholarship ? <Plus className="mr-2 h-4 w-4" /> : null}
+                              {canSaveScholarship ? "Pilih beasiswa" : "Belum tersedia"}
                             </>
                           )}
                         </Button>
@@ -482,13 +594,19 @@ function RecommendationCard({
   );
 }
 
-export function RecommendationDisplay({ result }: Readonly<RecommendationDisplayProps>) {
+export function RecommendationDisplay({
+  result,
+  preferredCountries = [],
+}: Readonly<RecommendationDisplayProps>) {
   const { student_profile_summary, top_recommendations, application_strategy, final_notes, selection_reasoning } = result.result;
   const strengths = asStringList(student_profile_summary.strengths);
   const improvementAreas = asStringList(student_profile_summary.improvement_areas);
   const preferredThemes = asStringList(student_profile_summary.preferred_themes);
   const recommendations = Array.isArray(top_recommendations) ? top_recommendations : [];
   const notes = asStringList(final_notes);
+  const { preferred, alternatives } = splitRecommendationsByCountry(recommendations, preferredCountries);
+  const hasAlternativeSection = preferred.length === 1 && alternatives.length > 0;
+  const preferredCountrySummary = preferredCountries.length > 0 ? preferredCountries.join(", ") : "negara pilihan Anda";
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 font-sans animate-in slide-in-from-bottom-4 duration-300">
@@ -628,27 +746,32 @@ export function RecommendationDisplay({ result }: Readonly<RecommendationDisplay
         </div>
       </section>
 
-      <section>
-        <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Recommendations</p>
-          <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-            Shortlist program yang paling relevan
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            Diurutkan berdasarkan kombinasi fit score, peluang diterima, dan overall recommendation score.
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          {recommendations.map((program) => (
-            <RecommendationCard
-              key={`${program.rank}-${program.university_name}-${program.program_name}`}
-              program={program}
-              submissionId={result.submission_id}
-            />
-          ))}
-        </div>
-      </section>
+      {hasAlternativeSection ? (
+        <>
+          <RecommendationSection
+            eyebrow="Preferred Country"
+            title={`Pilihan terbaik di ${preferredCountrySummary}`}
+            description="Kami menempatkan hasil terbaik di negara pilihan Anda lebih dulu, lalu menambahkan alternatif relevan dari negara lain agar shortlist tetap kaya opsi."
+            programs={preferred}
+            submissionId={result.submission_id}
+          />
+          <RecommendationSection
+            eyebrow="Alternative Countries"
+            title="Alternatif kuat dari negara lain"
+            description="Opsi ini tetap relevan dengan profil dan minat studi Anda, tetapi datang dari negara lain untuk memperluas pilihan saat hasil di negara utama terlalu sedikit."
+            programs={alternatives}
+            submissionId={result.submission_id}
+          />
+        </>
+      ) : (
+        <RecommendationSection
+          eyebrow="Recommendations"
+          title="Shortlist program yang paling relevan"
+          description="Diurutkan berdasarkan kombinasi fit score, peluang diterima, dan overall recommendation score."
+          programs={recommendations}
+          submissionId={result.submission_id}
+        />
+      )}
     </div>
   );
 }

@@ -7,13 +7,16 @@ import { StatsBar } from "./sections/StatsBar";
 import { Sidebar } from "./sections/Sidebar";
 import { UniversityDetail } from "./sections/UniversityDetail";
 import { FundingDetail } from "./sections/FundingDetail";
+import { FundingInfoView } from "./sections/FundingInfoView";
 import { useUserData } from "@/hooks/useUserData";
 import {
+  createDreamTracker,
   getDreamTrackerSummary,
   getDreamTrackersGrouped,
   getDreamTrackerById,
 } from "@/features/dreamtracker/services/dreamtracker.service";
 import type {
+  DreamFunding,
   DreamTrackerDashboardSummary,
   DreamTrackerGroupedResponse,
 } from "@/lib/api-types";
@@ -108,10 +111,11 @@ export const DreamtrackerPageModule = () => {
   async function handleUploadSuccess() {
     if (!activeView) return;
     try {
-      const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
       if (activeView.type === "university") {
+        const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
         setActiveView({ type: "university", tracker: detail });
-      } else {
+      } else if (activeView.type === "funding") {
+        const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
         setActiveView({ type: "funding", fundingId: activeView.fundingId, tracker: detail });
       }
     } catch {
@@ -125,6 +129,31 @@ export const DreamtrackerPageModule = () => {
       setActiveView({ type: "funding", fundingId, tracker: detail });
     } catch {
       // keep current view
+    }
+  }
+
+  async function handleAddFunding(baseTrackerId: string, funding: DreamFunding) {
+    try {
+      const baseTracker = await fetchTrackerById(baseTrackerId);
+      const response = await createDreamTracker({
+        program_id: baseTracker.program.program_id,
+        funding_id: funding.funding_id,
+        scholarship_name: funding.nama_beasiswa,
+        source_type: "DREAMTRACKER",
+      });
+
+      const [detail, refreshedGrouped, refreshedSummary] = await Promise.all([
+        fetchTrackerById(response.dream_tracker_id),
+        fetchGrouped({ selected_dream_tracker_id: response.dream_tracker_id }),
+        fetchSummary(),
+      ]);
+
+      setGrouped(refreshedGrouped);
+      setSummary(refreshedSummary);
+      setActiveView({ type: "funding", fundingId: funding.funding_id, tracker: detail });
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage("Gagal menambahkan beasiswa ke Dreamtracker. Coba lagi.");
     }
   }
 
@@ -183,9 +212,22 @@ export const DreamtrackerPageModule = () => {
               {activeView?.type === "university" && (
                 <UniversityDetail
                   tracker={activeView.tracker}
-                  onSelectFunding={(funding, tracker) =>
-                    setActiveView({ type: "funding", fundingId: funding.funding_id, tracker })
-                  }
+                  onSelectFunding={(funding, baseTracker) => {
+                    if (funding.status === "SELECTED" && grouped) {
+                      const fundingGroup = grouped.fundings.find(
+                        (f) => f.funding_id === funding.funding_id
+                      );
+                      if (fundingGroup?.items.length) {
+                        void handleSelectFunding(
+                          funding.funding_id,
+                          fundingGroup.items[0].dream_tracker_id
+                        );
+                        return;
+                      }
+                    }
+                    setActiveView({ type: "funding-info", funding, baseTracker });
+                  }}
+                  onAddFunding={handleAddFunding}
                   onUploadSuccess={handleUploadSuccess}
                 />
               )}
@@ -197,6 +239,16 @@ export const DreamtrackerPageModule = () => {
                     setActiveView({ type: "university", tracker: activeView.tracker })
                   }
                   onUploadSuccess={handleUploadSuccess}
+                />
+              )}
+              {activeView?.type === "funding-info" && (
+                <FundingInfoView
+                  funding={activeView.funding}
+                  baseTracker={activeView.baseTracker}
+                  onBack={() =>
+                    setActiveView({ type: "university", tracker: activeView.baseTracker })
+                  }
+                  onAddFunding={handleAddFunding}
                 />
               )}
               {!activeView && (

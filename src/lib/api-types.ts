@@ -159,6 +159,7 @@ export interface ProfileSubmissionResponse {
   status: Exclude<SubmissionStatus, "draft">;
   result_set_id: string;
   result: RecommendationResult;
+  preferred_countries?: string[];
 }
 
 // ============================================
@@ -220,6 +221,7 @@ export type DreamRequirementStatus =
   | "VERIFIED"
   | "VERIFIED_WITH_WARNING"
   | "REJECTED"
+  | "NEEDS_REVIEW"
   | "REUSED";
 export type MilestoneStatus = "NOT_STARTED" | "DONE" | "MISSED";
 export type FundingStatus = "AVAILABLE" | "SELECTED";
@@ -288,7 +290,10 @@ export interface DreamMilestone {
 export interface DreamFunding {
   funding_id: string;
   nama_beasiswa: string;
+  deskripsi?: string | null;
   provider: string;
+  tipe_pembiayaan?: string;
+  website?: string;
   status: FundingStatus;
 }
 
@@ -362,6 +367,7 @@ export interface CreateDreamTrackerRequest {
   program_id: string;
   admission_id?: string | null;
   funding_id?: string | null;
+  scholarship_name?: string | null;
   title?: string;
   status?: string;
   source_type: string;

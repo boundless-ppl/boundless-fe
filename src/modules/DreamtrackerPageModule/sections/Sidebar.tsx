@@ -21,15 +21,32 @@ export const Sidebar = ({
   const [uniOpen, setUniOpen] = useState(true);
   const [scholarOpen, setScholarOpen] = useState(true);
 
-  const activeTrackerId = activeView?.tracker.dream_tracker_id ?? null;
+  const activeTrackerId =
+    activeView?.type === "university" || activeView?.type === "funding"
+      ? activeView.tracker.dream_tracker_id
+      : activeView?.type === "funding-info"
+        ? activeView.baseTracker.dream_tracker_id
+        : null;
   const activeFundingId = activeView?.type === "funding" ? activeView.fundingId : null;
 
-  function isTrackerActive(trackerId: string): boolean {
-    return activeTrackerId === trackerId && activeView?.type === "university";
+  function isUniversityGroupActive(trackerIds: string[]): boolean {
+    return activeView?.type === "university" && activeTrackerId !== null && trackerIds.includes(activeTrackerId);
   }
 
-  function isFundingItemActive(fundingId: string, trackerId: string): boolean {
-    return activeFundingId === fundingId && activeTrackerId === trackerId;
+  function isFundingGroupActive(fundingId: string, trackerIds: string[]): boolean {
+    return activeView?.type === "funding" && activeFundingId === fundingId && activeTrackerId !== null && trackerIds.includes(activeTrackerId);
+  }
+
+  function pickUniversityTracker(
+    items: DreamTrackerGroupedResponse["universities"][number]["items"]
+  ) {
+    return items.find((item) => item.is_selected) ?? items[0];
+  }
+
+  function pickFundingTracker(
+    items: DreamTrackerGroupedResponse["fundings"][number]["items"]
+  ) {
+    return items.find((item) => item.is_selected) ?? items[0];
   }
 
   // Find which funding_name a tracker belongs to (for university sub-items)
@@ -64,36 +81,33 @@ export const Sidebar = ({
           )}
           {grouped.universities.map((university, index) => (
             <li key={`${university.university_id || university.university_name || "university"}-${index}`}>
-              {/* University group label */}
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 truncate">
-                {university.university_name}
-              </p>
-              {/* Sub-items: one per tracker (funding pair) */}
-              <ul className="space-y-0.5 ml-2">
-                {university.items.map((item) => {
-                  const fundingLabel = trackerFundingName.get(item.dream_tracker_id);
-                  const active = isTrackerActive(item.dream_tracker_id);
-                  return (
-                    <li key={`${university.university_id}-${item.dream_tracker_id}`}>
-                      <button
-                        onClick={() => onSelectUniversity(item.dream_tracker_id)}
-                        className={`w-full rounded-lg px-3 py-1.5 text-left transition-colors duration-150 ${
-                          active
-                            ? "bg-[#f58a1f] text-white"
-                            : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
-                        }`}
-                      >
-                        <span className="block text-xs font-medium truncate">
-                          {fundingLabel ?? item.program_name}
-                        </span>
-                        <span className={`block text-[10px] truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
-                          {item.completion_percentage}% selesai
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              {(() => {
+                const tracker = pickUniversityTracker(university.items);
+                const trackerIds = university.items.map((item) => item.dream_tracker_id);
+                const fundingLabel = trackerFundingName.get(tracker.dream_tracker_id);
+                const active = isUniversityGroupActive(trackerIds);
+
+                return (
+                  <button
+                    onClick={() => onSelectUniversity(tracker.dream_tracker_id)}
+                    className={`w-full rounded-lg px-3 py-2 text-left transition-colors duration-150 ${
+                      active
+                        ? "bg-[#f58a1f] text-white"
+                        : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold truncate">
+                      {university.university_name}
+                    </span>
+                    <span className={`mt-0.5 block text-xs truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
+                      {tracker.program_name}
+                    </span>
+                    <span className={`block text-[10px] truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
+                      {fundingLabel ? `Pendanaan aktif: ${fundingLabel}` : `${tracker.completion_percentage}% selesai`}
+                    </span>
+                  </button>
+                );
+              })()}
             </li>
           ))}
         </ul>
@@ -123,35 +137,32 @@ export const Sidebar = ({
           )}
           {grouped.fundings.map((funding, index) => (
             <li key={`${funding.funding_id || funding.funding_name || "funding"}-${index}`}>
-              {/* Funding group label */}
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 truncate">
-                {funding.funding_name}
-              </p>
-              {/* Sub-items: one per tracker (university pair) */}
-              <ul className="space-y-0.5 ml-2">
-                {funding.items.map((item) => {
-                  const active = isFundingItemActive(funding.funding_id, item.dream_tracker_id);
-                  return (
-                    <li key={`${funding.funding_id}-${item.dream_tracker_id}`}>
-                      <button
-                        onClick={() => onSelectFunding(funding.funding_id, item.dream_tracker_id)}
-                        className={`w-full rounded-lg px-3 py-1.5 text-left transition-colors duration-150 ${
-                          active
-                            ? "bg-[#f58a1f] text-white"
-                            : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
-                        }`}
-                      >
-                        <span className="block text-xs font-medium truncate">
-                          {item.university_name}
-                        </span>
-                        <span className={`block text-[10px] truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
-                          {item.completion_percentage}% selesai
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              {(() => {
+                const tracker = pickFundingTracker(funding.items);
+                const trackerIds = funding.items.map((item) => item.dream_tracker_id);
+                const active = isFundingGroupActive(funding.funding_id, trackerIds);
+
+                return (
+                  <button
+                    onClick={() => onSelectFunding(funding.funding_id, tracker.dream_tracker_id)}
+                    className={`w-full rounded-lg px-3 py-2 text-left transition-colors duration-150 ${
+                      active
+                        ? "bg-[#f58a1f] text-white"
+                        : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold truncate">
+                      {funding.funding_name}
+                    </span>
+                    <span className={`mt-0.5 block text-xs truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
+                      {tracker.university_name}
+                    </span>
+                    <span className={`block text-[10px] truncate ${active ? "text-orange-100" : "text-gray-400"}`}>
+                      {tracker.completion_percentage}% selesai
+                    </span>
+                  </button>
+                );
+              })()}
             </li>
           ))}
         </ul>

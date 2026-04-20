@@ -76,10 +76,14 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       };
 
       const response = await submitRecommendation(requestData);
+      const resultWithPreferences = {
+        ...response,
+        preferred_countries: preferences.countries,
+      };
 
       sessionStorage.setItem(
         `globalmatch_result_${response.submission_id}`,
-        JSON.stringify(response)
+        JSON.stringify(resultWithPreferences)
       );
 
       handleClose();

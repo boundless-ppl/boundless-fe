@@ -38,8 +38,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<UserData | null>(null);
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
   const [hasHydrated, setHasHydrated] = useState(false);
+  const [hasResolvedInitialSession, setHasResolvedInitialSession] = useState(false);
   const latestAccessTokenRef = useRef<string | null>(null);
-  const isLoading = !hasHydrated;
+  const isLoading = !hasHydrated || !hasResolvedInitialSession;
 
   const clearAuthState = useCallback((expectedAccessToken?: string) => {
     if (expectedAccessToken && latestAccessTokenRef.current !== expectedAccessToken) {
@@ -59,6 +60,38 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setTokens(bootstrappedAuth?.tokens ?? null);
     setHasHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    let isActive = true;
+
+    const resolveInitialSession = async () => {
+      if (!tokens?.accessToken) {
+        if (isActive) {
+          setHasResolvedInitialSession(true);
+        }
+        return;
+      }
+
+      try {
+        await refreshUserRef.current({ allowUnauthorizedLogout: false });
+      } finally {
+        if (isActive) {
+          setHasResolvedInitialSession(true);
+        }
+      }
+    };
+
+    setHasResolvedInitialSession(false);
+    void resolveInitialSession();
+
+    return () => {
+      isActive = false;
+    };
+  }, [hasHydrated, tokens?.accessToken]);
 
   const refreshUserRef = useRef<(options?: { allowUnauthorizedLogout?: boolean }) => Promise<void>>(
     async () => {}
