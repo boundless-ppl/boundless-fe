@@ -33,11 +33,10 @@ function mapSubmissionDetailsToProfileResult(
     result: {
       student_profile_summary: {
         academic_background: "Ringkasan profil akademik tidak tersedia pada hasil server ini.",
-        experience_summary: "",
-        strengths: [],
-        improvement_areas: [],
-        preferred_themes: [],
-        raw_text: "",
+        key_strengths: [],
+        considerations: [],
+        recommended_tracks: [],
+        language_evidence: "not_available",
       },
       top_recommendations: programs.map((program) => ({
         rank: program.rank_no,

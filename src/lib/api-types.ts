@@ -89,11 +89,11 @@ export interface LegacySubmissionResponse {
 
 export interface StudentProfileSummary {
   academic_background: string;
-  experience_summary: string;
-  strengths: string[];
-  improvement_areas: string[];
-  preferred_themes: string[];
-  raw_text: string;
+  key_strengths: string[];
+  considerations: string[];
+  recommended_tracks: string[];
+  language_evidence: string;
+  evidence_confidence?: string;
 }
 
 export interface ScoreBreakdown {
