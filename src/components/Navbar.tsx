@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
+import { clearPendingPayment } from "@/features/payment/utils/pending-payment"
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
     setIsProfileMenuOpen(false)
 
     try {
+      clearPendingPayment()
       await logout()
 
       if (isProtectedPath) {
@@ -71,7 +73,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   const navLinks: NavLink[] = [
     { href: "/", label: "Beranda", loggedIn: false },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
-    { href: "/globalmatch", label: "Globalmatch AI", loggedIn: true },
+    { href: "/globalmatch", label: "Globalmatch", loggedIn: true },
     { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true, requiresPremium: true },
   ]
 

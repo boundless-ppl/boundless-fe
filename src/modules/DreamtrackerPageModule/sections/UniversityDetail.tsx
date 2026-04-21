@@ -3,10 +3,13 @@
 import { useState } from "react";
 import {
   Award,
+  BookOpen,
   ChevronRight,
   FileText,
   ChevronDown,
   ChevronUp,
+  Loader2,
+  Plus,
 } from "lucide-react";
 import type { DreamFunding, DreamTrackerItem, MilestoneStatus, SubmitRequirementResponse } from "@/lib/api-types";
 import { RequirementCard } from "./RequirementCard";
@@ -14,6 +17,7 @@ import { RequirementCard } from "./RequirementCard";
 type Props = {
   tracker: DreamTrackerItem;
   onSelectFunding: (funding: DreamFunding, tracker: DreamTrackerItem) => void;
+  onAddFunding: (trackerId: string, funding: DreamFunding) => Promise<void>;
   onUploadSuccess?: (response: SubmitRequirementResponse) => void;
 };
 
@@ -23,14 +27,29 @@ function milestoneStyle(status: MilestoneStatus) {
   return { circle: "bg-white border-gray-200 text-gray-400", label: "text-gray-400" };
 }
 
-export const UniversityDetail = ({ tracker, onSelectFunding, onUploadSuccess }: Props) => {
+export const UniversityDetail = ({ tracker, onSelectFunding, onAddFunding, onUploadSuccess }: Props) => {
   const [showAllDocs, setShowAllDocs] = useState(false);
+  const [expandedFundingId, setExpandedFundingId] = useState<string | null>(null);
+  const [addingFundingId, setAddingFundingId] = useState<string | null>(null);
+  const [fundingActionError, setFundingActionError] = useState<string | null>(null);
 
   const { program, requirements, milestones, fundings } = tracker;
   const completedAdmissionReqs = requirements.filter(
     (r) => r.status === "VERIFIED" || r.status === "UPLOADED" || r.status === "REUSED"
   ).length;
   const visibleReqs = showAllDocs ? requirements : requirements.slice(0, 2);
+
+  async function handleAddFundingClick(funding: DreamFunding) {
+    try {
+      setFundingActionError(null);
+      setAddingFundingId(funding.funding_id);
+      await onAddFunding(tracker.dream_tracker_id, funding);
+    } catch {
+      setFundingActionError("Gagal menambahkan pendanaan ini ke Dreamtracker.");
+    } finally {
+      setAddingFundingId(null);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -178,22 +197,108 @@ export const UniversityDetail = ({ tracker, onSelectFunding, onUploadSuccess }: 
             Pendanaan Tersedia
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {fundings.map((f) => (
-              <button
-                key={f.funding_id}
-                onClick={() => onSelectFunding(f, tracker)}
-                className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 hover:border-orange-200 hover:bg-orange-50 transition-colors group text-left"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">{f.nama_beasiswa}</p>
-                  <p className="text-xs font-medium mt-0.5 text-orange-500">
-                    {f.status === "SELECTED" ? "Dipilih" : "Tersedia"}
-                  </p>
+            {fundings.map((f) => {
+              const isExpanded = expandedFundingId === f.funding_id;
+              const isAdding = addingFundingId === f.funding_id;
+              const isSelected = f.status === "SELECTED";
+
+              return (
+                <div
+                  key={f.funding_id}
+                  className={`rounded-xl border transition-colors ${
+                    isExpanded ? "border-orange-200 bg-orange-50/60" : "border-gray-100 bg-gray-50"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setExpandedFundingId((current) => current === f.funding_id ? null : f.funding_id)}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800">{f.nama_beasiswa}</p>
+                      <p className={`text-xs font-medium mt-0.5 ${isSelected ? "text-orange-500" : "text-slate-500"}`}>
+                        {isSelected ? "Dipilih" : "Tersedia"}
+                      </p>
+                    </div>
+                    <ChevronRight className={`h-4 w-4 shrink-0 text-gray-300 transition-transform ${isExpanded ? "rotate-90 text-[#f58a1f]" : ""}`} />
+                  </button>
+
+                  {isExpanded && (
+                    <div className="border-t border-orange-100 px-4 py-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-[#f58a1f] shadow-sm">
+                          <BookOpen className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-800">{f.provider}</p>
+                          {f.deskripsi ? (
+                            <p className="mt-2 text-sm leading-6 text-slate-600">{f.deskripsi}</p>
+                          ) : (
+                            <p className="mt-2 text-sm leading-6 text-slate-500">
+                              Detail pendanaan belum tersedia penuh untuk item ini.
+                            </p>
+                          )}
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {f.tipe_pembiayaan ? (
+                              <span className="rounded-full border border-orange-200 bg-white px-3 py-1 text-xs font-medium text-orange-700">
+                                {f.tipe_pembiayaan}
+                              </span>
+                            ) : null}
+                            {f.website ? (
+                              <a
+                                href={f.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:border-orange-200 hover:text-orange-700"
+                              >
+                                Lihat website
+                              </a>
+                            ) : null}
+                          </div>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => onSelectFunding(f, tracker)}
+                              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-orange-200 hover:text-orange-700"
+                            >
+                              Lihat detail
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isSelected || isAdding}
+                              onClick={() => void handleAddFundingClick(f)}
+                              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                                isSelected
+                                  ? "cursor-default border border-orange-200 bg-orange-100 text-orange-700"
+                                  : "bg-[#f58a1f] text-white hover:bg-[#dd7611] disabled:bg-[#f4b77c]"
+                              }`}
+                            >
+                              {isSelected ? (
+                                "Sudah di Dreamtracker"
+                              ) : isAdding ? (
+                                <span className="inline-flex items-center gap-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Menambahkan...
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-2">
+                                  <Plus className="h-4 w-4" />
+                                  Tambahkan ke Dreamtracker
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-[#f58a1f] transition-colors shrink-0" />
-              </button>
-            ))}
+              );
+            })}
           </div>
+          {fundingActionError && (
+            <p className="mt-4 text-sm font-medium text-rose-600">{fundingActionError}</p>
+          )}
         </div>
       )}
 

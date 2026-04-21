@@ -89,11 +89,11 @@ export interface LegacySubmissionResponse {
 
 export interface StudentProfileSummary {
   academic_background: string;
-  experience_summary: string;
-  strengths: string[];
-  improvement_areas: string[];
-  preferred_themes: string[];
-  raw_text: string;
+  key_strengths: string[];
+  considerations: string[];
+  recommended_tracks: string[];
+  language_evidence: string;
+  evidence_confidence?: string;
 }
 
 export interface ScoreBreakdown {
@@ -159,6 +159,7 @@ export interface ProfileSubmissionResponse {
   status: Exclude<SubmissionStatus, "draft">;
   result_set_id: string;
   result: RecommendationResult;
+  preferred_countries?: string[];
 }
 
 // ============================================
@@ -167,6 +168,7 @@ export interface ProfileSubmissionResponse {
 
 export interface SimplifiedProgramResult {
   rank_no: number;
+  rec_result_id?: string;
   program_id?: string;
   admission_id?: string;
   source_rec_result_id?: string;
@@ -174,11 +176,18 @@ export interface SimplifiedProgramResult {
   program_name: string;
   country: string;
   fit_score: number;
+  admission_chance_score?: number;
+  overall_recommendation_score?: number;
   fit_level: FitLevel;
+  admission_difficulty?: AdmissionDifficulty;
+  score_breakdown?: ScoreBreakdown;
   overview: string;
   why_this_university: string;
   why_this_program: string;
   reason_summary: string;
+  preference_reasoning?: string[];
+  match_evidence?: string[];
+  scholarship_recommendations?: ScholarshipRecommendation[];
   pros: string[];
   cons: string[];
 }
@@ -212,6 +221,7 @@ export type DreamRequirementStatus =
   | "VERIFIED"
   | "VERIFIED_WITH_WARNING"
   | "REJECTED"
+  | "NEEDS_REVIEW"
   | "REUSED";
 export type MilestoneStatus = "NOT_STARTED" | "DONE" | "MISSED";
 export type FundingStatus = "AVAILABLE" | "SELECTED";
@@ -280,7 +290,10 @@ export interface DreamMilestone {
 export interface DreamFunding {
   funding_id: string;
   nama_beasiswa: string;
+  deskripsi?: string | null;
   provider: string;
+  tipe_pembiayaan?: string;
+  website?: string;
   status: FundingStatus;
 }
 
@@ -354,6 +367,7 @@ export interface CreateDreamTrackerRequest {
   program_id: string;
   admission_id?: string | null;
   funding_id?: string | null;
+  scholarship_name?: string | null;
   title?: string;
   status?: string;
   source_type: string;

@@ -1,18 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { StatsBar } from "./sections/StatsBar";
 import { Sidebar } from "./sections/Sidebar";
 import { UniversityDetail } from "./sections/UniversityDetail";
 import { FundingDetail } from "./sections/FundingDetail";
+import { FundingInfoView } from "./sections/FundingInfoView";
 import { useUserData } from "@/hooks/useUserData";
 import {
+  createDreamTracker,
   getDreamTrackerSummary,
   getDreamTrackersGrouped,
   getDreamTrackerById,
 } from "@/features/dreamtracker/services/dreamtracker.service";
 import type {
+  DreamFunding,
   DreamTrackerDashboardSummary,
   DreamTrackerGroupedResponse,
 } from "@/lib/api-types";
@@ -23,15 +28,24 @@ const fetchGrouped = getDreamTrackersGrouped;
 const fetchTrackerById = getDreamTrackerById;
 
 export const DreamtrackerPageModule = () => {
+  const { isPremium, isAuthenticated } = useUserData();
   const searchParams = useSearchParams();
   const [summary, setSummary] = useState<DreamTrackerDashboardSummary | null>(null);
   const [grouped, setGrouped] = useState<DreamTrackerGroupedResponse | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSwitchingView, setIsSwitchingView] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchInitialData() {
+      if (!isAuthenticated) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
+      setErrorMessage(null);
       const selectedTrackerId = searchParams.get("tracker");
       const selectedFundingId = searchParams.get("funding");
       const selectedView = searchParams.get("view");
@@ -44,7 +58,12 @@ export const DreamtrackerPageModule = () => {
         }),
       ]);
 
-      if (summaryResult.status === "fulfilled") setSummary(summaryResult.value);
+      if (summaryResult.status === "fulfilled") {
+        setSummary(summaryResult.value);
+      } else {
+        setErrorMessage("Gagal memuat ringkasan dream tracker. Coba refresh halaman.");
+      }
+
       if (groupedResult.status === "fulfilled") {
         const g = groupedResult.value;
         setGrouped(g);
@@ -80,24 +99,28 @@ export const DreamtrackerPageModule = () => {
     }
 
     fetchInitialData();
-  }, [searchParams]);
+  }, [isAuthenticated, searchParams]);
 
   async function handleSelectUniversity(trackerId: string) {
     try {
+      setIsSwitchingView(true);
       const detail = await fetchTrackerById(trackerId);
       setActiveView({ type: "university", tracker: detail });
     } catch {
       // keep current view
+    } finally {
+      setIsSwitchingView(false);
     }
   }
 
   async function handleUploadSuccess() {
     if (!activeView) return;
     try {
-      const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
       if (activeView.type === "university") {
+        const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
         setActiveView({ type: "university", tracker: detail });
-      } else {
+      } else if (activeView.type === "funding") {
+        const detail = await fetchTrackerById(activeView.tracker.dream_tracker_id);
         setActiveView({ type: "funding", fundingId: activeView.fundingId, tracker: detail });
       }
     } catch {
@@ -107,10 +130,38 @@ export const DreamtrackerPageModule = () => {
 
   async function handleSelectFunding(fundingId: string, trackerId: string) {
     try {
+      setIsSwitchingView(true);
       const detail = await fetchTrackerById(trackerId);
       setActiveView({ type: "funding", fundingId, tracker: detail });
     } catch {
       // keep current view
+    } finally {
+      setIsSwitchingView(false);
+    }
+  }
+
+  async function handleAddFunding(baseTrackerId: string, funding: DreamFunding) {
+    try {
+      const baseTracker = await fetchTrackerById(baseTrackerId);
+      const response = await createDreamTracker({
+        program_id: baseTracker.program.program_id,
+        funding_id: funding.funding_id,
+        scholarship_name: funding.nama_beasiswa,
+        source_type: "DREAMTRACKER",
+      });
+
+      const [detail, refreshedGrouped, refreshedSummary] = await Promise.all([
+        fetchTrackerById(response.dream_tracker_id),
+        fetchGrouped({ selected_dream_tracker_id: response.dream_tracker_id }),
+        fetchSummary(),
+      ]);
+
+      setGrouped(refreshedGrouped);
+      setSummary(refreshedSummary);
+      setActiveView({ type: "funding", fundingId: funding.funding_id, tracker: detail });
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage("Gagal menambahkan beasiswa ke Dreamtracker. Coba lagi.");
     }
   }
 
@@ -138,12 +189,33 @@ export const DreamtrackerPageModule = () => {
 
   return (
     <main className="min-h-screen bg-[#faf8f4]">
-      <StatsBar summary={summary} />
+      <StatsBar summary={summary} isLoading={isLoading} />
+      {errorMessage && (
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#f58a1f] border-t-transparent" />
+          <div className="flex flex-col gap-6 lg:flex-row animate-pulse">
+            <aside className="w-full lg:w-56 shrink-0">
+              <div className="rounded-2xl border border-gray-100 bg-white p-4">
+                <div className="mb-3 h-3 w-28 rounded bg-gray-100" />
+                <div className="space-y-2">
+                  <div className="h-14 rounded-lg bg-gray-100" />
+                  <div className="h-14 rounded-lg bg-gray-100" />
+                  <div className="h-14 rounded-lg bg-gray-100" />
+                </div>
+              </div>
+            </aside>
+            <div className="flex-1 min-w-0 space-y-4">
+              <div className="h-40 rounded-2xl border border-gray-100 bg-white" />
+              <div className="h-72 rounded-2xl border border-gray-100 bg-white" />
+              <div className="h-52 rounded-2xl border border-gray-100 bg-white" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row">
@@ -152,19 +224,41 @@ export const DreamtrackerPageModule = () => {
                 <Sidebar
                   grouped={grouped}
                   activeView={activeView}
+                  isBusy={isSwitchingView}
                   onSelectUniversity={handleSelectUniversity}
                   onSelectFunding={handleSelectFunding}
                 />
               )}
             </aside>
 
-            <div className="flex-1 min-w-0">
+            <div className="relative flex-1 min-w-0">
+              {isSwitchingView && (
+                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-[1px]">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-orange-100 bg-white px-4 py-2 text-sm font-medium text-[#c26411] shadow-sm">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Memuat detail dreamtracker...
+                  </div>
+                </div>
+              )}
               {activeView?.type === "university" && (
                 <UniversityDetail
                   tracker={activeView.tracker}
-                  onSelectFunding={(funding, tracker) =>
-                    setActiveView({ type: "funding", fundingId: funding.funding_id, tracker })
-                  }
+                  onSelectFunding={(funding, baseTracker) => {
+                    if (funding.status === "SELECTED" && grouped) {
+                      const fundingGroup = grouped.fundings.find(
+                        (f) => f.funding_id === funding.funding_id
+                      );
+                      if (fundingGroup?.items.length) {
+                        void handleSelectFunding(
+                          funding.funding_id,
+                          fundingGroup.items[0].dream_tracker_id
+                        );
+                        return;
+                      }
+                    }
+                    setActiveView({ type: "funding-info", funding, baseTracker });
+                  }}
+                  onAddFunding={handleAddFunding}
                   onUploadSuccess={handleUploadSuccess}
                 />
               )}
@@ -176,6 +270,16 @@ export const DreamtrackerPageModule = () => {
                     setActiveView({ type: "university", tracker: activeView.tracker })
                   }
                   onUploadSuccess={handleUploadSuccess}
+                />
+              )}
+              {activeView?.type === "funding-info" && (
+                <FundingInfoView
+                  funding={activeView.funding}
+                  baseTracker={activeView.baseTracker}
+                  onBack={() =>
+                    setActiveView({ type: "university", tracker: activeView.baseTracker })
+                  }
+                  onAddFunding={handleAddFunding}
                 />
               )}
               {!activeView && (

@@ -22,7 +22,7 @@ function reqStatusIcon(status: DreamRequirementStatus) {
   if (status === "VERIFIED" || status === "REUSED") return <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />;
   if (status === "VERIFIED_WITH_WARNING") return <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />;
   if (status === "UPLOADED" || status === "REVIEWING") return <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0" />;
-  if (status === "REJECTED") return <XCircle className="h-4 w-4 text-red-400 shrink-0" />;
+  if (status === "REJECTED" || status === "NEEDS_REVIEW") return <XCircle className="h-4 w-4 text-red-400 shrink-0" />;
   return <FileText className="h-4 w-4 text-gray-300 shrink-0" />;
 }
 
@@ -30,7 +30,7 @@ function reqStatusBg(status: DreamRequirementStatus) {
   if (status === "VERIFIED" || status === "REUSED") return "bg-green-50 border-green-100";
   if (status === "VERIFIED_WITH_WARNING") return "bg-amber-50 border-amber-200";
   if (status === "UPLOADED" || status === "REVIEWING") return "bg-blue-50 border-blue-100";
-  if (status === "REJECTED") return "bg-red-50 border-red-100";
+  if (status === "REJECTED" || status === "NEEDS_REVIEW") return "bg-red-50 border-red-100";
   return "bg-gray-50 border-gray-100";
 }
 
@@ -51,7 +51,7 @@ export const RequirementCard = ({ req, onUploadSuccess }: Props) => {
     req.status === "VERIFIED_WITH_WARNING" ||
     req.status === "UPLOADED" ||
     req.status === "REUSED";
-  const canReverify = req.status === "REJECTED" || isWarning;
+  const canReverify = req.status === "REJECTED" || req.status === "NEEDS_REVIEW" || isWarning;
   const canUploadFresh = req.can_upload && !req.needs_reupload;
 
   return (
