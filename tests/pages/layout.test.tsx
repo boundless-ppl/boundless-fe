@@ -11,6 +11,9 @@ vi.mock("@/lib/auth-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="auth-provider">{children}</div>
   ),
+  useAuth: () => ({
+    isLoading: false,
+  }),
 }));
 
 vi.mock("@/lib/amplitude", () => ({

@@ -1,5 +1,3 @@
-// @vitest-environment jsdom
-
 import {
   clearAuthCookies,
   readAuthFromCookies,
@@ -10,6 +8,7 @@ import {
   REFRESH_TOKEN_COOKIE,
   USER_COOKIE,
 } from "@/features/auth/constants/auth.constants";
+import { setupMockBrowserEnv } from "../../utils/mock-browser-env";
 
 function createToken(expiresAtUnixSeconds: number) {
   const encoded = Buffer.from(
@@ -26,6 +25,7 @@ function createToken(expiresAtUnixSeconds: number) {
 
 describe("auth-cookies utils", () => {
   beforeEach(() => {
+    setupMockBrowserEnv();
     document.cookie = `${ACCESS_TOKEN_COOKIE}=; Max-Age=0; Path=/`;
     document.cookie = `${REFRESH_TOKEN_COOKIE}=; Max-Age=0; Path=/`;
     document.cookie = `${USER_COOKIE}=; Max-Age=0; Path=/`;
