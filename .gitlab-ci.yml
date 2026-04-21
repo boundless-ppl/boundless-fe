@@ -65,6 +65,15 @@ build_and_push_image:
     - test -n "$(gcloud auth list --filter=status:ACTIVE --format='value(account)')" || (echo "No active gcloud account after service account activation" && exit 1)
     - gcloud auth print-access-token >/dev/null || (echo "Failed to obtain OAuth access token from service account key" && exit 1)
     - gcloud config set project "$GCP_PROJECT_ID"
+    - |
+      gcloud artifacts repositories describe "$GAR_REPOSITORY" \
+        --location "$GAR_REGION" \
+        --project "$GCP_PROJECT_ID" >/dev/null 2>&1 || \
+      gcloud artifacts repositories create "$GAR_REPOSITORY" \
+        --repository-format docker \
+        --location "$GAR_REGION" \
+        --description "Docker repository for boundless-fe Cloud Run images" \
+        --project "$GCP_PROJECT_ID"
     - gcloud auth configure-docker "${GAR_REGION}-docker.pkg.dev" --quiet
     - export IMAGE_URI="${GAR_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/${CLOUD_RUN_SERVICE}:${CI_COMMIT_SHORT_SHA}"
     - gcloud builds submit --project "$GCP_PROJECT_ID" --tag "$IMAGE_URI" .
