@@ -1,5 +1,96 @@
+default:
+  image: node:20-alpine
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@10.8.0 --activate
+    - pnpm --version
+
+variables:
+  PNPM_STORE_PATH: .pnpm-store
+  GCP_REGION: asia-southeast2
+  GAR_REGION: asia-southeast2
+  GAR_REPOSITORY: boundless-fe
+  CLOUD_RUN_SERVICE: boundless-fe
+  CLOUD_RUN_ALLOW_UNAUTHENTICATED: "true"
+
+cache:
+  key:
+    files:
+      - pnpm-lock.yaml
+  paths:
+    - .pnpm-store
+
 stages:
+  - quality
+  - build
+  - deploy
   - sonarqube
+
+lint_and_test:
+  stage: quality
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm lint
+    - pnpm test
+
+build_and_push_image:
+  stage: build
+  needs: ["lint_and_test"]
+  image: google/cloud-sdk:slim
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  before_script: []
+  script:
+    - test -n "$GCP_PROJECT_ID" || (echo "GCP_PROJECT_ID is required" && exit 1)
+    - test -n "$GCP_SA_KEY" || (echo "GCP_SA_KEY is required (Service Account JSON)" && exit 1)
+    - test -n "$GAR_REPOSITORY" || (echo "GAR_REPOSITORY is required" && exit 1)
+    - test -n "$CLOUD_RUN_SERVICE" || (echo "CLOUD_RUN_SERVICE is required" && exit 1)
+    - echo "$GCP_SA_KEY" > "$CI_PROJECT_DIR/gcp-key.json"
+    - gcloud auth activate-service-account --key-file="$CI_PROJECT_DIR/gcp-key.json"
+    - gcloud config set project "$GCP_PROJECT_ID"
+    - gcloud auth configure-docker "${GAR_REGION}-docker.pkg.dev" --quiet
+    - export IMAGE_URI="${GAR_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/${CLOUD_RUN_SERVICE}:${CI_COMMIT_SHORT_SHA}"
+    - gcloud builds submit --tag "$IMAGE_URI" .
+    - printf "IMAGE_URI=%s\n" "$IMAGE_URI" > image.env
+  artifacts:
+    expire_in: 1 day
+    reports:
+      dotenv: image.env
+
+deploy_cloud_run:
+  stage: deploy
+  image: google/cloud-sdk:slim
+  needs: ["build_and_push_image"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  before_script: []
+  script:
+    - |
+      test -n "$GCP_PROJECT_ID" || (echo "GCP_PROJECT_ID is required" && exit 1)
+      test -n "$GCP_SA_KEY" || (echo "GCP_SA_KEY is required (Service Account JSON)" && exit 1)
+      test -n "$GCP_REGION" || (echo "GCP_REGION is required" && exit 1)
+      test -n "$IMAGE_URI" || (echo "IMAGE_URI is missing from previous stage" && exit 1)
+      echo "$GCP_SA_KEY" > "$CI_PROJECT_DIR/gcp-key.json"
+      gcloud auth activate-service-account --key-file="$CI_PROJECT_DIR/gcp-key.json"
+      gcloud config set project "$GCP_PROJECT_ID"
+      if [ "$CLOUD_RUN_ALLOW_UNAUTHENTICATED" = "true" ]; then
+        gcloud run deploy "$CLOUD_RUN_SERVICE" \
+          --image "$IMAGE_URI" \
+          --region "$GCP_REGION" \
+          --platform managed \
+          --allow-unauthenticated \
+          --quiet
+      else
+        gcloud run deploy "$CLOUD_RUN_SERVICE" \
+          --image "$IMAGE_URI" \
+          --region "$GCP_REGION" \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --quiet
+      fi
 
 sonarqube:
   stage: sonarqube
@@ -18,6 +109,6 @@ sonarqube:
         -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
         -Dsonar.host.url="$SONAR_HOST_URL" \
         ${SONAR_ORGANIZATION:+-Dsonar.organization="$SONAR_ORGANIZATION"}
-  only:
-    - main
-    - merge_requests
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
