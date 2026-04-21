@@ -2,13 +2,17 @@
 
 import { useAuth } from "@/lib/auth-context"
 
+const getNowMs = () => Date.now()
+
 export function useUserData() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const premiumEndAt = user?.premiumEndAt ?? null
   const premiumEndDate = premiumEndAt ? new Date(premiumEndAt) : null
   const isPremiumActive = Boolean(
     user?.isPremium &&
-      (!premiumEndDate || Number.isNaN(premiumEndDate.getTime()) || premiumEndDate.getTime() > Date.now())
+      (!premiumEndDate ||
+        Number.isNaN(premiumEndDate.getTime()) ||
+        premiumEndDate.getTime() > getNowMs())
   )
 
   return {

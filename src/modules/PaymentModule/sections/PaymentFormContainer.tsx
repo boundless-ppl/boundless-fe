@@ -48,8 +48,6 @@ export const PaymentFormContainer = () => {
     }
 
     if (!isAuthenticated) {
-      setPendingPayment(null);
-      setIsCheckingPending(false);
       router.replace(`/login?next=${encodeURIComponent("/payment")}`);
       return;
     }
