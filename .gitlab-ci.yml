@@ -43,11 +43,23 @@ build_and_push_image:
     - if: '$CI_COMMIT_BRANCH == "dev"'
   before_script: []
   script:
+    - : > image.env
     - test -n "$GCP_PROJECT_ID" || (echo "GCP_PROJECT_ID is required" && exit 1)
     - test -n "$GCP_SA_KEY" || (echo "GCP_SA_KEY is required (Service Account JSON)" && exit 1)
     - test -n "$GAR_REPOSITORY" || (echo "GAR_REPOSITORY is required" && exit 1)
     - test -n "$CLOUD_RUN_SERVICE" || (echo "CLOUD_RUN_SERVICE is required" && exit 1)
-    - echo "$GCP_SA_KEY" > "$CI_PROJECT_DIR/gcp-key.json"
+    - |
+      if [ -f "$GCP_SA_KEY" ]; then
+        cp "$GCP_SA_KEY" "$CI_PROJECT_DIR/gcp-key.json"
+      elif echo "$GCP_SA_KEY" | tr -d '\r\n\t ' | grep -q '^{'; then
+        printf "%s" "$GCP_SA_KEY" > "$CI_PROJECT_DIR/gcp-key.json"
+      else
+        echo "$GCP_SA_KEY" | tr -d '\r' | base64 -d > "$CI_PROJECT_DIR/gcp-key.json" || {
+          echo "GCP_SA_KEY must be JSON string, base64-encoded JSON, or GitLab File variable path"
+          exit 1
+        }
+      fi
+    - grep -q '"type"[[:space:]]*:[[:space:]]*"service_account"' "$CI_PROJECT_DIR/gcp-key.json" || (echo "GCP_SA_KEY is not a valid service account JSON" && exit 1)
     - gcloud auth activate-service-account --key-file="$CI_PROJECT_DIR/gcp-key.json"
     - gcloud config set project "$GCP_PROJECT_ID"
     - gcloud auth configure-docker "${GAR_REGION}-docker.pkg.dev" --quiet
@@ -72,7 +84,20 @@ deploy_cloud_run:
       test -n "$GCP_SA_KEY" || (echo "GCP_SA_KEY is required (Service Account JSON)" && exit 1)
       test -n "$GCP_REGION" || (echo "GCP_REGION is required" && exit 1)
       test -n "$IMAGE_URI" || (echo "IMAGE_URI is missing from previous stage" && exit 1)
-      echo "$GCP_SA_KEY" > "$CI_PROJECT_DIR/gcp-key.json"
+      if [ -f "$GCP_SA_KEY" ]; then
+        cp "$GCP_SA_KEY" "$CI_PROJECT_DIR/gcp-key.json"
+      elif echo "$GCP_SA_KEY" | tr -d '\r\n\t ' | grep -q '^{'; then
+        printf "%s" "$GCP_SA_KEY" > "$CI_PROJECT_DIR/gcp-key.json"
+      else
+        echo "$GCP_SA_KEY" | tr -d '\r' | base64 -d > "$CI_PROJECT_DIR/gcp-key.json" || {
+          echo "GCP_SA_KEY must be JSON string, base64-encoded JSON, or GitLab File variable path"
+          exit 1
+        }
+      fi
+      grep -q '"type"[[:space:]]*:[[:space:]]*"service_account"' "$CI_PROJECT_DIR/gcp-key.json" || {
+        echo "GCP_SA_KEY is not a valid service account JSON"
+        exit 1
+      }
       gcloud auth activate-service-account --key-file="$CI_PROJECT_DIR/gcp-key.json"
       gcloud config set project "$GCP_PROJECT_ID"
       if [ "$CLOUD_RUN_ALLOW_UNAUTHENTICATED" = "true" ]; then
