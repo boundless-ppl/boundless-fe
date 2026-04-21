@@ -95,6 +95,7 @@ deploy_cloud_run:
 sonarqube:
   stage: sonarqube
   image: sonarsource/sonar-scanner-cli:latest
+  before_script: []
   variables:
     SONAR_USER_HOME: "$CI_PROJECT_DIR/.sonar"
     SONAR_HOST_URL: "${SONAR_HOST_URL:-https://sonarcloud.io}"
