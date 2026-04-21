@@ -84,7 +84,21 @@ build_and_push_image:
       fi
     - gcloud auth configure-docker "${GAR_REGION}-docker.pkg.dev" --quiet
     - export IMAGE_URI="${GAR_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/${CLOUD_RUN_SERVICE}:${CI_COMMIT_SHORT_SHA}"
-    - gcloud builds submit --project "$GCP_PROJECT_ID" --tag "$IMAGE_URI" .
+    - export BUILD_ID="$(gcloud builds submit --project "$GCP_PROJECT_ID" --tag "$IMAGE_URI" --async --format='value(id)' .)"
+    - test -n "$BUILD_ID" || (echo "Failed to get Cloud Build ID" && exit 1)
+    - |
+      while true; do
+        BUILD_STATUS="$(gcloud builds describe "$BUILD_ID" --project "$GCP_PROJECT_ID" --format='value(status)')"
+        echo "Cloud Build status: $BUILD_STATUS"
+        if [ "$BUILD_STATUS" = "SUCCESS" ]; then
+          break
+        fi
+        if [ "$BUILD_STATUS" = "FAILURE" ] || [ "$BUILD_STATUS" = "INTERNAL_ERROR" ] || [ "$BUILD_STATUS" = "CANCELLED" ] || [ "$BUILD_STATUS" = "TIMEOUT" ] || [ "$BUILD_STATUS" = "EXPIRED" ]; then
+          echo "Cloud Build failed with status: $BUILD_STATUS"
+          exit 1
+        fi
+        sleep 5
+      done
     - printf "IMAGE_URI=%s\n" "$IMAGE_URI" > image.env
   artifacts:
     expire_in: 1 day
