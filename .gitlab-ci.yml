@@ -30,7 +30,6 @@ lint_and_test:
   stage: quality
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   script:
     - pnpm install --frozen-lockfile
     - pnpm lint
@@ -95,6 +94,8 @@ deploy_cloud_run:
 sonarqube:
   stage: sonarqube
   image: sonarsource/sonar-scanner-cli:latest
+  inherit:
+    default: false
   before_script: []
   variables:
     SONAR_USER_HOME: "$CI_PROJECT_DIR/.sonar"
@@ -112,4 +113,3 @@ sonarqube:
         ${SONAR_ORGANIZATION:+-Dsonar.organization="$SONAR_ORGANIZATION"}
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
