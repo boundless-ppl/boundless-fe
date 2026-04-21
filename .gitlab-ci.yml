@@ -43,7 +43,7 @@ build_and_push_image:
     - if: '$CI_COMMIT_BRANCH == "dev"'
   before_script: []
   script:
-    - : > image.env
+    - touch image.env
     - test -n "$GCP_PROJECT_ID" || (echo "GCP_PROJECT_ID is required" && exit 1)
     - test -n "$GCP_SA_KEY" || (echo "GCP_SA_KEY is required (Service Account JSON)" && exit 1)
     - test -n "$GAR_REPOSITORY" || (echo "GAR_REPOSITORY is required" && exit 1)
