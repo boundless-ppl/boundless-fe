@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { StatsBar } from "./sections/StatsBar";
 import { Sidebar } from "./sections/Sidebar";
 import { UniversityDetail } from "./sections/UniversityDetail";
@@ -33,6 +34,7 @@ export const DreamtrackerPageModule = () => {
   const [grouped, setGrouped] = useState<DreamTrackerGroupedResponse | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSwitchingView, setIsSwitchingView] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,10 +103,13 @@ export const DreamtrackerPageModule = () => {
 
   async function handleSelectUniversity(trackerId: string) {
     try {
+      setIsSwitchingView(true);
       const detail = await fetchTrackerById(trackerId);
       setActiveView({ type: "university", tracker: detail });
     } catch {
       // keep current view
+    } finally {
+      setIsSwitchingView(false);
     }
   }
 
@@ -125,10 +130,13 @@ export const DreamtrackerPageModule = () => {
 
   async function handleSelectFunding(fundingId: string, trackerId: string) {
     try {
+      setIsSwitchingView(true);
       const detail = await fetchTrackerById(trackerId);
       setActiveView({ type: "funding", fundingId, tracker: detail });
     } catch {
       // keep current view
+    } finally {
+      setIsSwitchingView(false);
     }
   }
 
@@ -192,8 +200,22 @@ export const DreamtrackerPageModule = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#f58a1f] border-t-transparent" />
+          <div className="flex flex-col gap-6 lg:flex-row animate-pulse">
+            <aside className="w-full lg:w-56 shrink-0">
+              <div className="rounded-2xl border border-gray-100 bg-white p-4">
+                <div className="mb-3 h-3 w-28 rounded bg-gray-100" />
+                <div className="space-y-2">
+                  <div className="h-14 rounded-lg bg-gray-100" />
+                  <div className="h-14 rounded-lg bg-gray-100" />
+                  <div className="h-14 rounded-lg bg-gray-100" />
+                </div>
+              </div>
+            </aside>
+            <div className="flex-1 min-w-0 space-y-4">
+              <div className="h-40 rounded-2xl border border-gray-100 bg-white" />
+              <div className="h-72 rounded-2xl border border-gray-100 bg-white" />
+              <div className="h-52 rounded-2xl border border-gray-100 bg-white" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row">
@@ -202,13 +224,22 @@ export const DreamtrackerPageModule = () => {
                 <Sidebar
                   grouped={grouped}
                   activeView={activeView}
+                  isBusy={isSwitchingView}
                   onSelectUniversity={handleSelectUniversity}
                   onSelectFunding={handleSelectFunding}
                 />
               )}
             </aside>
 
-            <div className="flex-1 min-w-0">
+            <div className="relative flex-1 min-w-0">
+              {isSwitchingView && (
+                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-[1px]">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-orange-100 bg-white px-4 py-2 text-sm font-medium text-[#c26411] shadow-sm">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Memuat detail dreamtracker...
+                  </div>
+                </div>
+              )}
               {activeView?.type === "university" && (
                 <UniversityDetail
                   tracker={activeView.tracker}

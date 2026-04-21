@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -27,6 +27,7 @@ export const LoginFormSection = () => {
   const { login } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const nextPathParam = searchParams.get("next");
   const safeNextPath = nextPathParam?.startsWith("/") ? nextPathParam : null;
 
@@ -49,8 +50,10 @@ export const LoginFormSection = () => {
         password: data.password,
       });
 
+      setIsNavigating(true);
       router.push(safeNextPath ?? "/dashboard");
     } catch (err: unknown) {
+      setIsNavigating(false);
       if (err instanceof Error) {
         setAuthError(err.message ?? "Login failed.");
       } else {
@@ -70,7 +73,15 @@ export const LoginFormSection = () => {
       />
 
       <div className="relative flex w-full justify-center">
-        <div className="w-full max-w-md rounded-[28px] border border-[#eadfce] bg-white/96 p-6 shadow-[0_18px_40px_rgba(31,31,31,0.06)] backdrop-blur sm:p-8">
+        <div className="relative w-full max-w-md rounded-[28px] border border-[#eadfce] bg-white/96 p-6 shadow-[0_18px_40px_rgba(31,31,31,0.06)] backdrop-blur sm:p-8">
+          {(form.formState.isSubmitting || isNavigating) && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-[28px] bg-white/85 backdrop-blur-[1px]">
+              <Loader2 className="h-8 w-8 animate-spin text-[#f58a1f]" />
+              <p className="mt-3 text-sm font-medium text-[#9a4e0c]">
+                Sedang masuk ke akun Anda...
+              </p>
+            </div>
+          )}
           <div className="mb-7 text-center">
             <Image
               src="/boundless.png"
@@ -98,6 +109,7 @@ export const LoginFormSection = () => {
                     <FormControl>
                       <Input
                         placeholder="you@example.com"
+                        disabled={form.formState.isSubmitting || isNavigating}
                         className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                         {...field}
                       />
@@ -118,11 +130,13 @@ export const LoginFormSection = () => {
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="Masukkan kata sandi Anda"
+                          disabled={form.formState.isSubmitting || isNavigating}
                           className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                           {...field}
                         />
                         <button
                           type="button"
+                          disabled={form.formState.isSubmitting || isNavigating}
                           className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
                           onClick={() => setShowPassword((value) => !value)}
                         >
@@ -143,12 +157,12 @@ export const LoginFormSection = () => {
 
               <Button
                 type="submit"
-                disabled={form.formState.isSubmitting}
+                disabled={form.formState.isSubmitting || isNavigating}
                 className="h-11 w-full rounded-2xl bg-[#f58a1f] text-sm font-semibold text-white hover:bg-[#dd7611]"
               >
                 <span className="inline-flex items-center gap-2">
                   <LogIn className="h-4 w-4" />
-                  {form.formState.isSubmitting ? "Loading..." : "Masuk"}
+                  {form.formState.isSubmitting || isNavigating ? "Memproses..." : "Masuk"}
                 </span>
               </Button>
 

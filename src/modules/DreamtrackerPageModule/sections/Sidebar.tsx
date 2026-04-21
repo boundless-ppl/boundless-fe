@@ -8,6 +8,7 @@ import type { ActiveView } from "../types";
 type SidebarProps = {
   grouped: DreamTrackerGroupedResponse;
   activeView: ActiveView;
+  isBusy?: boolean;
   onSelectUniversity: (trackerId: string) => void;
   onSelectFunding: (fundingId: string, trackerId: string) => void;
 };
@@ -15,6 +16,7 @@ type SidebarProps = {
 export const Sidebar = ({
   grouped,
   activeView,
+  isBusy = false,
   onSelectUniversity,
   onSelectFunding,
 }: SidebarProps) => {
@@ -59,10 +61,16 @@ export const Sidebar = ({
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
+      {isBusy && (
+        <div className="mb-3 rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-700">
+          Sedang memperbarui detail...
+        </div>
+      )}
       {/* Universities */}
       <button
+        disabled={isBusy}
         onClick={() => setUniOpen((v) => !v)}
-        className="flex w-full items-center justify-between mb-2 group"
+        className="flex w-full items-center justify-between mb-2 group disabled:opacity-60"
       >
         <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 group-hover:text-gray-500 transition-colors">
           Universitas
@@ -89,12 +97,13 @@ export const Sidebar = ({
 
                 return (
                   <button
+                    disabled={isBusy}
                     onClick={() => onSelectUniversity(tracker.dream_tracker_id)}
                     className={`w-full rounded-lg px-3 py-2 text-left transition-colors duration-150 ${
                       active
                         ? "bg-[#f58a1f] text-white"
                         : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
-                    }`}
+                    } disabled:cursor-not-allowed disabled:opacity-75`}
                   >
                     <span className="block text-sm font-semibold truncate">
                       {university.university_name}
@@ -117,8 +126,9 @@ export const Sidebar = ({
 
       {/* Scholarships */}
       <button
+        disabled={isBusy}
         onClick={() => setScholarOpen((v) => !v)}
-        className="flex w-full items-center justify-between mb-2 group"
+        className="flex w-full items-center justify-between mb-2 group disabled:opacity-60"
       >
         <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 group-hover:text-gray-500 transition-colors">
           Beasiswa
@@ -144,12 +154,13 @@ export const Sidebar = ({
 
                 return (
                   <button
+                    disabled={isBusy}
                     onClick={() => onSelectFunding(funding.funding_id, tracker.dream_tracker_id)}
                     className={`w-full rounded-lg px-3 py-2 text-left transition-colors duration-150 ${
                       active
                         ? "bg-[#f58a1f] text-white"
                         : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
-                    }`}
+                    } disabled:cursor-not-allowed disabled:opacity-75`}
                   >
                     <span className="block text-sm font-semibold truncate">
                       {funding.funding_name}

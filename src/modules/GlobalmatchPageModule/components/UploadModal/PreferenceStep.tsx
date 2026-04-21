@@ -76,7 +76,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
             ))}
           </div>
           <textarea
-            className="min-h-19 w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            className="min-h-[76px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
             placeholder="Tambahkan bidang studi lainnya (opsional)"
             value={customField}
             onChange={(e) => setCustomField(e.target.value)}
@@ -138,7 +138,7 @@ export function PreferenceStep({ onBack, onSubmit }: PreferenceStepProps) {
           <label htmlFor="additional-preferences" className="text-[13px] font-medium text-[#2b2b2b]">Preferensi tambahan (Opsional)</label>
           <textarea 
             id="additional-preferences"
-            className="min-h-23 w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
+            className="min-h-[92px] w-full rounded-xl border border-[#e8e8e8] p-4 text-[14px] focus:outline-none focus:border-[#fa8613]"
             placeholder="Contoh: Saya mencari universitas yang dekat dengan pusat industri teknologi..."
             value={additionalPreferences}
             onChange={(e) => setAdditionalPreferences(e.target.value)}

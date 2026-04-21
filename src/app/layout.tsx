@@ -33,9 +33,11 @@ export default function RootLayout({
         <AuthProvider>
           <AuthHydrationGate>
             <Amplitude />
-            <Navbar />
-            {children}
-            <Footer />
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
           </AuthHydrationGate>
         </AuthProvider>
       </body>
