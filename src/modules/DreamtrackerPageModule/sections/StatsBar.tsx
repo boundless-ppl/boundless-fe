@@ -3,13 +3,14 @@ import { FileText, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
 
 type Props = {
   summary: DreamTrackerDashboardSummary | null;
+  isLoading: boolean;
 };
 
-export const StatsBar = ({ summary }: Props) => {
+export const StatsBar = ({ summary, isLoading }: Props) => {
   const stats = [
     {
       label: "Total Aplikasi",
-      value: summary?.total_applications ?? 0,
+      value: isLoading ? "—" : summary?.total_applications ?? 0,
       icon: FileText,
       iconBg: "bg-blue-50",
       iconColor: "text-blue-500",
@@ -18,7 +19,7 @@ export const StatsBar = ({ summary }: Props) => {
     },
     {
       label: "Belum Lengkap",
-      value: summary?.incomplete_count ?? 0,
+      value: isLoading ? "—" : summary?.incomplete_count ?? 0,
       icon: Clock,
       iconBg: "bg-orange-50",
       iconColor: "text-orange-400",
@@ -27,7 +28,7 @@ export const StatsBar = ({ summary }: Props) => {
     },
     {
       label: "Selesai",
-      value: summary?.completed_count ?? 0,
+      value: isLoading ? "—" : summary?.completed_count ?? 0,
       icon: CheckCircle2,
       iconBg: "bg-green-50",
       iconColor: "text-green-500",
@@ -36,7 +37,7 @@ export const StatsBar = ({ summary }: Props) => {
     },
     {
       label: "Deadline Mendekat",
-      value: summary?.deadline_near_count ?? 0,
+      value: isLoading ? "—" : summary?.deadline_near_count ?? 0,
       icon: AlertTriangle,
       iconBg: "bg-red-50",
       iconColor: "text-red-400",

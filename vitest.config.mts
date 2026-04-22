@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
+    pool: "threads",
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],

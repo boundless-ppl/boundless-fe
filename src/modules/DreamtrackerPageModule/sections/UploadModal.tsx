@@ -56,9 +56,10 @@ function canonicalRequirementDocumentType(req: DreamRequirement): string {
 export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<"idle" | "uploading" | "finishing">("idle");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isLoading = uploadPhase !== "idle";
   const aiMessage = req.review?.ai_message?.toLowerCase() ?? "";
   const isReverify =
     req.status === "REJECTED" ||
@@ -85,7 +86,7 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
 
   async function handleSubmit() {
     if (!file) return;
-    setIsLoading(true);
+    setUploadPhase("uploading");
     setError(null);
     try {
       const documentType = canonicalRequirementDocumentType(req);
@@ -96,11 +97,13 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
         !isReverify
       );
       onSuccess(response);
-      onClose();
+      setUploadPhase("finishing");
+      globalThis.setTimeout(() => {
+        onClose();
+      }, 650);
     } catch {
+      setUploadPhase("idle");
       setError("Gagal mengunggah dokumen. Silakan coba lagi.");
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -146,7 +149,13 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
           >
             <Upload className={`h-8 w-8 ${isDragging ? "text-[#f58a1f]" : "text-gray-300"}`} />
             <p className="text-sm font-medium text-gray-500">
-              {isDragging ? "Lepaskan file di sini" : "Klik atau seret file ke sini"}
+              {uploadPhase === "uploading"
+                ? "Dokumen sedang diproses..."
+                : uploadPhase === "finishing"
+                  ? "Verifikasi berhasil, menyiapkan hasil..."
+                  : isDragging
+                    ? "Lepaskan file di sini"
+                    : "Klik atau seret file ke sini"}
             </p>
             <p className="text-xs text-gray-300">PDF, JPG, JPEG, PNG (maks. 10MB)</p>
           </div>
@@ -191,10 +200,15 @@ export const UploadModal = ({ req, onClose, onSuccess }: Props) => {
             disabled={!file || isLoading}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#f58a1f] to-[#d97a18] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
+            {uploadPhase === "uploading" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Memverifikasi...
+              </>
+            ) : uploadPhase === "finishing" ? (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                Berhasil diverifikasi
               </>
             ) : (
               isReverify ? "Verifikasi Ulang" : "Verifikasi"

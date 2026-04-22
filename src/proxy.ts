@@ -5,6 +5,10 @@ import { ACCESS_TOKEN_COOKIE } from "@/features/auth/constants/auth.constants";
 import { isAccessTokenExpired } from "@/features/auth/utils/access-token";
 
 export function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/globalmatch/results/")) {
+    return NextResponse.next();
+  }
+
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
 
   if (!accessToken || isAccessTokenExpired(accessToken)) {

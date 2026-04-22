@@ -58,6 +58,7 @@ describe("recommendation dreamtracker helpers", () => {
     expect(getScholarshipTrackingData(scholarship)).toEqual({
       fundingId: "funding-1",
       admissionId: "admission-2",
+      scholarshipName: "Chevening",
     });
   });
 });

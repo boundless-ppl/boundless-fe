@@ -4,6 +4,16 @@ import { isAccessTokenExpired } from "@/features/auth/utils/access-token";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
+export class AuthApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number
+  ) {
+    super(message);
+    this.name = "AuthApiError";
+  }
+}
+
 function toText(value: unknown) {
   return typeof value === "string" ? value : "";
 }
@@ -52,6 +62,13 @@ export async function loginRequest(payload: LoginPayload) {
   return { accessToken, refreshToken };
 }
 
+export async function refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
+  const result = await postAuth("/auth/refresh", { refresh_token: refreshToken });
+  const accessToken = toText(result.access_token) || toText(result.accessToken);
+  if (!accessToken) throw new Error("Invalid refresh response from server");
+  return { accessToken };
+}
+
 export async function logoutRequest(accessToken: string) {
   await fetch(`${API_BASE_URL}/auth/logout`, {
     method: "POST",
@@ -68,7 +85,7 @@ export async function getMe(accessToken: string): Promise<UserData> {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch user data");
+    throw new AuthApiError("Failed to fetch user data", response.status);
   }
 
   const data = await response.json();

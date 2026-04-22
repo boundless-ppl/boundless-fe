@@ -28,6 +28,7 @@ export function getScholarshipTrackingData(scholarship: ScholarshipRecommendatio
   return {
     fundingId: pickFirstString(source, ["funding_id", "fundingId", "id"]),
     admissionId: pickFirstString(source, ["admission_id", "admissionId"]),
+    scholarshipName: pickFirstString(source, ["scholarship_name", "scholarshipName", "name"]),
   };
 }
 

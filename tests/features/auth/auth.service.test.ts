@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+import { setupMockBrowserEnv } from "../../utils/mock-browser-env";
 
 const fetchMock = vi.fn();
 
@@ -28,6 +28,7 @@ function createToken(payload: string) {
 
 describe("auth.service", () => {
   beforeEach(() => {
+    setupMockBrowserEnv();
     vi.resetModules();
     fetchMock.mockReset();
     document.cookie = "boundless_access_token=; Max-Age=0; Path=/";

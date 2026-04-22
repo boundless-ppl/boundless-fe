@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { trackEvent } from "@/lib/track-event";
 import {
   createPayment,
@@ -26,10 +27,79 @@ import {
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
 
 export const PaymentFormContainer = () => {
-  const { isPremium, premiumStartAt, premiumEndAt, hasPendingPayment, transactionId } = useUserData();
+  const router = useRouter();
+  const { refreshUser, isAuthenticated, isLoading } = useAuth();
+  const { isPremium, premiumStartAt, premiumEndAt } = useUserData();
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
   const [packageLoadError, setPackageLoadError] = useState<string | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
+  const [isCheckingPending, setIsCheckingPending] = useState(true);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      router.replace(`/login?next=${encodeURIComponent("/payment")}`);
+      return;
+    }
+
+    let isActive = true;
+
+    const checkPendingPayment = async () => {
+      const record = readPendingPayment();
+      if (!record) {
+        await refreshUser();
+        if (isActive) {
+          setPendingPayment(null);
+          setIsCheckingPending(false);
+        }
+        return;
+      }
+
+      const result = await getPaymentDetail(record.paymentId);
+      if (!isActive) {
+        return;
+      }
+
+      if (result.data?.status === "pending") {
+        setPendingPayment(record);
+        setIsCheckingPending(false);
+        return;
+      }
+
+      if (result.data?.status === "success" || result.data?.status === "failed") {
+        clearPendingPayment();
+        setPendingPayment(null);
+        await refreshUser();
+        setIsCheckingPending(false);
+        return;
+      }
+
+      setPendingPayment(record);
+      setIsCheckingPending(false);
+    };
+
+    void checkPendingPayment();
+
+    const intervalId = globalThis.setInterval(() => {
+      void checkPendingPayment();
+    }, 30_000);
+
+    const handleFocus = () => {
+      void checkPendingPayment();
+    };
+
+    globalThis.window.addEventListener("focus", handleFocus);
+
+    return () => {
+      isActive = false;
+      globalThis.clearInterval(intervalId);
+      globalThis.window.removeEventListener("focus", handleFocus);
+    };
+  }, [isAuthenticated, isLoading, refreshUser, router]);
 
   useEffect(() => {
     let isActive = true;
@@ -207,7 +277,7 @@ export const PaymentFormContainer = () => {
       return result;
     };
 
-  if (isPackageLoading) {
+  if (isLoading || isCheckingPending) {
     return (
       <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f] text-center">
         Menyiapkan data pembayaran...

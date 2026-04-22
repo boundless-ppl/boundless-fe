@@ -6,6 +6,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Amplitude } from "@/lib/amplitude";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
+import { AuthHydrationGate } from "@/components/AuthHydrationGate";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,10 +31,14 @@ export default function RootLayout({
     <html lang="id" className={cn("font-sans", plusJakartaSans.variable)}>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <Amplitude />
-          <Navbar />
-          {children}
-          <Footer />
+          <AuthHydrationGate>
+            <Amplitude />
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
+          </AuthHydrationGate>
         </AuthProvider>
       </body>
     </html>
