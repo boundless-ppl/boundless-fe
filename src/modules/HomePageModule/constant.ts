@@ -1,5 +1,4 @@
 import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
-import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
 
 export type FeatureStatus = 'in-development' | 'coming-soon' | 'live';
 
@@ -91,44 +90,4 @@ export const PLAN_FEATURES = [
   "Dashboard verifikasi dokumen",
   "Pengisian formulir universitas massal",
   "Akses semua fitur baru",
-];
-
-export const PRICING_PLANS = [
-  {
-    paymentPlanId: "1month" as PaymentPlanId,
-    durationMonths: 1,
-    name: "1 Bulan",
-    priceAmount: 39000,
-    price: "Rp39.000",
-    subtext: "per bulan · Rp39.000/bulan",
-    buttonText: "Pilih Paket",
-    highlight: false,
-    checkColor: "#4479B2",
-  },
-  {
-    paymentPlanId: "3month" as PaymentPlanId,
-    durationMonths: 3,
-    name: "3 Bulan",
-    priceAmount: 109000,
-    price: "Rp109.000",
-    subtext: "per 3 bulan · Rp36.333/bulan",
-    buttonText: "Mulai Sekarang",
-    highlight: true,
-    badge: "Populer",
-    discount: "Hemat 16%",
-    checkColor: "#FA8613",
-  },
-  {
-    paymentPlanId: "6month" as PaymentPlanId,
-    durationMonths: 6,
-    name: "6 Bulan",
-    priceAmount: 189000,
-    price: "Rp189.000",
-    subtext: "per 6 bulan · Rp31.500/bulan",
-    buttonText: "Pilih Paket",
-    highlight: false,
-    badge: "Terbaik",
-    discount: "Hemat 26%",
-    checkColor: "#4479B2",
-  },
 ];

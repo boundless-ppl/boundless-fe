@@ -25,16 +25,15 @@ import {
   type ReceiptSubmittedPayload,
 } from "@/features/payment/types/payment-form.types";
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
+import { useAuth } from "@/lib/auth-context";
 
 export const PaymentFormContainer = () => {
   const router = useRouter();
   const { refreshUser, isAuthenticated, isLoading } = useAuth();
-  const { isPremium, premiumStartAt, premiumEndAt } = useUserData();
+  const { isPremium, premiumStartAt, premiumEndAt, hasPendingPayment, transactionId } = useUserData();
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
   const [packageLoadError, setPackageLoadError] = useState<string | null>(null);
-  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
-  const [isCheckingPending, setIsCheckingPending] = useState(true);
 
   useEffect(() => {
     if (isLoading) {
@@ -46,59 +45,7 @@ export const PaymentFormContainer = () => {
       return;
     }
 
-    let isActive = true;
-
-    const checkPendingPayment = async () => {
-      const record = readPendingPayment();
-      if (!record) {
-        await refreshUser();
-        if (isActive) {
-          setPendingPayment(null);
-          setIsCheckingPending(false);
-        }
-        return;
-      }
-
-      const result = await getPaymentDetail(record.paymentId);
-      if (!isActive) {
-        return;
-      }
-
-      if (result.data?.status === "pending") {
-        setPendingPayment(record);
-        setIsCheckingPending(false);
-        return;
-      }
-
-      if (result.data?.status === "success" || result.data?.status === "failed") {
-        clearPendingPayment();
-        setPendingPayment(null);
-        await refreshUser();
-        setIsCheckingPending(false);
-        return;
-      }
-
-      setPendingPayment(record);
-      setIsCheckingPending(false);
-    };
-
-    void checkPendingPayment();
-
-    const intervalId = globalThis.setInterval(() => {
-      void checkPendingPayment();
-    }, 30_000);
-
-    const handleFocus = () => {
-      void checkPendingPayment();
-    };
-
-    globalThis.window.addEventListener("focus", handleFocus);
-
-    return () => {
-      isActive = false;
-      globalThis.clearInterval(intervalId);
-      globalThis.window.removeEventListener("focus", handleFocus);
-    };
+    return;
   }, [isAuthenticated, isLoading, refreshUser, router]);
 
   useEffect(() => {
@@ -264,20 +211,10 @@ export const PaymentFormContainer = () => {
   const handleReceiptSubmittedWithPendingState: typeof handleReceiptSubmitted =
     async (payload) => {
       const result = await handleReceiptSubmitted(payload);
-      if (result.data?.paymentId && result.data?.transactionId) {
-        // const record: PendingPaymentRecord = {
-        //   paymentId: result.data.paymentId,
-        //   transactionId: result.data.transactionId,
-        //   submittedAt: new Date().toISOString(),
-        // };
-        // savePendingPayment(record);
-        // setPendingPayment(record);
-      }
-
       return result;
     };
 
-  if (isLoading || isCheckingPending) {
+  if (isLoading || isPackageLoading) {
     return (
       <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f] text-center">
         Menyiapkan data pembayaran...
@@ -293,7 +230,7 @@ export const PaymentFormContainer = () => {
       />
     );
   }
-
+  
   if (hasPendingPayment) {
     return (
       <PaymentProcessingNotice

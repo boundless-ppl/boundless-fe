@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import {
@@ -18,7 +17,6 @@ import type {
   PaymentPlanId,
 } from "@/features/payment/types/payment-form.types";
 import { paymentPlanValues } from "@/features/payment/types/payment-form.types";
-import { PAYMENT_PLANS } from "../constant";
 import {
   BenefitsCard,
   PlanSelectorCard,
@@ -26,6 +24,7 @@ import {
   SummaryCard,
   UploadCard,
 } from "../components/PaymentFormCards";
+import { PAYMENT_PLAN_LABELS } from "../constant";
 
 const MAX_RECEIPT_SIZE = 350 * 1024;
 const MOBILE_BREAKPOINT_QUERY = "(max-width: 1023px)";
@@ -83,8 +82,8 @@ export const PaymentFormSection = ({
 
   const selectedPlanId = useWatch({ control: form.control, name: "planId" });
   const receiptFile = useWatch({ control: form.control, name: "receiptFile" });
-  const selectedPlan = PAYMENT_PLANS.find((plan) => plan.id === selectedPlanId) ?? PAYMENT_PLANS[2];
-  const selectedPlanPrice = planPriceById[selectedPlan.id] ?? selectedPlan.price;
+  const selectedPlanPrice = planPriceById[selectedPlanId] ?? 0;
+  const selectedPlanLabel = PAYMENT_PLAN_LABELS[selectedPlanId];
   const total = selectedPlanPrice;
 
   const isMobileLayout = useSyncExternalStore(
@@ -106,10 +105,7 @@ export const PaymentFormSection = ({
     form.setValue("planId", requestedPlanParam, { shouldDirty: false, shouldValidate: true });
     onPlanSelected?.({
       planId: requestedPlanParam,
-      price:
-        planPriceById[requestedPlanParam] ??
-        PAYMENT_PLANS.find((plan) => plan.id === requestedPlanParam)?.price ??
-        0,
+      price: planPriceById[requestedPlanParam] ?? 0,
     });
       hasAppliedInitialPlanFromQuery.current = true;
   }, [form, onPlanSelected, planPriceById, requestedPlanParam]);
@@ -124,7 +120,7 @@ export const PaymentFormSection = ({
 
     onPlanSelected?.({
       planId,
-      price: planPriceById[planId] ?? PAYMENT_PLANS.find((plan) => plan.id === planId)?.price ?? 0,
+      price: planPriceById[planId] ?? 0,
     });
 
     setCreatedPayment(null);
@@ -164,7 +160,7 @@ export const PaymentFormSection = ({
 
     try {
       const result = await onCreatePayment?.({
-        planId: selectedPlan.id,
+        planId: selectedPlanId,
         amount: selectedPlanPrice,
         total,
       });
@@ -279,7 +275,7 @@ export const PaymentFormSection = ({
                 />
                 <BenefitsCard />
                 <SummaryCard price={selectedPlanPrice} total={total} />
-                <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+                <section className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
                   <h3 className="text-base font-semibold text-[#1d1d1d]">Langkah Selanjutnya</h3>
                   <p className="mt-2 text-sm text-[#8f8f8f]">
                     Setelah memilih paket, klik tombol di bawah untuk membuat pembayaran.
@@ -290,7 +286,7 @@ export const PaymentFormSection = ({
                     disabled={isCreatingPayment || isPackageLoading || form.formState.isSubmitting}
                     className="mt-4 h-11 w-full rounded-xl bg-[#f58a1f] text-sm font-semibold text-white hover:bg-[#e57d15]"
                   >
-                    {isCreatingPayment ? "Membuat Pembayaran..." : `Buat Pembayaran - ${selectedPlan.label}`}
+                    {isCreatingPayment ? "Membuat Pembayaran..." : `Buat Pembayaran - ${selectedPlanLabel}`}
                   </Button>
                 </section>
               </>
@@ -346,7 +342,7 @@ export const PaymentFormSection = ({
             <div className="space-y-4">
               <SummaryCard price={selectedPlanPrice} total={total} />
               {!createdPayment ? (
-                <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+                <section className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
                   <h3 className="text-base font-semibold text-[#1d1d1d]">Langkah Selanjutnya</h3>
                   <p className="mt-2 text-sm text-[#8f8f8f]">
                     Setelah memilih paket, klik tombol di bawah untuk membuat pembayaran.
@@ -357,7 +353,7 @@ export const PaymentFormSection = ({
                     disabled={isCreatingPayment || isPackageLoading || form.formState.isSubmitting}
                     className="mt-4 h-11 w-full rounded-xl bg-[#f58a1f] text-sm font-semibold text-white hover:bg-[#e57d15]"
                   >
-                    {isCreatingPayment ? "Membuat Pembayaran..." : `Buat Pembayaran - ${selectedPlan.label}`}
+                    {isCreatingPayment ? "Membuat Pembayaran..." : `Buat Pembayaran - ${selectedPlanLabel}`}
                   </Button>
                 </section>
               ) : null}
