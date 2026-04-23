@@ -10,6 +10,7 @@ variables:
   GCP_REGION: asia-southeast2
   GAR_REGION: asia-southeast2
   GAR_REPOSITORY: boundless-fe
+  GAR_AUTO_CREATE_REPOSITORY: "false"
   CLOUD_RUN_SERVICE: boundless-fe
   CLOUD_RUN_ALLOW_UNAUTHENTICATED: "true"
 
@@ -66,17 +67,38 @@ build_and_push_image:
     - gcloud auth print-access-token >/dev/null || (echo "Failed to obtain OAuth access token from service account key" && exit 1)
     - gcloud config set project "$GCP_PROJECT_ID"
     - |
-      gcloud artifacts repositories describe "$GAR_REPOSITORY" \
+      if ! gcloud artifacts repositories describe "$GAR_REPOSITORY" \
         --location "$GAR_REGION" \
-        --project "$GCP_PROJECT_ID" >/dev/null 2>&1 || \
-      gcloud artifacts repositories create "$GAR_REPOSITORY" \
-        --repository-format docker \
-        --location "$GAR_REGION" \
-        --description "Docker repository for boundless-fe Cloud Run images" \
-        --project "$GCP_PROJECT_ID"
+        --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+        if [ "$GAR_AUTO_CREATE_REPOSITORY" = "true" ]; then
+          gcloud artifacts repositories create "$GAR_REPOSITORY" \
+            --repository-format docker \
+            --location "$GAR_REGION" \
+            --description "Docker repository for boundless-fe Cloud Run images" \
+            --project "$GCP_PROJECT_ID"
+        else
+          echo "Artifact Registry repository '$GAR_REPOSITORY' not found in region '$GAR_REGION'."
+          echo "Create it manually or set GAR_AUTO_CREATE_REPOSITORY=true with a service account that has artifactregistry.repositories.create permission."
+          exit 1
+        fi
+      fi
     - gcloud auth configure-docker "${GAR_REGION}-docker.pkg.dev" --quiet
     - export IMAGE_URI="${GAR_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/${CLOUD_RUN_SERVICE}:${CI_COMMIT_SHORT_SHA}"
-    - gcloud builds submit --project "$GCP_PROJECT_ID" --tag "$IMAGE_URI" .
+    - export BUILD_ID="$(gcloud builds submit --project "$GCP_PROJECT_ID" --tag "$IMAGE_URI" --async --format='value(id)' .)"
+    - test -n "$BUILD_ID" || (echo "Failed to get Cloud Build ID" && exit 1)
+    - |
+      while true; do
+        BUILD_STATUS="$(gcloud builds describe "$BUILD_ID" --project "$GCP_PROJECT_ID" --format='value(status)')"
+        echo "Cloud Build status: $BUILD_STATUS"
+        if [ "$BUILD_STATUS" = "SUCCESS" ]; then
+          break
+        fi
+        if [ "$BUILD_STATUS" = "FAILURE" ] || [ "$BUILD_STATUS" = "INTERNAL_ERROR" ] || [ "$BUILD_STATUS" = "CANCELLED" ] || [ "$BUILD_STATUS" = "TIMEOUT" ] || [ "$BUILD_STATUS" = "EXPIRED" ]; then
+          echo "Cloud Build failed with status: $BUILD_STATUS"
+          exit 1
+        fi
+        sleep 5
+      done
     - printf "IMAGE_URI=%s\n" "$IMAGE_URI" > image.env
   artifacts:
     expire_in: 1 day
