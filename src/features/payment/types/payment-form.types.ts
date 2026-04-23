@@ -4,7 +4,7 @@ import type { Control } from "react-hook-form";
 import type { ApiResult, PaymentStatus } from "./payment-api.types";
 import type { PaymentFormSchema } from "../schemas/payment-form.schema";
 
-export const paymentPlanValues = ["1month", "3month", "1year"] as const;
+export const paymentPlanValues = ["1month", "3month", "6month"] as const;
 export type PaymentPlanId = (typeof paymentPlanValues)[number];
 
 export type PlanSelectedPayload = {
@@ -12,7 +12,23 @@ export type PlanSelectedPayload = {
   price: number;
 };
 
+export type CreatePaymentPayload = {
+  planId: PaymentPlanId;
+  amount: number;
+  total: number;
+};
+
+export type CreatePaymentData = {
+  paymentId: string;
+  transactionId: string;
+  status: PaymentStatus;
+};
+
+export type CreatePaymentResult = ApiResult<CreatePaymentData>;
+
 export type ReceiptSubmittedPayload = {
+  paymentId: string;
+  transactionId: string;
   planId: PaymentPlanId;
   amount: number;
   total: number;
@@ -31,6 +47,9 @@ export type PaymentSubmissionResult = ApiResult<PaymentSubmissionData>;
 
 export type PaymentFormSectionProps = {
   onPlanSelected?: (payload: PlanSelectedPayload) => void;
+  onCreatePayment?: (
+    payload: CreatePaymentPayload
+  ) => Promise<CreatePaymentResult> | CreatePaymentResult;
   onReceiptSubmitted?: (
     payload: ReceiptSubmittedPayload
   ) => Promise<PaymentSubmissionResult> | PaymentSubmissionResult;

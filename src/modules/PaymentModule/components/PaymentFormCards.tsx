@@ -13,26 +13,22 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   type PlanSelectorCardProps,
-  type PaymentPlanId,
   type QrisCardProps,
   type SummaryCardProps,
   type UploadCardProps,
+  paymentPlanValues,
 } from "@/features/payment/types/payment-form.types";
 import { getSavingsLabel } from "@/features/payment/utils/savings";
 import {
   PAYMENT_BENEFITS,
   PAYMENT_INSTRUCTIONS,
-  PAYMENT_PLANS,
+  PAYMENT_PLAN_BADGES,
+  PAYMENT_PLAN_DURATION_MONTHS,
+  PAYMENT_PLAN_LABELS,
 } from "../constant";
 
-const PLAN_DURATION_MONTHS: Record<PaymentPlanId, number> = {
-  "1month": 1,
-  "3month": 3,
-  "1year": 12,
-};
-
 const planCardVariants = cva(
-  "relative block w-full cursor-pointer rounded-xl border bg-white px-4 py-3 text-left transition-colors",
+  "relative block w-full cursor-pointer rounded-xl border bg-gray-50 px-4 py-3 text-left transition-colors",
   {
     variants: {
       selected: {
@@ -59,13 +55,10 @@ export const PlanSelectorCard = ({
   onPlanSelect,
   planPriceById,
 }: PlanSelectorCardProps) => {
-  const baseMonthlyPrice =
-    planPriceById?.["1month"] ??
-    PAYMENT_PLANS.find((plan) => plan.id === "1month")?.price ??
-    0;
+  const baseMonthlyPrice = planPriceById?.["1month"] ?? 0;
 
   return (
-    <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+    <section className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
       <fieldset>
         <legend className="text-base font-semibold text-[#1d1d1d]">Pilih Paket</legend>
         <FormField
@@ -73,19 +66,21 @@ export const PlanSelectorCard = ({
           name="planId"
           render={({ field }) => (
             <div className="mt-4 space-y-3" role="radiogroup" aria-label="Pilih Paket">
-              {PAYMENT_PLANS.map((plan) => {
-                const isSelected = selectedPlanId === plan.id;
-                const planPrice = planPriceById?.[plan.id] ?? plan.price;
+              {paymentPlanValues.map((planId) => {
+                const isSelected = selectedPlanId === planId;
+                const planPrice = planPriceById?.[planId] ?? 0;
                 const savingsLabel = getSavingsLabel(
                   planPrice,
-                  PLAN_DURATION_MONTHS[plan.id],
+                  PAYMENT_PLAN_DURATION_MONTHS[planId],
                   baseMonthlyPrice
                 );
-                const inputId = `plan-${plan.id}`;
+                const inputId = `plan-${planId}`;
+                const badge = PAYMENT_PLAN_BADGES[planId];
+                const label = PAYMENT_PLAN_LABELS[planId];
 
                 return (
                   <label
-                    key={plan.id}
+                    key={planId}
                     htmlFor={inputId}
                     className={planCardVariants({ selected: isSelected })}
                     aria-pressed={isSelected}
@@ -94,18 +89,18 @@ export const PlanSelectorCard = ({
                       id={inputId}
                       type="radio"
                       name={field.name}
-                      value={plan.id}
+                      value={planId}
                       checked={isSelected}
                       onChange={() => {
-                        field.onChange(plan.id);
-                        onPlanSelect(plan.id);
+                        field.onChange(planId);
+                        onPlanSelect(planId);
                       }}
                       className="sr-only"
                     />
 
-                    {plan.badge ? (
+                    {badge ? (
                       <span className="absolute -top-2 left-3 rounded-full bg-[#f58a1f] px-2 py-0.5 text-[10px] font-medium text-white">
-                        {plan.badge}
+                        {badge}
                       </span>
                     ) : null}
 
@@ -116,7 +111,7 @@ export const PlanSelectorCard = ({
                         <Circle className="h-4 w-4 text-[#c7c9cf]" />
                       )}
                       <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-[#f58a1f]">{plan.label}</p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-[#f58a1f]">{label}</p>
                         <div className="flex items-baseline gap-2">
                           <p className="text-[30px] leading-none font-bold text-[#1f1f1f]">
                             {formatIdr(planPrice)}
@@ -140,7 +135,7 @@ export const PlanSelectorCard = ({
 
 export const BenefitsCard = () => {
   return (
-    <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+    <section className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
       <h2 className="text-base font-semibold text-[#1d1d1d]">Apa yang Anda Dapatkan</h2>
       <ul className="mt-3 space-y-2">
         {PAYMENT_BENEFITS.map((benefit) => (
@@ -156,7 +151,7 @@ export const BenefitsCard = () => {
 
 export const QrisCard = ({ total }: QrisCardProps) => {
   return (
-    <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+    <section className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
       <h3 className="text-base font-semibold text-[#1d1d1d]">Transfer Bank BCA</h3>
       <p className="mt-2 text-sm text-[#8f8f8f]">
         Lakukan transfer ke rekening berikut, lalu upload bukti pembayaran.
@@ -192,7 +187,7 @@ export const UploadCard = ({
   onFileSelect,
 }: UploadCardProps) => {
   return (
-    <section ref={uploadSectionRef} className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+    <section ref={uploadSectionRef} className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
       <h3 className="text-base font-semibold text-[#1d1d1d]">Upload Bukti Transfer</h3>
       <p className="mt-2 text-sm text-[#8f8f8f]">Upload bukti pembayaran (IMG/PDF, maks 350KB)</p>
 
@@ -219,9 +214,9 @@ export const UploadCard = ({
                 />
                 <label
                   htmlFor={uploadInputId}
-                  className="block w-full cursor-pointer rounded-xl border border-dashed border-[#d3d4d8] bg-[#f5f5f7] px-4 py-10 text-center"
+                  className="block w-full cursor-pointer rounded-xl border border-dashed border-[#d3d4d8] bg-white px-4 py-10 text-center"
                 >
-                  <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#fde8d2] text-[#f58a1f]">
+                  <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#f58a1f]">
                     <Upload className="h-4 w-4" />
                   </span>
                   <p className="mt-3 text-sm font-semibold text-[#1f1f1f]">Klik untuk upload bukti transfer</p>
@@ -255,7 +250,7 @@ export const UploadCard = ({
 
 export const SummaryCard = ({ price, total }: SummaryCardProps) => {
   return (
-    <section className="rounded-2xl border border-[#d8d6d2] bg-[#f8f8f8] p-4 shadow-sm">
+    <section className="rounded-2xl border border-[#d8d6d2] bg-white p-4 shadow-sm">
       <h2 className="text-2xl font-semibold text-[#1d1d1d]">Ringkasan</h2>
       <div className="mt-3 space-y-2 text-sm text-[#5f5f5f]">
         <div className="flex items-center justify-between">

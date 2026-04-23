@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { trackEvent } from "@/lib/track-event";
 import {
   createPayment,
-  getPaymentDetail,
   getSubscriptionPackages,
   uploadPaymentProof,
 } from "@/features/payment/services/payment.service";
@@ -13,34 +12,28 @@ import {
   mapPlanPricesFromPackages,
   resolvePackageByPlanId,
 } from "@/features/payment/utils/package-mapper";
-import {
-  clearPendingPayment,
-  readPendingPayment,
-  savePendingPayment,
-  type PendingPaymentRecord,
-} from "@/features/payment/utils/pending-payment";
-import { useAuth } from "@/lib/auth-context";
 import { useUserData } from "@/hooks/useUserData";
 import { PaymentFormSection } from "./PaymentFormSection";
 import { PaymentProcessingNotice } from "../components/PaymentProcessingNotice";
 import { PremiumActiveNotice } from "../components/PremiumActiveNotice";
 import {
+  type CreatePaymentPayload,
+  type CreatePaymentResult,
   type PlanSelectedPayload,
   type PaymentPlanId,
   type PaymentSubmissionResult,
   type ReceiptSubmittedPayload,
 } from "@/features/payment/types/payment-form.types";
 import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
+import { useAuth } from "@/lib/auth-context";
 
 export const PaymentFormContainer = () => {
   const router = useRouter();
   const { refreshUser, isAuthenticated, isLoading } = useAuth();
-  const { isPremium, premiumStartAt, premiumEndAt } = useUserData();
+  const { isPremium, premiumStartAt, premiumEndAt, hasPendingPayment, transactionId } = useUserData();
   const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
   const [isPackageLoading, setIsPackageLoading] = useState(true);
   const [packageLoadError, setPackageLoadError] = useState<string | null>(null);
-  const [pendingPayment, setPendingPayment] = useState<PendingPaymentRecord | null>(null);
-  const [isCheckingPending, setIsCheckingPending] = useState(true);
 
   useEffect(() => {
     if (isLoading) {
@@ -52,59 +45,7 @@ export const PaymentFormContainer = () => {
       return;
     }
 
-    let isActive = true;
-
-    const checkPendingPayment = async () => {
-      const record = readPendingPayment();
-      if (!record) {
-        await refreshUser();
-        if (isActive) {
-          setPendingPayment(null);
-          setIsCheckingPending(false);
-        }
-        return;
-      }
-
-      const result = await getPaymentDetail(record.paymentId);
-      if (!isActive) {
-        return;
-      }
-
-      if (result.data?.status === "pending") {
-        setPendingPayment(record);
-        setIsCheckingPending(false);
-        return;
-      }
-
-      if (result.data?.status === "success" || result.data?.status === "failed") {
-        clearPendingPayment();
-        setPendingPayment(null);
-        await refreshUser();
-        setIsCheckingPending(false);
-        return;
-      }
-
-      setPendingPayment(record);
-      setIsCheckingPending(false);
-    };
-
-    void checkPendingPayment();
-
-    const intervalId = globalThis.setInterval(() => {
-      void checkPendingPayment();
-    }, 30_000);
-
-    const handleFocus = () => {
-      void checkPendingPayment();
-    };
-
-    globalThis.window.addEventListener("focus", handleFocus);
-
-    return () => {
-      isActive = false;
-      globalThis.clearInterval(intervalId);
-      globalThis.window.removeEventListener("focus", handleFocus);
-    };
+    return;
   }, [isAuthenticated, isLoading, refreshUser, router]);
 
   useEffect(() => {
@@ -141,7 +82,7 @@ export const PaymentFormContainer = () => {
     return {
       "1month": resolvePackageByPlanId("1month", packages),
       "3month": resolvePackageByPlanId("3month", packages),
-      "1year": resolvePackageByPlanId("1year", packages),
+      "6month": resolvePackageByPlanId("6month", packages),
     } satisfies Record<PaymentPlanId, SubscriptionPackage | null>;
   }, [packages]);
 
@@ -161,13 +102,11 @@ export const PaymentFormContainer = () => {
     });
   };
 
-  const handleReceiptSubmitted = async ({
+  const handleCreatePayment = async ({
     planId,
     amount,
     total,
-    fileName,
-    receiptFile,
-  }: ReceiptSubmittedPayload): Promise<PaymentSubmissionResult> => {
+  }: CreatePaymentPayload): Promise<CreatePaymentResult> => {
     if (isPackageLoading) {
       return {
         data: null,
@@ -201,7 +140,44 @@ export const PaymentFormContainer = () => {
       };
     }
 
-    const proofResult = await uploadPaymentProof(paymentResult.data.payment_id, receiptFile);
+    trackEvent("payment_created", {
+      plan_id: planId,
+      amount,
+      total,
+      payment_id: paymentResult.data.payment_id,
+      transaction_id: paymentResult.data.transaction_id,
+      subscription_id: selectedPackage.subscription_id,
+      package_key: selectedPackage.package_key,
+    });
+
+    return {
+      data: {
+        paymentId: paymentResult.data.payment_id,
+        transactionId: paymentResult.data.transaction_id,
+        status: paymentResult.data.status,
+      },
+      error: null,
+    };
+  };
+
+  const handleReceiptSubmitted = async ({
+    paymentId,
+    transactionId,
+    planId,
+    amount,
+    total,
+    fileName,
+    receiptFile,
+  }: ReceiptSubmittedPayload): Promise<PaymentSubmissionResult> => {
+    const selectedPackage = packageByPlan[planId];
+    if (!selectedPackage) {
+      return {
+        data: null,
+        error: "Paket tidak ditemukan. Silakan pilih paket lain.",
+      };
+    }
+
+    const proofResult = await uploadPaymentProof(paymentId, receiptFile);
     if (proofResult.error || !proofResult.data) {
       return {
         data: null,
@@ -214,8 +190,8 @@ export const PaymentFormContainer = () => {
       amount,
       total,
       file_name: fileName,
-      payment_id: paymentResult.data.payment_id,
-      transaction_id: paymentResult.data.transaction_id,
+      payment_id: paymentId,
+      transaction_id: transactionId,
       proof_document_id: proofResult.data.document_id,
       subscription_id: selectedPackage.subscription_id,
       package_key: selectedPackage.package_key,
@@ -223,9 +199,9 @@ export const PaymentFormContainer = () => {
 
     return {
       data: {
-        paymentId: paymentResult.data.payment_id,
-        transactionId: paymentResult.data.transaction_id,
-        status: paymentResult.data.status,
+        paymentId,
+        transactionId,
+        status: "pending",
         proofDocumentId: proofResult.data.document_id,
       },
       error: null,
@@ -235,23 +211,13 @@ export const PaymentFormContainer = () => {
   const handleReceiptSubmittedWithPendingState: typeof handleReceiptSubmitted =
     async (payload) => {
       const result = await handleReceiptSubmitted(payload);
-      if (result.data?.paymentId && result.data?.transactionId) {
-        const record: PendingPaymentRecord = {
-          paymentId: result.data.paymentId,
-          transactionId: result.data.transactionId,
-          submittedAt: new Date().toISOString(),
-        };
-        savePendingPayment(record);
-        setPendingPayment(record);
-      }
-
       return result;
     };
 
-  if (isLoading || isCheckingPending) {
+  if (isLoading || isPackageLoading) {
     return (
-      <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f]">
-        Mengecek status pembayaran Anda...
+      <div className="rounded-2xl border border-[#eadfce] bg-[#fff8f1] px-4 py-3 text-sm text-[#8f8f8f] text-center">
+        Menyiapkan data pembayaran...
       </div>
     );
   }
@@ -264,12 +230,11 @@ export const PaymentFormContainer = () => {
       />
     );
   }
-
-  if (pendingPayment) {
+  
+  if (hasPendingPayment) {
     return (
       <PaymentProcessingNotice
-        transactionId={pendingPayment.transactionId}
-        submittedAt={pendingPayment.submittedAt}
+        transactionId={transactionId ?? "-"}
       />
     );
   }
@@ -278,6 +243,7 @@ export const PaymentFormContainer = () => {
     <Suspense fallback={<div />}>
       <PaymentFormSection
         onPlanSelected={handlePlanSelected}
+        onCreatePayment={handleCreatePayment}
         onReceiptSubmitted={handleReceiptSubmittedWithPendingState}
         isPackageLoading={isPackageLoading}
         packageLoadError={packageLoadError}

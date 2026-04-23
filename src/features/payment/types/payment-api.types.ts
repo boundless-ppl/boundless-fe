@@ -12,6 +12,7 @@ export type SubscriptionPackage = {
   description: string;
   duration_months: number;
   price_amount: number;
+  normal_amount: number;
   benefits: string[];
 };
 
@@ -48,46 +49,6 @@ export type UploadPaymentProofResponse = {
 
 export type PaymentDetailResponse = PaymentSummary & {
   proof_document_id?: string;
-  paid_at?: string;
-  premium_active_at?: string;
-  premium_expired_at?: string;
-};
-
-export type AdminListPaymentsQuery = {
-  q?: string;
-  status?: PaymentStatus;
-  page?: number;
-  page_size?: number;
-};
-
-export type AdminPaymentItem = {
-  payment_id: string;
-  transaction_id: string;
-  user_id: string;
-  user_name: string;
-  package_name: string;
-  amount: number;
-  status: PaymentStatus;
-  transaction_date: string;
-  proof_document_id?: string;
-  proof_document_url?: string;
-};
-
-export type AdminListPaymentsResponse = {
-  payments: AdminPaymentItem[];
-};
-
-export type AdminUpdatePaymentStatusRequest = {
-  status: PaymentStatus;
-  admin_note?: string;
-  proof_document_id?: string;
-  start_date?: string;
-};
-
-export type AdminUpdatePaymentStatusResponse = {
-  payment_id: string;
-  transaction_id: string;
-  status: PaymentStatus;
   paid_at?: string;
   premium_active_at?: string;
   premium_expired_at?: string;

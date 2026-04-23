@@ -1,6 +1,5 @@
 import { HomePageModule } from "@/modules/HomePageModule";
 import { getSubscriptionPackages } from "@/features/payment/services/payment.service";
-import { mapPlanPricesFromPackages } from "@/features/payment/utils/package-mapper";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ACCESS_TOKEN_COOKIE } from "@/features/auth/constants/auth.constants";
@@ -21,10 +20,10 @@ export default async function Page() {
   }
 
   const result = await getSubscriptionPackages();
-  const initialPrices =
+  const initialPackages =
     result.data && !result.error
-      ? mapPlanPricesFromPackages(result.data.packages)
+      ? result.data.packages
       : undefined;
 
-  return <HomePageModule initialPrices={initialPrices} />;
+  return <HomePageModule initialPackages={initialPackages} />;
 }

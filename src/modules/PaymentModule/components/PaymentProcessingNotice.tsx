@@ -2,24 +2,24 @@ import { Clock3, MessageCircleMore } from "lucide-react";
 
 type PaymentProcessingNoticeProps = {
   transactionId: string;
-  submittedAt: string;
+  // submittedAt: string;
 };
 
-function formatSubmittedAt(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
+// function formatSubmittedAt(value: string) {
+//   const date = new Date(value);
+//   if (Number.isNaN(date.getTime())) {
+//     return "-";
+//   }
 
-  return new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
+//   return new Intl.DateTimeFormat("id-ID", {
+//     dateStyle: "medium",
+//     timeStyle: "short",
+//   }).format(date);
+// }
 
 export function PaymentProcessingNotice({
   transactionId,
-  submittedAt,
+  // submittedAt,
 }: Readonly<PaymentProcessingNoticeProps>) {
   return (
     <section className="rounded-2xl border border-[#f6d2ab] bg-[#fff8f1] p-6 shadow-sm">
@@ -41,10 +41,10 @@ export function PaymentProcessingNotice({
           <span className="font-semibold text-[#1f1f1f]">ID Transaksi:</span>{" "}
           {transactionId}
         </p>
-        <p className="mt-1">
+        {/* <p className="mt-1">
           <span className="font-semibold text-[#1f1f1f]">Waktu Upload:</span>{" "}
           {formatSubmittedAt(submittedAt)}
-        </p>
+        </p> */}
       </div>
 
       <div className="mt-5 rounded-xl border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#4b5563]">
