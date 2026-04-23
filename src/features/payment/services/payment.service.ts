@@ -1,10 +1,6 @@
 import { getAuthToken } from "@/features/auth/services/auth.service";
 import { API_CONFIG } from "@/lib/api-config";
 import type {
-  // AdminListPaymentsQuery,
-  // AdminListPaymentsResponse,
-  // AdminUpdatePaymentStatusRequest,
-  // AdminUpdatePaymentStatusResponse,
   ApiResult,
   CreatePaymentRequest,
   ListSubscriptionPackagesResponse,
@@ -84,23 +80,6 @@ function buildAuthHeaders(token: string): HeadersInit {
   };
 }
 
-// function withQuery(endpoint: string, query: Record<string, string | number | undefined>): string {
-//   const params = new URLSearchParams();
-
-//   Object.entries(query).forEach(([key, value]) => {
-//     if (value !== undefined && value !== "") {
-//       params.set(key, String(value));
-//     }
-//   });
-
-//   const queryString = params.toString();
-//   if (!queryString) {
-//     return endpoint;
-//   }
-
-//   return `${endpoint}?${queryString}`;
-// }
-
 export async function getSubscriptionPackages(): Promise<ApiResult<ListSubscriptionPackagesResponse>> {
   return requestJson<ListSubscriptionPackagesResponse>(SUBSCRIPTIONS.PACKAGES, {
     method: "GET",
@@ -157,45 +136,3 @@ export async function uploadPaymentProof(
     body: formData,
   });
 }
-
-// export async function getAdminPayments(
-//   query: AdminListPaymentsQuery = {}
-// ): Promise<ApiResult<AdminListPaymentsResponse>> {
-//   const token = getBearerToken();
-//   if (!token) {
-//     return { data: null, error: "authentication failed" };
-//   }
-
-//   return requestJson<AdminListPaymentsResponse>(
-//     withQuery(ADMIN_PAYMENTS.BASE, {
-//       q: query.q,
-//       status: query.status,
-//       page: query.page,
-//       page_size: query.page_size,
-//     }),
-//     {
-//       method: "GET",
-//       headers: buildAuthHeaders(token),
-//       cache: "no-store",
-//     }
-//   );
-// }
-
-// export async function updateAdminPaymentStatus(
-//   paymentId: string,
-//   payload: AdminUpdatePaymentStatusRequest
-// ): Promise<ApiResult<AdminUpdatePaymentStatusResponse>> {
-//   const token = getBearerToken();
-//   if (!token) {
-//     return { data: null, error: "authentication failed" };
-//   }
-
-//   return requestJson<AdminUpdatePaymentStatusResponse>(ADMIN_PAYMENTS.STATUS(paymentId), {
-//     method: "PATCH",
-//     headers: {
-//       ...buildAuthHeaders(token),
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(payload),
-//   });
-// }
