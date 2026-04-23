@@ -1,8 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { Clock3, Mail, MessageCircleMore, ShieldCheck } from "lucide-react";
+import { Clock3, Eye, EyeOff, Mail, MessageCircleMore, Pencil, ShieldCheck } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { useUserData } from "@/hooks/useUserData";
+import { useAuth } from "@/lib/auth-context";
+import { updateProfileRequest, changePasswordRequest } from "@/features/auth/services/auth.service";
+import {
+  editProfileSchema,
+  changePasswordSchema,
+  type EditProfileSchema,
+  type ChangePasswordSchema,
+} from "@/features/auth/schemas/profile-form.schema";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 function getAvatarInitials(fullName: string, email: string) {
   const firstName = fullName.trim().split(/\s+/)[0] ?? "";
@@ -39,6 +67,81 @@ function formatDateTime(value: string | null) {
 
 export const ProfileCardSection = () => {
   const { isAuthenticated, fullName, email, role, isPremium, premiumStartAt, premiumEndAt, hasPendingPayment, transactionId } = useUserData();
+  const { tokens, refreshUser } = useAuth();
+
+  // Modal state
+  const [editNameOpen, setEditNameOpen] = useState(false);
+  const [changePassOpen, setChangePassOpen] = useState(false);
+
+  // Edit name form
+  const [editNameError, setEditNameError] = useState<string | null>(null);
+  const editNameForm = useForm<EditProfileSchema>({
+    resolver: zodResolver(editProfileSchema),
+    defaultValues: { nama_lengkap: fullName },
+  });
+
+  // Change password form
+  const [changePassError, setChangePassError] = useState<string | null>(null);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const changePassForm = useForm<ChangePasswordSchema>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: { currentPassword: "", newPassword: "", confirmNewPassword: "" },
+  });
+
+  // Sync edit name form when fullName loads
+  useEffect(() => {
+    if (fullName) {
+      editNameForm.reset({ nama_lengkap: fullName });
+    }
+  }, [fullName, editNameForm]);
+
+  const handleEditNameOpenChange = (nextOpen: boolean) => {
+    setEditNameOpen(nextOpen);
+
+    if (!nextOpen) {
+      setEditNameError(null);
+    }
+  };
+
+  const handleChangePassOpenChange = (nextOpen: boolean) => {
+    setChangePassOpen(nextOpen);
+
+    if (!nextOpen) {
+      setChangePassError(null);
+      changePassForm.reset();
+      setShowCurrent(false);
+      setShowNew(false);
+      setShowConfirm(false);
+    }
+  };
+
+  const onSubmitEditName = async (data: EditProfileSchema) => {
+    setEditNameError(null);
+    if (!tokens?.accessToken) return;
+    try {
+      await updateProfileRequest(tokens.accessToken, data.nama_lengkap);
+      await refreshUser();
+      setEditNameOpen(false);
+    } catch (err: unknown) {
+      setEditNameError(err instanceof Error ? err.message : "Gagal memperbarui nama.");
+    }
+  };
+
+  const onSubmitChangePass = async (data: ChangePasswordSchema) => {
+    setChangePassError(null);
+    if (!tokens?.accessToken) return;
+    try {
+      await changePasswordRequest(tokens.accessToken, data.currentPassword, data.newPassword);
+      setChangePassOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal mengganti password.";
+      setChangePassError(message === "wrong current password" ? "Password saat ini tidak sesuai." : message);
+    }
+  };
+
+  
   const displayName = fullName || "Pengguna Boundless";
   const displayNameTitleCase = toTitleCasePerWord(displayName);
   const avatarInitials = getAvatarInitials(fullName, email);
@@ -77,11 +180,23 @@ export const ProfileCardSection = () => {
           </div>
 
           <div className="mt-8 grid gap-2 md:gap-4 md:grid-cols-2">
+            {/* Nama Lengkap — dengan pencil icon */}
             <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">Nama Lengkap</p>
-              <p className="mt-2 text-base font-semibold text-[#1f2937]">{displayNameTitleCase}</p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-base font-semibold text-[#1f2937]">{displayNameTitleCase}</p>
+                <button
+                  type="button"
+                  onClick={() => setEditNameOpen(true)}
+                  className="shrink-0 rounded-lg p-1.5 text-[#6b7280] transition-colors hover:bg-[#f58a1f]/10 hover:text-[#f58a1f]"
+                  aria-label="Edit nama lengkap"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
+            {/* Email */}
             <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">Email</p>
               <p className="mt-2 flex items-center gap-2 text-base font-semibold text-[#1f2937]">
@@ -90,6 +205,7 @@ export const ProfileCardSection = () => {
               </p>
             </div>
 
+            {/* Role */}
             <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">Role</p>
               <p className="mt-2 flex items-center gap-2 text-base font-semibold capitalize text-[#1f2937]">
@@ -98,6 +214,22 @@ export const ProfileCardSection = () => {
               </p>
             </div>
 
+            {/* Ganti Password — serupa dengan card Nama Lengkap */}
+            <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">Password</p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-base font-semibold tracking-widest text-[#1f2937]">••••••••</p>
+                <button
+                  type="button"
+                  onClick={() => setChangePassOpen(true)}
+                  className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold text-[#f58a1f] transition-colors hover:bg-[#f58a1f]/10"
+                >
+                  Change Password
+                </button>
+              </div>
+            </div>
+
+            {/* Status Langganan */}
             <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-4 md:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#6b7280]">Status Langganan</p>
               <p className="mt-2 text-base font-semibold text-[#1f2937]">
@@ -109,7 +241,6 @@ export const ProfileCardSection = () => {
                 </p>
               )}
             </div>
-
           </div>
 
           {hasPendingPayment && isAuthenticated && (
@@ -138,6 +269,189 @@ export const ProfileCardSection = () => {
           )}
         </div>
       </div>
+
+      {/* Modal: Edit Nama Lengkap */}
+      <Dialog open={editNameOpen} onOpenChange={handleEditNameOpenChange}>
+        <DialogContent className="rounded-[20px] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#1f2937]">Edit Nama Lengkap</DialogTitle>
+          </DialogHeader>
+          <Form {...editNameForm}>
+            <form onSubmit={editNameForm.handleSubmit(onSubmitEditName)} className="space-y-4 pt-2">
+              <FormField
+                control={editNameForm.control}
+                name="nama_lengkap"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-[#374151]">Nama Lengkap</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Masukkan nama lengkap"
+                        className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {editNameError && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {editNameError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={() => setEditNameOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={editNameForm.formState.isSubmitting}
+                  className="rounded-2xl bg-[#f58a1f] text-white hover:bg-[#dd7611]"
+                >
+                  {editNameForm.formState.isSubmitting ? "Menyimpan..." : "Simpan"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Ganti Password */}
+      <Dialog open={changePassOpen} onOpenChange={handleChangePassOpenChange}>
+        <DialogContent className="rounded-[20px] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#1f2937]">Ganti Password</DialogTitle>
+          </DialogHeader>
+          <Form {...changePassForm}>
+            <form onSubmit={changePassForm.handleSubmit(onSubmitChangePass)} className="space-y-4 pt-2">
+              <FormField
+                control={changePassForm.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-[#374151]">Password Saat Ini</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showCurrent ? "text" : "password"}
+                          placeholder="Masukkan password saat ini"
+                          className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
+                          onClick={() => setShowCurrent((v) => !v)}
+                        >
+                          {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={changePassForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-[#374151]">Password Baru</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showNew ? "text" : "password"}
+                          placeholder="Buat password baru"
+                          className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
+                          onClick={() => setShowNew((v) => !v)}
+                        >
+                          {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={changePassForm.control}
+                name="confirmNewPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-[#374151]">Konfirmasi Password Baru</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showConfirm ? "text" : "password"}
+                          placeholder="Ulangi password baru"
+                          className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
+                          onClick={() => setShowConfirm((v) => !v)}
+                        >
+                          {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="rounded-2xl border border-[#ebe6dc] bg-[#fcfaf6] px-4 py-3 text-sm text-[#4b5563]">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#1f2937]" />
+                  <p className="leading-5">
+                    Min. 8 karakter, huruf besar, huruf kecil, angka, dan karakter spesial.
+                  </p>
+                </div>
+              </div>
+
+              {changePassError && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {changePassError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={() => setChangePassOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={changePassForm.formState.isSubmitting}
+                  className="rounded-2xl bg-[#f58a1f] text-white hover:bg-[#dd7611]"
+                >
+                  {changePassForm.formState.isSubmitting ? "Mengubah..." : "Ganti Password"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
