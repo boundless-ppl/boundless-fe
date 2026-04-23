@@ -9,17 +9,17 @@ export const FeatureCardsSection = () => {
         </p>
       </div>
       <div className="rounded-[28px] border border-[#eadfce] bg-white p-6">
-        <p className="text-sm font-medium text-[#6b7280]">Segera hadir</p>
-        <h2 className="mt-2 text-xl font-semibold text-[#1f2937]">Scholarship Hub</h2>
+        <p className="text-sm font-medium text-[#f58a1f]">Tersedia sekarang</p>
+        <h2 className="mt-2 text-xl font-semibold text-[#1f2937]">Dreamtracker</h2>
         <p className="mt-2 text-sm leading-6 text-[#6b7280]">
-          Rekomendasi pendanaan dan dukungan perencanaan akan hadir di sini berikutnya.
+          Pantau milestone persiapanmu dan simpan progres aplikasi dalam satu tempat.
         </p>
       </div>
       <div className="rounded-[28px] border border-[#eadfce] bg-white p-6">
         <p className="text-sm font-medium text-[#6b7280]">Segera hadir</p>
-        <h2 className="mt-2 text-xl font-semibold text-[#1f2937]">Dreamtracker</h2>
+        <h2 className="mt-2 text-xl font-semibold text-[#1f2937]">Scholarship Hub</h2>
         <p className="mt-2 text-sm leading-6 text-[#6b7280]">
-          Pantau milestone persiapanmu dan simpan progres aplikasi dalam satu tempat.
+          Rekomendasi pendanaan dan dukungan perencanaan akan hadir di sini berikutnya.
         </p>
       </div>
     </section>

@@ -10,7 +10,7 @@ export const HeroSection = () => {
         Lanjutkan persiapan studi ke luar negeri
       </h1>
       <p className="mt-3 max-w-2xl text-base leading-7 text-[#6b7280]">
-        Globalmatch AI telah tersedia. Fitur Scholarship Hub dan Dreamtracker saat ini sedang dalam tahap pengembangan dan akan segera hadir.
+        Globalmatch AI dan Dreamtracker telah tersedia. Fitur Scholarship Hub saat ini sedang dalam tahap pengembangan dan akan segera hadir.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
