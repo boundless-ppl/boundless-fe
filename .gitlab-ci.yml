@@ -48,6 +48,8 @@ build_and_push_image:
     - test -n "$GCP_PROJECT_ID" || (echo "GCP_PROJECT_ID is required" && exit 1)
     - test -n "$GCP_SA_KEY" || (echo "GCP_SA_KEY is required (Service Account JSON)" && exit 1)
     - test -n "$NEXT_PUBLIC_API_BASE_URL" || (echo "NEXT_PUBLIC_API_BASE_URL is required for production build" && exit 1)
+    - echo "$NEXT_PUBLIC_API_BASE_URL" | grep -Eq '^https?://[^[:space:]]+$' || (echo "NEXT_PUBLIC_API_BASE_URL must be a valid http/https URL" && exit 1)
+    - echo "$NEXT_PUBLIC_API_BASE_URL" | grep -Eqi 'https?://(localhost|127\.0\.0\.1)(:|/|$)' && (echo "NEXT_PUBLIC_API_BASE_URL cannot point to localhost/127.0.0.1 for Cloud Run deployment" && exit 1) || true
     - test -n "$GAR_REPOSITORY" || (echo "GAR_REPOSITORY is required" && exit 1)
     - test -n "$CLOUD_RUN_SERVICE" || (echo "CLOUD_RUN_SERVICE is required" && exit 1)
     - |
@@ -57,6 +59,7 @@ build_and_push_image:
           printf "NEXT_PUBLIC_AMPLITUDE_API_KEY=%s\n" "$NEXT_PUBLIC_AMPLITUDE_API_KEY"
         fi
       } > .env.production
+    - grep -q '^NEXT_PUBLIC_API_BASE_URL=' .env.production || (echo ".env.production missing NEXT_PUBLIC_API_BASE_URL" && exit 1)
     - |
       if [ -f "$GCP_SA_KEY" ]; then
         cp "$GCP_SA_KEY" "$CI_PROJECT_DIR/gcp-key.json"
