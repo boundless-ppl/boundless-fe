@@ -40,12 +40,26 @@ function getDeadlineStatus(deadline: string): {
   };
 }
 
+function normalizeExternalUrl(value?: string): string | null {
+  const raw = (value ?? "").trim();
+  if (!raw) return null;
+
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const parsed = new URL(withScheme);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 export const ScholarshipCard = ({ scholarship }: Props) => {
   const deadlineStatus = getDeadlineStatus(scholarship.deadline);
+  const externalUrl = normalizeExternalUrl(scholarship.link_pendaftaran);
 
   return (
     <div className="group flex flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:border-orange-200 hover:shadow-[0_8px_24px_rgba(245,138,31,0.08)]">
-      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {scholarship.tipe_pembiayaan && (
@@ -58,17 +72,30 @@ export const ScholarshipCard = ({ scholarship }: Props) => {
           </h3>
           <p className="mt-0.5 text-xs font-medium text-gray-400">{scholarship.provider}</p>
         </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50">
-          <ExternalLink className="h-5 w-5 text-[#f58a1f]" />
-        </div>
+
+        {externalUrl ? (
+          <a
+            href={externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Buka website pendaftaran"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 transition-colors hover:bg-orange-100"
+          >
+            <ExternalLink className="h-5 w-5 text-[#f58a1f]" />
+          </a>
+        ) : (
+          <span
+            aria-label="Link pendaftaran belum tersedia"
+            className="flex h-10 w-10 shrink-0 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100"
+            title="Link pendaftaran belum tersedia"
+          >
+            <ExternalLink className="h-5 w-5 text-gray-400" />
+          </span>
+        )}
       </div>
 
-      {/* Description */}
-      <p className="mt-3 text-sm leading-6 text-gray-500 line-clamp-3 flex-1">
-        {scholarship.deskripsi}
-      </p>
+      <p className="mt-3 text-sm leading-6 text-gray-500 line-clamp-3 flex-1">{scholarship.deskripsi}</p>
 
-      {/* Meta */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {scholarship.negara && (
           <span className="inline-flex items-center gap-1 rounded-full border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs text-gray-500">
@@ -84,14 +111,13 @@ export const ScholarshipCard = ({ scholarship }: Props) => {
         )}
       </div>
 
-      {/* Footer */}
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-50 pt-4">
         <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${deadlineStatus.bg} ${deadlineStatus.text} ${deadlineStatus.border}`}>
           <Calendar className="h-3 w-3" />
           {deadlineStatus.label}
         </div>
         <Link
-          href={`/scholarshiphub/${scholarship.id}`}
+          href={`/scholarship/${scholarship.id}`}
           className="shrink-0 rounded-xl bg-[#f58a1f] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#dd7611]"
         >
           Lihat Detail
