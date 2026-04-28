@@ -162,6 +162,11 @@ deploy_cloud_run:
           --platform managed \
           --allow-unauthenticated \
           --quiet
+        gcloud run services add-iam-policy-binding "$CLOUD_RUN_SERVICE" \
+          --project "$GCP_PROJECT_ID" \
+          --region "$GCP_REGION" \
+          --member="allUsers" \
+          --role="roles/run.invoker"
       else
         gcloud run deploy "$CLOUD_RUN_SERVICE" \
           --image "$IMAGE_URI" \
