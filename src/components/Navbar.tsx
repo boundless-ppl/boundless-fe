@@ -70,6 +70,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
 
   const navLinks: NavLink[] = [
     { href: "/", label: "Beranda", loggedIn: false },
+    { href: "/scholarshiphub", label: "Scholarship Hub", loggedIn: false },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
     { href: "/globalmatch", label: "Globalmatch", loggedIn: true },
     { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true, requiresPremium: true },
