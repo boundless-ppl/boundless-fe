@@ -7,6 +7,7 @@ import { ScholarshipDetailHeader } from "./sections/ScholarshipDetailHeader";
 import { ScholarshipDetailInfo } from "./sections/ScholarshipDetailInfo";
 import { UniversityListSection } from "./sections/UniversityListSection";
 import { getScholarshipById } from "@/features/scholarshiphub/services/scholarship.service";
+import { useAuth } from "@/lib/auth-context";
 import type { Scholarship } from "@/lib/api-types";
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export const ScholarshipDetailPageModule = ({ scholarshipId }: Props) => {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [scholarship, setScholarship] = useState<Scholarship | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isNotFound, setIsNotFound] = useState(false);
@@ -83,7 +85,7 @@ export const ScholarshipDetailPageModule = ({ scholarshipId }: Props) => {
             Beasiswa yang kamu cari tidak tersedia atau telah berakhir.
           </p>
           <Link
-            href="/scholarshiphub"
+            href="/scholarship"
             className="mt-6 inline-flex rounded-xl bg-[#f58a1f] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#dd7611] transition-colors"
           >
             Lihat Semua Beasiswa
@@ -97,7 +99,7 @@ export const ScholarshipDetailPageModule = ({ scholarshipId }: Props) => {
     <main className="min-h-screen bg-[#faf8f4]">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-4">
         <ScholarshipDetailHeader scholarship={scholarship} />
-        <ScholarshipDetailInfo scholarship={scholarship} />
+        <ScholarshipDetailInfo scholarship={scholarship} isLocked={isAuthLoading || !isAuthenticated} />
         {scholarship.universitas && scholarship.universitas.length > 0 && (
           <UniversityListSection universities={scholarship.universitas} />
         )}
