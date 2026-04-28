@@ -103,6 +103,42 @@ export async function getMe(accessToken: string): Promise<UserData> {
   };
 }
 
+export async function updateProfileRequest(accessToken: string, namaLengkap: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ nama_lengkap: namaLengkap }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error((payload as { error?: string } | null)?.error ?? "Failed to update profile");
+  }
+}
+
+export async function changePasswordRequest(
+  accessToken: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/auth/me/password`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error((payload as { error?: string } | null)?.error ?? "Failed to change password");
+  }
+}
+
 function getCookieValue(name: string): string | null {
   if (typeof document === "undefined") return null;
 
