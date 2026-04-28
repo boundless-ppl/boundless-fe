@@ -64,22 +64,6 @@ export const ScholarshipHubPageModule = () => {
 
   return (
     <main className="min-h-screen bg-[#faf8f4]">
-      {/* Hero */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50">
-              <BookOpen className="h-6 w-6 text-[#f58a1f]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Scholarship Hub</h1>
-              <p className="mt-0.5 text-sm text-gray-500">
-                Temukan beasiswa yang tepat untuk perjalanan akademikmu
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Search & Filter */}
