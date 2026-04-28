@@ -45,13 +45,28 @@ function getDeadlineBadge(deadline: string): {
   };
 }
 
+function normalizeExternalUrl(value?: string): string | null {
+  const raw = (value ?? "").trim();
+  if (!raw) return null;
+
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const parsed = new URL(withScheme);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 export const ScholarshipDetailHeader = ({ scholarship }: Props) => {
   const deadlineBadge = getDeadlineBadge(scholarship.deadline);
+  const externalUrl = normalizeExternalUrl(scholarship.link_pendaftaran);
 
   return (
     <div className="space-y-4">
       <Link
-        href="/scholarshiphub"
+        href="/scholarship"
         className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -81,21 +96,35 @@ export const ScholarshipDetailHeader = ({ scholarship }: Props) => {
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-gray-50 pt-5">
-          <div className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium ${deadlineBadge.bg} ${deadlineBadge.text} ${deadlineBadge.border}`}>
+        <div className="mt-5 flex flex-col gap-3 border-t border-gray-50 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium ${deadlineBadge.bg} ${deadlineBadge.text} ${deadlineBadge.border}`}
+          >
             <Calendar className="h-4 w-4" />
             <span>Deadline: {deadlineBadge.label}</span>
           </div>
 
-          <a
-            href={scholarship.link_pendaftaran}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#f58a1f] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#dd7611]"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Daftar Sekarang
-          </a>
+          {externalUrl ? (
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#f58a1f] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#dd7611]"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Daftar Sekarang
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-500"
+              title="Link pendaftaran belum tersedia"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Link Belum Tersedia
+            </button>
+          )}
         </div>
       </div>
     </div>
