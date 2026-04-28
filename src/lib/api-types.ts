@@ -395,6 +395,44 @@ export interface SubmitRequirementResponse {
 }
 
 // ============================================
+// Scholarship Types
+// ============================================
+
+export interface ScholarshipUniversity {
+  university_id: string;
+  nama: string;
+  kota: string;
+  negara: string;
+  ranking?: number;
+  website?: string;
+  tipe?: "public" | "private";
+  deskripsi?: string;
+}
+
+export interface Scholarship {
+  id: string;
+  nama: string;
+  provider: string;
+  deskripsi: string;
+  persyaratan: string[];
+  benefit: string[];
+  deadline: string;
+  link_pendaftaran: string;
+  tipe_pembiayaan?: string;
+  negara?: string;
+  is_active: boolean;
+  universitas?: ScholarshipUniversity[];
+}
+
+export interface ScholarshipListResponse {
+  data: Scholarship[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+// ============================================
 // Form Data for Multipart Requests
 // ============================================
 

@@ -47,6 +47,10 @@ export const API_CONFIG = {
       BASE: "/admin/payments",
       STATUS: (id: string) => `/admin/payments/${id}/status`,
     },
+    SCHOLARSHIPS: {
+      BASE: "/scholarships",
+      BY_ID: (id: string) => `/scholarships/${id}`,
+    },
   },
   HEADERS: {
     CONTENT_TYPE_JSON: "application/json",
