@@ -73,7 +73,7 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
     { href: "/", label: "Beranda", loggedIn: false, hideWhenLoggedIn: true },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
     { href: "/scholarship", label: "Scholarship Hub", loggedIn: false },
-    { href: "/globalmatch", label: "Globalmatch", loggedIn: true },
+    { href: "/globalmatch", label: "Globalmatch AI", loggedIn: true },
     { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true, requiresPremium: true },
   ]
 
