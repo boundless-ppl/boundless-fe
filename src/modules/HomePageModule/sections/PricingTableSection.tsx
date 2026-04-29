@@ -262,11 +262,9 @@ export default function PricingTableSection({ initialPackages }: Props) {
 
                         <div>
                           <p className="text-[#FA8613] text-sm font-semibold tracking-wide uppercase">{plan.name}</p>
-                          {plan.savingsLabel && (
-                            <span className="inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full">
-                              {plan.savingsLabel}
-                            </span>
-                          )}
+                          <span className={cn("inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full", !plan.savingsLabel && "invisible")}>
+                            {plan.savingsLabel ?? "placeholder"}
+                          </span>
                         </div>
 
                         <div>
