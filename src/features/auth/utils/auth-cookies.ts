@@ -4,7 +4,7 @@ import {
   REFRESH_TOKEN_COOKIE,
   USER_COOKIE,
 } from "@/features/auth/constants/auth.constants";
-import { isAccessTokenExpired } from "@/features/auth/utils/access-token";
+import { isAccessTokenExpired, parseAccessToken } from "@/features/auth/utils/access-token";
 import type { AuthTokens, UserData } from "@/features/auth/types/auth.types";
 
 function getCookieValue(name: string) {
@@ -38,10 +38,22 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
+function tokenMaxAgeSeconds(token: string) {
+  const claims = parseAccessToken(token);
+  if (!claims) {
+    return COOKIE_MAX_AGE_SECONDS;
+  }
+
+  return Math.max(Math.floor((claims.expiresAt.getTime() - Date.now()) / 1000), 0);
+}
+
 export function saveAuthToCookies(tokens: AuthTokens, user: UserData) {
-  setCookie(ACCESS_TOKEN_COOKIE, tokens.accessToken);
-  setCookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken);
-  setCookie(USER_COOKIE, JSON.stringify(user));
+  const accessMaxAge = tokenMaxAgeSeconds(tokens.accessToken);
+  const refreshMaxAge = tokenMaxAgeSeconds(tokens.refreshToken);
+
+  setCookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, accessMaxAge);
+  setCookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, refreshMaxAge);
+  setCookie(USER_COOKIE, JSON.stringify(user), refreshMaxAge);
 }
 
 export function clearAuthCookies() {

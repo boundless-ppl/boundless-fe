@@ -17,6 +17,14 @@ export const API_CONFIG = {
       BASE: "/universities",
       BY_ID: (id: string) => `/universities/${id}`,
     },
+    // Dream Tracker endpoints
+    DREAM_TRACKERS: {
+      BASE: "/dream-trackers",
+      SUMMARY: "/dream-trackers/summary",
+      GROUPED: "/dream-trackers/grouped",
+      BY_ID: (id: string) => `/dream-trackers/${id}`,
+      UPLOAD_DOCUMENT: (id: string) => `/dream-trackers/requirements/${id}/document`,
+    },
     // Recommendations endpoints
     RECOMMENDATIONS: {
       DOCUMENTS: "/recommendations/documents",
@@ -25,6 +33,23 @@ export const API_CONFIG = {
       TRANSCRIPT: "/recommendations/transcript",
       CV: "/recommendations/cv",
       PROFILE: "/recommendations/profile",
+    },
+    // Subscription and payment endpoints
+    SUBSCRIPTIONS: {
+      PACKAGES: "/subscriptions/packages",
+    },
+    PAYMENTS: {
+      BASE: "/payments",
+      BY_ID: (id: string) => `/payments/${id}`,
+      PROOF: (id: string) => `/payments/${id}/proof`,
+    },
+    ADMIN_PAYMENTS: {
+      BASE: "/admin/payments",
+      STATUS: (id: string) => `/admin/payments/${id}/status`,
+    },
+    SCHOLARSHIPS: {
+      BASE: "/scholarships",
+      BY_ID: (id: string) => `/scholarships/${id}`,
     },
   },
   HEADERS: {

@@ -3,7 +3,7 @@ import { GraduationCap, Sparkles, Target, Zap } from "lucide-react";
 export type FeatureStatus = 'in-development' | 'coming-soon' | 'live';
 
 export const FEATURE_FLAGS = {
-  SHOW_PRICING: false,
+  SHOW_PRICING: true,
 };
 
 export const FEATURES = [
@@ -52,7 +52,7 @@ export const FEATURE_STEPS = [
     bgColor: "bg-emerald-600",
     accentColor: "border-emerald-500",
     illustration: "/DREAMTRACKER.jpg",
-    status: "coming-soon" as FeatureStatus
+    status: "live" as FeatureStatus
   },
   {
     title: "Auto-Fill",
@@ -74,7 +74,7 @@ export const FEATURES_NEW = [
   {
     title: "Dashboard Verifikasi Dokumen",
     description: "Unggah dan verifikasi semua dokumen pentingmu di satu tempat yang aman.",
-    status: "coming-soon" as FeatureStatus,
+    status: "live" as FeatureStatus,
     featureKey: "dreamtracker"
   },
   {
@@ -90,35 +90,4 @@ export const PLAN_FEATURES = [
   "Dashboard verifikasi dokumen",
   "Pengisian formulir universitas massal",
   "Akses semua fitur baru",
-];
-
-export const PRICING_PLANS = [
-  {
-    name: "1 Bulan",
-    price: "Rp 79.000",
-    subtext: "per bulan · Rp 79.000/bulan",
-    buttonText: "Pilih Paket",
-    highlight: false,
-    checkColor: "#4479B2",
-  },
-  {
-    name: "3 Bulan",
-    price: "Rp 199.000",
-    subtext: "per 3 bulan · Rp 66.333/bulan",
-    buttonText: "Mulai Sekarang",
-    highlight: true,
-    badge: "Populer",
-    discount: "Hemat 16%",
-    checkColor: "#FA8613",
-  },
-  {
-    name: "1 Tahun",
-    price: "Rp 699.000",
-    subtext: "per tahun · Rp 58.250/bulan",
-    buttonText: "Pilih Paket",
-    highlight: false,
-    badge: "Terbaik",
-    discount: "Hemat 26%",
-    checkColor: "#4479B2",
-  },
 ];

@@ -16,8 +16,8 @@ import {
 import type { RecommendationResult, ProgramRecommendation } from "@/lib/api-types";
 
 interface ResultStepProps {
-  result: RecommendationResult;
-  onClose: () => void;
+  readonly result: RecommendationResult;
+  readonly onClose: () => void;
 }
 
 function listKey(value: string, index: number) {
@@ -330,12 +330,12 @@ export function ResultStep({ result, onClose }: Readonly<ResultStepProps>) {
           </p>
           <p className="text-[#666]">
             <span className="font-medium text-[#2b2b2b]">Kekuatan: </span>
-            {student_profile_summary.strengths.join(", ")}
+            {student_profile_summary.key_strengths.join(", ")}
           </p>
-          {student_profile_summary.improvement_areas.length > 0 && (
+          {student_profile_summary.considerations.length > 0 && (
             <p className="text-[#666]">
               <span className="font-medium text-[#2b2b2b]">Area Pengembangan: </span>
-              {student_profile_summary.improvement_areas.join(", ")}
+              {student_profile_summary.considerations.join(", ")}
             </p>
           )}
         </div>

@@ -3,6 +3,11 @@ export type UserData = {
   nama_lengkap: string;
   email: string;
   role: string;
+  isPremium?: boolean;
+  hasPendingPayment?: boolean;
+  transactionId?: string | null;
+  premiumStartAt?: string | null;
+  premiumEndAt?: string | null;
 };
 
 export type AuthTokens = {

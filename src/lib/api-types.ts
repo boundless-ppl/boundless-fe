@@ -1,8 +1,3 @@
-/**
- * API Types and Interfaces for Boundless BE
- * Based on API contract version 2026-03-09
- */
-
 // ============================================
 // Common Types
 // ============================================
@@ -94,11 +89,11 @@ export interface LegacySubmissionResponse {
 
 export interface StudentProfileSummary {
   academic_background: string;
-  experience_summary: string;
-  strengths: string[];
-  improvement_areas: string[];
-  preferred_themes: string[];
-  raw_text: string;
+  key_strengths: string[];
+  considerations: string[];
+  recommended_tracks: string[];
+  language_evidence: string;
+  evidence_confidence?: string;
 }
 
 export interface ScoreBreakdown {
@@ -113,6 +108,8 @@ export interface ScholarshipRecommendation {
   coverage_summary: string;
   selectivity: FitLevel;
   eligibility_hint: string;
+  funding_id?: string;
+  admission_id?: string;
 }
 
 export interface ProgramRecommendation {
@@ -120,6 +117,9 @@ export interface ProgramRecommendation {
   university_name: string;
   program_name: string;
   country: string;
+  program_id?: string;
+  admission_id?: string;
+  source_rec_result_id?: string;
   fit_score: number;
   admission_chance_score: number;
   overall_recommendation_score: number;
@@ -159,6 +159,7 @@ export interface ProfileSubmissionResponse {
   status: Exclude<SubmissionStatus, "draft">;
   result_set_id: string;
   result: RecommendationResult;
+  preferred_countries?: string[];
 }
 
 // ============================================
@@ -167,15 +168,26 @@ export interface ProfileSubmissionResponse {
 
 export interface SimplifiedProgramResult {
   rank_no: number;
+  rec_result_id?: string;
+  program_id?: string;
+  admission_id?: string;
+  source_rec_result_id?: string;
   university_name: string;
   program_name: string;
   country: string;
   fit_score: number;
+  admission_chance_score?: number;
+  overall_recommendation_score?: number;
   fit_level: FitLevel;
+  admission_difficulty?: AdmissionDifficulty;
+  score_breakdown?: ScoreBreakdown;
   overview: string;
   why_this_university: string;
   why_this_program: string;
   reason_summary: string;
+  preference_reasoning?: string[];
+  match_evidence?: string[];
+  scholarship_recommendations?: ScholarshipRecommendation[];
   pros: string[];
   cons: string[];
 }
@@ -198,15 +210,236 @@ export interface SubmissionDetails {
 }
 
 // ============================================
+// Dream Tracker Types
+// ============================================
+
+export type DreamTrackerStatus = "ACTIVE" | "COMPLETED" | "ARCHIVED";
+export type DreamRequirementStatus =
+  | "NOT_UPLOADED"
+  | "UPLOADED"
+  | "REVIEWING"
+  | "VERIFIED"
+  | "VERIFIED_WITH_WARNING"
+  | "REJECTED"
+  | "NEEDS_REVIEW"
+  | "REUSED";
+export type MilestoneStatus = "NOT_STARTED" | "DONE" | "MISSED";
+export type FundingStatus = "AVAILABLE" | "SELECTED";
+export type ReviewSource = "NEW_UPLOAD" | "REUSED_EXISTING" | "SKIPPED_ALREADY_VERIFIED";
+export type ReviewStatus = "NOT_STARTED" | "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "SKIPPED";
+
+export interface DreamTrackerSummaryData {
+  completion_percentage: number;
+  completed_requirements: number;
+  total_requirements: number;
+  next_deadline_at: string | null;
+  is_deadline_near: boolean;
+  is_overdue: boolean;
+}
+
+export interface DreamTrackerProgram {
+  program_id: string;
+  program_name: string;
+  university_name: string;
+  admission_name: string;
+  intake: string;
+  admission_url: string;
+  admission_deadline: string;
+}
+
+export interface DreamRequirementDocument {
+  document_id: string;
+  document_type: string;
+  original_filename: string;
+  public_url: string;
+  mime_type?: string;
+  uploaded_at: string;
+}
+
+export interface DreamRequirementReview {
+  source: ReviewSource;
+  status: ReviewStatus;
+  is_reused: boolean;
+  is_already_verified: boolean;
+  ai_message: string | null;
+  last_processed_at: string | null;
+}
+
+export interface DreamRequirement {
+  dream_req_status_id: string;
+  req_catalog_id: string;
+  requirement_key: string;
+  requirement_label: string;
+  category: string;
+  status: DreamRequirementStatus;
+  status_label: string;
+  status_variant: string;
+  can_upload: boolean;
+  needs_reupload: boolean;
+  document: DreamRequirementDocument | null;
+  review: DreamRequirementReview;
+}
+
+export interface DreamMilestone {
+  dream_milestone_id: string;
+  title: string;
+  status: MilestoneStatus;
+  deadline_date: string;
+}
+
+export interface DreamFunding {
+  funding_id: string;
+  nama_beasiswa: string;
+  deskripsi?: string | null;
+  provider: string;
+  tipe_pembiayaan?: string;
+  website?: string;
+  status: FundingStatus;
+}
+
+export interface DreamTrackerItem {
+  dream_tracker_id: string;
+  title: string;
+  subtitle: string;
+  status: DreamTrackerStatus;
+  status_label: string;
+  status_variant: string;
+  created_at: string;
+  updated_at: string;
+  deadline_at: string | null;
+  summary: DreamTrackerSummaryData;
+  program: DreamTrackerProgram;
+  requirements: DreamRequirement[];
+  milestones: DreamMilestone[];
+  fundings: DreamFunding[];
+}
+
+export interface DreamTrackerDashboardSummary {
+  total_applications: number;
+  incomplete_count: number;
+  completed_count: number;
+  deadline_near_count: number;
+}
+
+// Grouped endpoint types
+export interface DreamTrackerGroupedUniversityItem {
+  dream_tracker_id: string;
+  title: string;
+  program_name: string;
+  admission_name: string;
+  status: DreamTrackerStatus;
+  status_label: string;
+  completion_percentage: number;
+  is_selected: boolean;
+}
+
+export interface DreamTrackerGroupedUniversity {
+  university_id: string;
+  university_name: string;
+  items: DreamTrackerGroupedUniversityItem[];
+}
+
+export interface DreamTrackerGroupedFundingItem {
+  dream_tracker_id: string;
+  title: string;
+  program_name: string;
+  university_name: string;
+  status: DreamTrackerStatus;
+  status_label: string;
+  completion_percentage: number;
+  is_selected: boolean;
+}
+
+export interface DreamTrackerGroupedFunding {
+  funding_id: string;
+  funding_name: string;
+  items: DreamTrackerGroupedFundingItem[];
+}
+
+export interface DreamTrackerGroupedResponse {
+  default_selected_dream_tracker_id: string;
+  universities: DreamTrackerGroupedUniversity[];
+  fundings: DreamTrackerGroupedFunding[];
+  default_detail?: DreamTrackerItem;
+}
+
+export interface CreateDreamTrackerRequest {
+  program_id: string;
+  admission_id?: string | null;
+  funding_id?: string | null;
+  scholarship_name?: string | null;
+  title?: string;
+  status?: string;
+  source_type: string;
+  req_submission_id?: string | null;
+  source_rec_result_id?: string | null;
+}
+
+export interface CreateDreamTrackerResponse {
+  dream_tracker_id: string;
+  status: string;
+}
+
+export interface SubmitRequirementRequest {
+  document_type: string;
+  reuse_if_exists?: boolean;
+}
+
+export interface SubmitRequirementResponse {
+  dream_req_status_id: string;
+  status: DreamRequirementStatus;
+  status_label: string;
+  status_variant: string;
+  document: DreamRequirementDocument | null;
+  review: DreamRequirementReview;
+}
+
+// ============================================
+// Scholarship Types
+// ============================================
+
+export interface ScholarshipUniversity {
+  university_id: string;
+  nama: string;
+  kota: string;
+  negara: string;
+  ranking?: number;
+  website?: string;
+  tipe?: "public" | "private";
+  deskripsi?: string;
+}
+
+export interface Scholarship {
+  id: string;
+  nama: string;
+  provider: string;
+  deskripsi: string;
+  persyaratan: string[];
+  benefit: string[];
+  deadline: string;
+  link_pendaftaran: string;
+  tipe_pembiayaan?: string;
+  negara?: string;
+  is_active: boolean;
+  universitas?: ScholarshipUniversity[];
+}
+
+export interface ScholarshipListResponse {
+  data: Scholarship[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+// ============================================
 // Form Data for Multipart Requests
 // ============================================
 
 export interface RecommendationFormData {
-  // Files
   transcript_file?: File;
   cv_file?: File;
   
-  // Preferences (all repeatable arrays)
   continents?: string[];
   countries?: string[];
   fields_of_study?: string[];

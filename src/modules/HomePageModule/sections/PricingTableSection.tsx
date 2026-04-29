@@ -1,12 +1,148 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Check, Clock3 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatIdr } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { FEATURES_NEW, PLAN_FEATURES, PRICING_PLANS, FEATURE_FLAGS } from "../constant";
+import type { PaymentPlanId } from "@/features/payment/types/payment-form.types";
+import type { SubscriptionPackage } from "@/features/payment/types/payment-api.types";
+import { getSubscriptionPackages } from "@/features/payment/services/payment.service";
+import { getSavingsLabel } from "@/features/payment/utils/savings";
+import { FEATURES_NEW, PLAN_FEATURES, FEATURE_FLAGS } from "../constant";
 
-export default function PricingTableSection() {
+const getPriceSubtext = (durationMonths: number, totalPrice: number) => {
+  const periodLabel = durationMonths === 1 ? "per bulan" : durationMonths === 12 ? "per tahun" : `per ${durationMonths} bulan`;
+  const monthlyPrice = Math.round(totalPrice / durationMonths);
+  return {
+    left: `${periodLabel} ·`,
+    right: `${formatIdr(monthlyPrice)}/bulan`,
+  };
+};
+
+type Props = {
+  initialPackages?: SubscriptionPackage[];
+};
+
+const getPlanAppearance = (durationMonths: number) => {
+  if (durationMonths === 3) {
+    return {
+      buttonText: "Mulai Sekarang",
+      highlight: true,
+      badge: "Populer",
+      checkColor: "#FA8613",
+    };
+  }
+
+  if (durationMonths >= 6) {
+    return {
+      buttonText: "Pilih Paket",
+      highlight: false,
+      badge: "Terbaik",
+      checkColor: "#4479B2",
+    };
+  }
+
+  return {
+    buttonText: "Pilih Paket",
+    highlight: false,
+    badge: undefined,
+    checkColor: "#4479B2",
+  };
+};
+
+const resolvePlanIdByDuration = (durationMonths: number): PaymentPlanId | undefined => {
+  if (durationMonths === 1) {
+    return "1month";
+  }
+  if (durationMonths === 3) {
+    return "3month";
+  }
+  if (durationMonths >= 6) {
+    return "6month";
+  }
+
+  return undefined;
+};
+
+export default function PricingTableSection({ initialPackages }: Props) {
   const isPricingActive = FEATURE_FLAGS.SHOW_PRICING;
+  const buildPaymentHref = (planId?: string) =>
+    planId ? `/payment?plan=${encodeURIComponent(planId)}` : "/payment";
+  const [packages, setPackages] = useState<SubscriptionPackage[]>(initialPackages ?? []);
+  const [isPackageLoading, setIsPackageLoading] = useState((initialPackages?.length ?? 0) === 0);
+
+  useEffect(() => {
+    if (initialPackages && initialPackages.length > 0) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadPackagePrices = async () => {
+      setIsPackageLoading(true);
+      const result = await getSubscriptionPackages();
+      if (!isMounted) {
+        return;
+      }
+
+      if (result.error || !result.data) {
+        setIsPackageLoading(false);
+        return;
+      }
+
+      setPackages(result.data.packages);
+      setIsPackageLoading(false);
+    };
+
+    void loadPackagePrices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialPackages]);
+
+  const pricingPlans = useMemo(
+    () => {
+      const sortedPackages = [...packages].sort(
+        (firstPackage, secondPackage) =>
+          firstPackage.duration_months - secondPackage.duration_months
+      );
+
+      const oneMonthPackage = sortedPackages.find((pkg) => pkg.duration_months === 1);
+      const shortestPackage = sortedPackages[0];
+      const baseMonthlyPrice = oneMonthPackage?.price_amount
+        ?? (shortestPackage
+          ? Math.round(shortestPackage.price_amount / shortestPackage.duration_months)
+          : 0);
+
+      return sortedPackages.map((pkg) => {
+        const priceAmount = pkg.price_amount;
+        const appearance = getPlanAppearance(pkg.duration_months);
+        return {
+          paymentPlanId: resolvePlanIdByDuration(pkg.duration_months),
+          durationMonths: pkg.duration_months,
+          name: pkg.name?.trim() || `${pkg.duration_months} Bulan`,
+          subscriptionId: pkg.subscription_id,
+          priceAmount,
+          ...appearance,
+          formattedPrice: formatIdr(priceAmount),
+          subtextParts: getPriceSubtext(pkg.duration_months, priceAmount),
+          savingsLabel: getSavingsLabel(
+            priceAmount,
+            pkg.duration_months,
+            baseMonthlyPrice
+          ),
+        };
+      });
+    },
+    [packages]
+  );
+
+  const showPricingSkeleton = isPackageLoading && pricingPlans.length === 0;
+
   const launchHighlights = [
     "Akses penuh ke fitur yang sudah live",
     "Tanpa kartu kredit atau komitmen langganan",
@@ -75,68 +211,95 @@ export default function PricingTableSection() {
           <>
             {/* Pricing Cards - Active */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-              {PRICING_PLANS.map((plan) => (
-                <Card
-                  key={plan.name}
-                  className={cn(
-                    "relative rounded-2xl flex flex-col overflow-visible",
-                    plan.highlight 
-                      ? "border-2 border-[#FA8613] bg-white shadow-lg md:-mt-4" 
-                      : "border border-[#E8E8E8] bg-white shadow-sm"
-                  )}
-                >
-                  <CardContent className="p-7 flex flex-col gap-6">
-                    {plan.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <Badge className="px-4 py-1 rounded-full text-white text-xs font-semibold bg-[#FA8613] border-none whitespace-nowrap">
-                          {plan.badge}
-                        </Badge>
-                      </div>
-                    )}
+              {showPricingSkeleton
+                ? Array.from({ length: 3 }).map((_, index) => (
+                    <Card
+                      key={`pricing-skeleton-${index}`}
+                      className="relative rounded-2xl flex flex-col overflow-visible border border-[#E8E8E8] bg-white shadow-sm"
+                    >
+                      <CardContent className="p-7 flex flex-col gap-6">
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 rounded bg-gray-200 animate-pulse" />
+                          <div className="h-5 w-20 rounded-full bg-gray-100 animate-pulse" />
+                        </div>
 
-                    <div>
-                      <p className="text-[#FA8613] text-sm font-semibold tracking-wide uppercase">{plan.name}</p>
-                      {plan.discount && (
-                        <span className="inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full">
-                          {plan.discount}
-                        </span>
-                      )}
-                    </div>
+                        <div className="space-y-2">
+                          <div className="h-9 w-40 rounded bg-gray-200 animate-pulse" />
+                          <div className="h-4 w-36 rounded bg-gray-100 animate-pulse" />
+                        </div>
 
-                    <div>
-                      <p className="text-[#2B2B2B] text-3xl font-bold">{plan.price}</p>
-                      <p className="text-sm text-[#999] mt-1">
-                        {plan.subtext.split('·')[0]}· <span className="text-[#666]">{plan.subtext.split('·')[1]}</span>
-                      </p>
-                    </div>
+                        <div className="flex flex-col gap-3 flex-1">
+                          {Array.from({ length: 4 }).map((__, featureIndex) => (
+                            <div
+                              key={`pricing-feature-skeleton-${index}-${featureIndex}`}
+                              className="h-4 w-full rounded bg-gray-100 animate-pulse"
+                            />
+                          ))}
+                        </div>
 
-                    <ul className="flex flex-col gap-3 flex-1">
-                      {PLAN_FEATURES.map((item) => (
-                        <li key={item} className="flex items-center gap-2.5">
-                          <Check size={15} strokeWidth={2.5} color={plan.checkColor} className="shrink-0" />
-                          <span className="text-[#2B2B2B] text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
+                        <div className="h-12 w-full rounded-xl bg-gray-200 animate-pulse" />
+                      </CardContent>
+                    </Card>
+                  ))
+                : pricingPlans.map((plan) => (
+                    <Card
+                      key={plan.subscriptionId}
                       className={cn(
-                        "w-full py-5 rounded-xl text-sm font-semibold h-auto",
+                        "relative rounded-2xl flex flex-col overflow-visible",
                         plan.highlight
-                          ? "text-white bg-[#FA8613] hover:bg-[#e57a0f] border-none"
-                          : "text-[#666] border border-[#ddd] bg-white hover:bg-gray-50"
+                          ? "border-2 border-[#FA8613] bg-white shadow-lg md:-mt-4"
+                          : "border border-[#E8E8E8] bg-white shadow-sm"
                       )}
                     >
-                      {plan.buttonText}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <CardContent className="p-7 flex flex-col gap-6">
+                        {plan.badge && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                            <Badge className="px-4 py-1 rounded-full text-white text-xs font-semibold bg-[#FA8613] border-none whitespace-nowrap">
+                              {plan.badge}
+                            </Badge>
+                          </div>
+                        )}
 
-            <p className="text-center text-[#aaa] text-sm mt-10">
-              Semua paket termasuk akses ke semua fitur. Tidak ada biaya tersembunyi.
-            </p>
+                        <div>
+                          <p className="text-[#FA8613] text-sm font-semibold tracking-wide uppercase">{plan.name}</p>
+                          {plan.savingsLabel && (
+                            <span className="inline-block mt-1 bg-orange-50 text-[#FA8613] text-xs font-medium px-2.5 py-0.5 rounded-full">
+                              {plan.savingsLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="text-[#2B2B2B] text-3xl font-bold">{plan.formattedPrice}</p>
+                          <p className="text-sm text-[#999] mt-1">
+                            {plan.subtextParts.left} <span className="text-[#666]">{plan.subtextParts.right}</span>
+                          </p>
+                        </div>
+
+                        <ul className="flex flex-col gap-3 flex-1">
+                          {PLAN_FEATURES.map((item) => (
+                            <li key={item} className="flex items-center gap-2.5">
+                              <Check size={15} strokeWidth={2.5} color={plan.checkColor} className="shrink-0" />
+                              <span className="text-[#2B2B2B] text-sm">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <Button
+                          asChild
+                          className={cn(
+                            "w-full py-5 rounded-xl text-sm font-semibold h-auto",
+                            plan.highlight
+                              ? "text-white bg-[#FA8613] hover:bg-[#e57a0f] border-none"
+                              : "text-[#666] border border-[#ddd] bg-white hover:bg-gray-50"
+                          )}
+                        >
+                          <Link href={buildPaymentHref(plan.paymentPlanId)}>{plan.buttonText}</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+            </div>
           </>
         ) : (
             <div className="rounded-3xl border border-[#e8ddd0] bg-[#fffaf5] p-6 md:p-10">
@@ -203,8 +366,8 @@ export default function PricingTableSection() {
                     </li>
                   </ul>
 
-                  <Button className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
-                    Coba Boundless Sekarang
+                  <Button asChild className="mt-6 h-auto w-full rounded-xl bg-[#2B2B2B] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#1a1a1a]">
+                    <Link href={buildPaymentHref()}>Coba Boundless Sekarang</Link>
                   </Button>
                 </div>
               </div>

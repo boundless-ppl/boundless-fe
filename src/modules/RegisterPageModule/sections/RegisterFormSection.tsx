@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff, ShieldCheck, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, ShieldCheck, UserPlus } from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -23,10 +23,14 @@ import { registerFormSchema, type RegisterFormSchema } from "@/features/auth/sch
 
 export const RegisterFormSection = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const nextPathParam = searchParams.get("next");
+  const safeNextPath = nextPathParam?.startsWith("/") ? nextPathParam : null;
 
   const form = useForm<RegisterFormSchema>({
     resolver: zodResolver(registerFormSchema),
@@ -52,8 +56,12 @@ export const RegisterFormSection = () => {
         password: data.password,
       });
 
-      router.push("/login");
+      setIsNavigating(true);
+      router.push(
+        safeNextPath ? `/login?next=${encodeURIComponent(safeNextPath)}` : "/login"
+      );
     } catch (err: unknown) {
+      setIsNavigating(false);
       if (err instanceof Error) {
         setAuthError(err.message || "Registration failed.");
       } else {
@@ -73,7 +81,15 @@ export const RegisterFormSection = () => {
       />
       
       <div className="relative flex w-full justify-center">
-        <div className="w-full max-w-4xl rounded-2xl md:rounded-[28px] border border-[#eadfce] bg-white/96 p-5 shadow-[0_18px_40px_rgba(31,31,31,0.06)] backdrop-blur sm:p-6">
+        <div className="relative w-full max-w-4xl rounded-2xl md:rounded-[28px] border border-[#eadfce] bg-white/96 p-5 shadow-[0_18px_40px_rgba(31,31,31,0.06)] backdrop-blur sm:p-6">
+          {(form.formState.isSubmitting || isNavigating) && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-[28px] bg-white/85 backdrop-blur-[1px]">
+              <Loader2 className="h-8 w-8 animate-spin text-[#f58a1f]" />
+              <p className="mt-3 text-sm font-medium text-[#9a4e0c]">
+                Menyiapkan akun Anda...
+              </p>
+            </div>
+          )}
           <div className="mb-5 text-center">
             <Image
               src="/boundless.png"
@@ -102,6 +118,7 @@ export const RegisterFormSection = () => {
                       <FormControl>
                         <Input
                           placeholder="Jane Doe"
+                          disabled={form.formState.isSubmitting || isNavigating}
                           className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                           {...field}
                         />
@@ -121,6 +138,7 @@ export const RegisterFormSection = () => {
                         <Input
                           type="email"
                           placeholder="you@example.com"
+                          disabled={form.formState.isSubmitting || isNavigating}
                           className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                           {...field}
                         />
@@ -141,11 +159,13 @@ export const RegisterFormSection = () => {
                           <Input
                             type={showPassword ? "text" : "password"}
                             placeholder="Masukkan kata sandi Anda"
+                            disabled={form.formState.isSubmitting || isNavigating}
                             className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                             {...field}
                           />
                           <button
                             type="button"
+                            disabled={form.formState.isSubmitting || isNavigating}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
                             onClick={() => setShowPassword((value) => !value)}
                           >
@@ -169,11 +189,13 @@ export const RegisterFormSection = () => {
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Konfirmasi kata sandi Anda"
+                            disabled={form.formState.isSubmitting || isNavigating}
                             className="h-11 rounded-2xl border-[#d7dbe2] bg-[#fcfcfd] px-4 pr-12 text-[15px] focus-visible:border-[#f58a1f] focus-visible:ring-[#f58a1f]/15"
                             {...field}
                           />
                           <button
                             type="button"
+                            disabled={form.formState.isSubmitting || isNavigating}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition-colors hover:text-[#1f2937]"
                             onClick={() => setShowConfirmPassword((value) => !value)}
                           >
@@ -197,6 +219,7 @@ export const RegisterFormSection = () => {
                         <label className="flex items-start gap-3 text-sm leading-6 text-[#4b5563]">
                           <input
                             type="checkbox"
+                            disabled={form.formState.isSubmitting || isNavigating}
                             checked={field.value}
                             onChange={(event) => field.onChange(event.target.checked)}
                             className="mt-1 h-4 w-4 rounded border-[#d1d5db] text-[#111827] focus:ring-[#111827]"
@@ -235,18 +258,21 @@ export const RegisterFormSection = () => {
 
               <Button
                 type="submit"
-                disabled={form.formState.isSubmitting}
+                disabled={form.formState.isSubmitting || isNavigating}
                 className="h-11 w-full rounded-2xl bg-[#f58a1f] text-sm font-semibold text-white hover:bg-[#dd7611]"
               >
                 <span className="inline-flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  {form.formState.isSubmitting ? "Membuat akun..." : "Buat Akun"}
+                  {form.formState.isSubmitting || isNavigating ? "Memproses..." : "Buat Akun"}
                 </span>
               </Button>
 
               <p className="text-center text-sm text-[#6b7280]">
                 Sudah memiliki akun?{" "}
-                <Link href="/login" className="font-semibold text-[#f58a1f] hover:text-[#dd7611]">
+                <Link
+                  href={safeNextPath ? `/login?next=${encodeURIComponent(safeNextPath)}` : "/login"}
+                  className="font-semibold text-[#f58a1f] hover:text-[#dd7611]"
+                >
                   Masuk
                 </Link>
               </p>

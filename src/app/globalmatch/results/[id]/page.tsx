@@ -14,6 +14,12 @@ function mapSubmissionDetailsToProfileResult(
 ): ProfileSubmissionResponse | null {
   const latestResult = details.latest_result;
   const programs = latestResult?.results;
+  const preferredCountries = Array.isArray(details.preferences)
+    ? details.preferences
+        .filter((preference) => preference.pref_key === "countries")
+        .map((preference) => preference.pref_value)
+        .filter(Boolean)
+    : [];
 
   if (!latestResult || !Array.isArray(programs) || programs.length === 0) {
     return null;
@@ -23,37 +29,44 @@ function mapSubmissionDetailsToProfileResult(
     submission_id: details.submission_id || submissionId,
     status: details.status === "completed" ? "completed" : "processing",
     result_set_id: latestResult.result_set_id,
+    preferred_countries: preferredCountries,
     result: {
       student_profile_summary: {
         academic_background: "Ringkasan profil akademik tidak tersedia pada hasil server ini.",
-        experience_summary: "",
-        strengths: [],
-        improvement_areas: [],
-        preferred_themes: [],
-        raw_text: "",
+        key_strengths: [],
+        considerations: [],
+        recommended_tracks: [],
+        language_evidence: "not_available",
       },
       top_recommendations: programs.map((program) => ({
         rank: program.rank_no,
+        program_id: program.program_id,
+        admission_id: program.admission_id,
+        source_rec_result_id: program.source_rec_result_id ?? program.rec_result_id,
         university_name: program.university_name,
         program_name: program.program_name,
         country: program.country,
         fit_score: program.fit_score,
-        admission_chance_score: 0,
-        overall_recommendation_score: program.fit_score,
+        admission_chance_score: program.admission_chance_score ?? 0,
+        overall_recommendation_score: program.overall_recommendation_score ?? program.fit_score,
         fit_level: program.fit_level,
-        admission_difficulty: "moderate",
-        score_breakdown: {
+        admission_difficulty: program.admission_difficulty ?? "moderate",
+        score_breakdown: program.score_breakdown ?? {
           academic_fit: program.fit_score,
           preference_match: program.fit_score,
           curriculum_relevance: program.fit_score,
-          admission_chance: 0,
+          admission_chance: program.admission_chance_score ?? 0,
         },
         overview: program.overview,
         why_this_university: program.why_this_university,
         why_this_program: program.why_this_program,
-        preference_reasoning: [program.reason_summary].filter(Boolean),
-        match_evidence: [program.reason_summary].filter(Boolean),
-        scholarship_recommendations: [],
+        preference_reasoning: (program.preference_reasoning && program.preference_reasoning.length > 0)
+          ? program.preference_reasoning
+          : [program.reason_summary].filter(Boolean),
+        match_evidence: (program.match_evidence && program.match_evidence.length > 0)
+          ? program.match_evidence
+          : [program.reason_summary].filter(Boolean),
+        scholarship_recommendations: program.scholarship_recommendations ?? [],
         pros: program.pros,
         cons: program.cons,
       })),
@@ -202,7 +215,10 @@ export default function GlobalmatchResultsPage() {
 
         {/* Success State - Display Results */}
         {result && !isLoading && !error && (
-          <RecommendationDisplay result={result} />
+          <RecommendationDisplay
+            result={result}
+            preferredCountries={result.preferred_countries ?? []}
+          />
         )}
       </div>
     </div>

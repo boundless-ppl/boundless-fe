@@ -1,0 +1,4 @@
+#!include:.gitignore
+
+# Required at build time for NEXT_PUBLIC_* injection in Next.js client bundle.
+!.env.production
