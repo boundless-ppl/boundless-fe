@@ -13,6 +13,20 @@ export const HeroSection = () => {
   return (
     <section className="relative overflow-hidden px-4 py-10 font-sans md:px-6 md:py-14">
       <div className="relative mx-auto max-w-4xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold">
+            <span
+              className="bg-gradient-to-r from-[#f58a1f] via-[#f9a84d] to-[#fbbf24] bg-clip-text text-transparent"
+              style={{ WebkitTextStroke: "1px rgba(245,138,31,0.3)" }}
+            >
+              Globalmatch AI
+            </span>
+          </h1>
+          <p className="mt-2 text-base text-[#6b7280]">
+            Unggah profilmu dan dapatkan rekomendasi universitas berdasarkan targetmu
+          </p>
+        </div>
+
         <Card className="overflow-hidden rounded-[28px] border-[#eadfce] bg-white shadow-[0_20px_48px_rgba(31,41,55,0.08)]">
           <CardContent className="p-7 md:p-8">
             <div className="mb-6 flex items-center justify-between">
