@@ -21,6 +21,7 @@ type NavLink = {
   loggedIn: boolean
   requiresPremium?: boolean
   comingSoon?: boolean
+  hideWhenLoggedIn?: boolean
 }
 
 export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HTMLElement>>) {
@@ -69,9 +70,9 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   }, [])
 
   const navLinks: NavLink[] = [
-    { href: "/", label: "Beranda", loggedIn: false },
-    { href: "/scholarship", label: "Scholarship", loggedIn: false },
+    { href: "/", label: "Beranda", loggedIn: false, hideWhenLoggedIn: true },
     { href: "/dashboard", label: "Dashboard", loggedIn: true },
+    { href: "/scholarship", label: "Scholarship Hub", loggedIn: false },
     { href: "/globalmatch", label: "Globalmatch", loggedIn: true },
     { href: "/dreamtracker", label: "Dreamtracker", loggedIn: true, requiresPremium: true },
   ]
@@ -107,6 +108,10 @@ export function Navbar({ className, ...props }: Readonly<React.HTMLAttributes<HT
   
   const canShowLink = (link: NavLink) => {
     if (link.requiresPremium && !(isMounted && isAuthenticated && isPremiumUser)) {
+      return false
+    }
+
+    if (link.hideWhenLoggedIn && isMounted && isAuthenticated) {
       return false
     }
 
