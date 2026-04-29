@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ArrowRight, Globe2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,9 +10,10 @@ import { UploadModal } from "../components/UploadModal/index";
 
 export const HeroSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBonbonHovered, setIsBonbonHovered] = useState(false);
 
   return (
-    <section className="relative overflow-hidden px-4 py-10 font-sans md:px-6 md:py-14">
+    <section className="relative overflow-hidden px-4 pt-16 pb-10 font-sans md:px-6 md:py-14">
       <div className="relative mx-auto max-w-4xl">
         <div className="mb-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold">
@@ -27,7 +29,25 @@ export const HeroSection = () => {
           </p>
         </div>
 
-        <Card className="overflow-hidden rounded-[28px] border-[#eadfce] bg-white shadow-[0_20px_48px_rgba(31,41,55,0.08)]">
+        <Card className="relative overflow-visible rounded-[28px] border-[#eadfce] bg-white shadow-[0_20px_48px_rgba(31,41,55,0.08)]">
+          <div
+            className="absolute -top-8 -left-8 md:-top-[60px] md:-left-[60px] z-10 cursor-pointer"
+            onMouseEnter={() => setIsBonbonHovered(true)}
+            onMouseLeave={() => setIsBonbonHovered(false)}
+          >
+            <Image
+              src={isBonbonHovered ? "/BONBON_MEREM.svg" : "/BONBON_HIHI.svg"}
+              alt="Bonbon"
+              width={120}
+              height={120}
+              className="w-32 h-20 md:w-[130px] md:h-[120px] transition-all duration-150"
+            />
+            {isBonbonHovered && (
+              <div className="absolute left-[110px] top-4 md:left-[120px] md:top-8 whitespace-nowrap rounded-2xl rounded-bl-none bg-white border border-[#eadfce] shadow-md px-3 py-2 text-xs font-medium text-[#1f2937]">
+                Yuk isi dokumen kamu!
+              </div>
+            )}
+          </div>
           <CardContent className="p-7 md:p-8">
             <div className="mb-6 flex items-center justify-between">
               <div>
